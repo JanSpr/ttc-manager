@@ -1,0 +1,32 @@
+# Maven / Gradle build output
+target/
+build/
+out/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IntelliJ
+.idea/
+*.iml
+
+# VS Code
+.vscode/
+
+# Eclipse
+.metadata/
+bin/
+
+# Java
+*.class
+
+# Env / secrets
+.env
+
+# Optional: local config overrides
+application-local.yml
+application-local.properties
