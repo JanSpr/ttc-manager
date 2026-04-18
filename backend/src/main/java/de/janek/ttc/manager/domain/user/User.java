@@ -21,10 +21,7 @@ import java.util.Set;
  */
 @Entity
 @Table(
-        name = "app_user",
-        uniqueConstraints = {
-                @UniqueConstraint(name = "uk_app_user_email", columnNames = "email")
-        }
+        name = "app_user"
 )
 public class User {
 
@@ -47,18 +44,19 @@ public class User {
     /**
      * Eindeutige E-Mail-Adresse.
      */
-    @Column(name = "email", nullable = false, length = 255)
+    @Column(name = "email", length = 255, unique = true)
     private String email;
 
     /**
      * Passwort-Hash.
      * Für jetzt nur als Feld vorgesehen, später mit Spring Security nutzbar.
      */
-    @Column(name = "password_hash", nullable = false, length = 255)
+    @Column(name = "password_hash", length = 255)
     private String passwordHash;
 
     /**
      * Rolle des Benutzers.
+     * Aktuell PLAYER als Standard-Wert
      */
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false, length = 30)
@@ -83,13 +81,20 @@ public class User {
 
     public User() {
     }
+    
+    public User(String firstName, String lastName) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.role = UserRole.PLAYER;
+        this.active = true;
+    }
 
     public User(String firstName, String lastName, String email, String passwordHash, UserRole role) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.passwordHash = passwordHash;
-        this.role = role;
+        this.role = role != null ? role : UserRole.PLAYER;
         this.active = true;
     }
 
