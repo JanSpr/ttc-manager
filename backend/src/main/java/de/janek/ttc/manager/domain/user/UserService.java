@@ -38,7 +38,7 @@ public class UserService {
      */
     @Transactional(readOnly = true)
     public List<UserResponse> findAll() {
-        return userRepository.findAll()
+        return userRepository.findAll(org.springframework.data.domain.Sort.by("id"))
                 .stream()
                 .map(this::toResponse)
                 .toList();
