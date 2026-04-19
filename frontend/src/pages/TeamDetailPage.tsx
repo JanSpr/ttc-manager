@@ -105,28 +105,36 @@ export default function TeamDetailPage() {
             ) : (
               <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
                 {members.map((member) => (
-                  <li
-                    key={member.id}
-                    style={{
-                      border: "1px solid #e5e7eb",
-                      borderRadius: "8px",
-                      padding: "0.9rem 1rem",
-                      marginBottom: "0.75rem",
-                      backgroundColor: "#fafafa",
-                    }}
-                  >
-                    <div style={{ fontWeight: "bold", marginBottom: "0.25rem" }}>
-                      {member.fullName}
-                    </div>
+                  <li key={member.id} style={{ marginBottom: "0.75rem" }}>
+                    <Link
+                      to={`/users/${member.id}`}
+                      state={{
+                        fromTeamId: team.id,
+                        fromTeamName: team.name,
+                      }}
+                      style={{
+                        display: "block",
+                        textDecoration: "none",
+                        color: "inherit",
+                        border: "1px solid #e5e7eb",
+                        borderRadius: "8px",
+                        padding: "0.9rem 1rem",
+                        backgroundColor: "#fafafa",
+                      }}
+                    >
+                      <div style={{ fontWeight: "bold", marginBottom: "0.25rem" }}>
+                        {member.fullName}
+                      </div>
 
-                    <div style={{ color: "#555", marginBottom: "0.25rem" }}>
-                      {member.email}
-                    </div>
+                      <div style={{ color: "#555", marginBottom: "0.25rem" }}>
+                        {member.email}
+                      </div>
 
-                    <div style={{ fontSize: "0.95rem", color: "#666" }}>
-                      Rolle: {member.role} · Status:{" "}
-                      {member.active ? "Aktiv" : "Inaktiv"}
-                    </div>
+                      <div style={{ fontSize: "0.95rem", color: "#666" }}>
+                        Rolle: {member.role} · Status:{" "}
+                        {member.active ? "Aktiv" : "Inaktiv"}
+                      </div>
+                    </Link>
                   </li>
                 ))}
               </ul>

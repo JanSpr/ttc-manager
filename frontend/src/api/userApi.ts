@@ -11,3 +11,13 @@ export async function fetchUsers(): Promise<User[]> {
 
   return response.json();
 }
+
+export async function fetchUserById(id: number): Promise<User> {
+  const response = await fetch(`${API_BASE_URL}/api/users/${id}`);
+
+  if (!response.ok) {
+    throw new Error(`Fehler beim Laden des Benutzers: ${response.status}`);
+  }
+
+  return response.json();
+}
