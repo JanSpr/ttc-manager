@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { fetchUserById } from "../api/userApi";
 import type { User } from "../types/user";
+import { pageContainerStyle, contentCardStyle } from "../styles/ui";
 
 type UserDetailLocationState = {
   fromTeamId?: number;
@@ -59,31 +60,14 @@ export default function UserDetailPage() {
     : "← Zurück zur Teamliste";
 
   return (
-    <div
-      style={{
-        padding: "2rem",
-        maxWidth: "900px",
-        margin: "0 auto",
-        fontFamily: "Arial, sans-serif",
-      }}
-    >
+    <div style={pageContainerStyle}>
       <Link to={backLink}>{backLabel}</Link>
 
       {loading && <p style={{ marginTop: "1rem" }}>Benutzer wird geladen...</p>}
-
       {error && <p style={{ marginTop: "1rem", color: "red" }}>{error}</p>}
 
       {!loading && !error && user && (
-        <div
-          style={{
-            marginTop: "1.5rem",
-            border: "1px solid #d0d7de",
-            borderRadius: "10px",
-            padding: "1.25rem",
-            boxShadow: "0 2px 6px rgba(0, 0, 0, 0.05)",
-            backgroundColor: "#ffffff",
-          }}
-        >
+        <div style={contentCardStyle}>
           <h1 style={{ marginTop: 0, marginBottom: "0.75rem" }}>
             {user.fullName}
           </h1>

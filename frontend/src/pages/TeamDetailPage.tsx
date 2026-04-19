@@ -4,6 +4,13 @@ import { fetchTeamById } from "../api/teamApi";
 import { fetchUsers } from "../api/userApi";
 import type { Team } from "../types/team";
 import type { User } from "../types/user";
+import {
+  pageContainerStyle,
+  contentCardStyle,
+  clickableCardStyle,
+  applyClickableCardHover,
+  resetClickableCardHover,
+} from "../styles/ui";
 
 export default function TeamDetailPage() {
   const { id } = useParams();
@@ -39,7 +46,7 @@ export default function TeamDetailPage() {
         ]);
 
         const filteredMembers = usersData.filter((user) =>
-          user.teamIds.includes(teamId)
+          user.teamIds.includes(teamId),
         );
 
         setTeam(teamData);
@@ -56,34 +63,15 @@ export default function TeamDetailPage() {
   }, [id]);
 
   return (
-    <div
-      style={{
-        padding: "2rem",
-        maxWidth: "900px",
-        margin: "0 auto",
-        fontFamily: "Arial, sans-serif",
-      }}
-    >
+    <div style={pageContainerStyle}>
       <Link to="/teams">← Zurück zur Teamliste</Link>
 
       {loading && <p style={{ marginTop: "1rem" }}>Team wird geladen...</p>}
-
       {error && <p style={{ marginTop: "1rem", color: "red" }}>{error}</p>}
 
       {!loading && !error && team && (
-        <div
-          style={{
-            marginTop: "1.5rem",
-            border: "1px solid #d0d7de",
-            borderRadius: "10px",
-            padding: "1.25rem",
-            boxShadow: "0 2px 6px rgba(0, 0, 0, 0.05)",
-            backgroundColor: "#ffffff",
-          }}
-        >
-          <h1 style={{ marginTop: 0, marginBottom: "0.75rem" }}>
-            {team.name}
-          </h1>
+        <div style={contentCardStyle}>
+          <h1 style={{ marginTop: 0, marginBottom: "0.75rem" }}>{team.name}</h1>
 
           <p style={{ margin: 0, color: "#555", lineHeight: 1.5 }}>
             {team.description || "Keine Beschreibung vorhanden."}
@@ -112,17 +100,20 @@ export default function TeamDetailPage() {
                         fromTeamId: team.id,
                         fromTeamName: team.name,
                       }}
-                      style={{
-                        display: "block",
-                        textDecoration: "none",
-                        color: "inherit",
-                        border: "1px solid #e5e7eb",
-                        borderRadius: "8px",
-                        padding: "0.9rem 1rem",
-                        backgroundColor: "#fafafa",
-                      }}
+                      style={clickableCardStyle}
+                      onMouseEnter={(e) =>
+                        applyClickableCardHover(e.currentTarget)
+                      }
+                      onMouseLeave={(e) =>
+                        resetClickableCardHover(e.currentTarget)
+                      }
                     >
-                      <div style={{ fontWeight: "bold", marginBottom: "0.25rem" }}>
+                      <div
+                        style={{
+                          fontWeight: "bold",
+                          marginBottom: "0.25rem",
+                        }}
+                      >
                         {member.fullName}
                       </div>
 
