@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
-import { fetchUserById } from "../api/userApi";
+import { fetchMemberById } from "../api/memberApi";
 import { fetchTeams } from "../api/teamApi";
-import type { User } from "../types/user";
+import type { Member } from "../types/member";
 import type { Team } from "../types/team";
 import {
   pageContainerStyle,
@@ -12,33 +12,33 @@ import {
   resetClickableCardHover,
 } from "../styles/ui";
 
-type UserDetailLocationState = {
+type MemberDetailLocationState = {
   fromTeamId?: number;
   fromTeamName?: string;
 };
 
-export default function UserDetailPage() {
+export default function MemberDetailPage() {
   const { id } = useParams();
   const location = useLocation();
-  const navigationState = (location.state as UserDetailLocationState) || {};
+  const navigationState = (location.state as MemberDetailLocationState) || {};
 
-  const [user, setUser] = useState<User | null>(null);
-  const [userTeams, setUserTeams] = useState<Team[]>([]);
+  const [member, setMember] = useState<Member | null>(null);
+  const [memberTeams, setMemberTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function loadUserDetail() {
+    async function loadMemberDetail() {
       if (!id) {
-        setError("Keine Benutzer-ID in der URL gefunden.");
+        setError("Keine Member-ID in der URL gefunden.");
         setLoading(false);
         return;
       }
 
-      const userId = Number(id);
+      const memberId = Number(id);
 
-      if (Number.isNaN(userId)) {
-        setError("Ungültige Benutzer-ID.");
+      if (Number.isNaN(memberId)) {
+        setError("Ungültige Member-ID.");
         setLoading(false);
         return;
       }
@@ -47,26 +47,26 @@ export default function UserDetailPage() {
         setLoading(true);
         setError(null);
 
-        const [userData, teamsData] = await Promise.all([
-          fetchUserById(userId),
+        const [memberData, teamsData] = await Promise.all([
+          fetchMemberById(memberId),
           fetchTeams(),
         ]);
 
         const resolvedTeams = teamsData.filter((team) =>
-          userData.teamIds.includes(team.id),
+          memberData.teamIds.includes(team.id),
         );
 
-        setUser(userData);
-        setUserTeams(resolvedTeams);
+        setMember(memberData);
+        setMemberTeams(resolvedTeams);
       } catch (err) {
-        console.error("Fehler beim Laden des Benutzers:", err);
-        setError("Benutzerdetails konnten nicht geladen werden.");
+        console.error("Fehler beim Laden des Members:", err);
+        setError("Memberdetails konnten nicht geladen werden.");
       } finally {
         setLoading(false);
       }
     }
 
-    loadUserDetail();
+    loadMemberDetail();
   }, [id]);
 
   const backLink = navigationState.fromTeamId
@@ -81,40 +81,38 @@ export default function UserDetailPage() {
     <div style={pageContainerStyle}>
       <Link to={backLink}>{backLabel}</Link>
 
-      {loading && <p style={{ marginTop: "1rem" }}>Benutzer wird geladen...</p>}
-
+      {loading && <p style={{ marginTop: "1rem" }}>Member wird geladen...</p>}
       {error && <p style={{ marginTop: "1rem", color: "red" }}>{error}</p>}
 
-      {!loading && !error && user && (
+      {!loading && !error && member && (
         <div style={contentCardStyle}>
           <h1 style={{ marginTop: 0, marginBottom: "0.75rem" }}>
-            {user.fullName}
+            {member.fullName}
           </h1>
 
           <div style={{ display: "grid", gap: "0.75rem" }}>
             <div>
-              <strong>Vorname:</strong> {user.firstName}
+              <strong>Vorname:</strong> {member.firstName}
             </div>
 
             <div>
-              <strong>Nachname:</strong> {user.lastName}
+              <strong>Nachname:</strong> {member.lastName}
             </div>
 
             <div>
-              <strong>E-Mail:</strong> {user.email}
+              <strong>Status:</strong> {member.active ? "Aktiv" : "Inaktiv"}
             </div>
 
             <div>
-              <strong>Rolle:</strong> {user.role}
-            </div>
-
-            <div>
-              <strong>Status:</strong> {user.active ? "Aktiv" : "Inaktiv"}
+              <strong>Verknüpfter User:</strong>{" "}
+              {member.userId
+                ? `User-ID ${member.userId}`
+                : "Kein Login verknüpft"}
             </div>
 
             <div>
               <strong>Teams:</strong>
-              {userTeams.length === 0 ? (
+              {memberTeams.length === 0 ? (
                 <span> Keine</span>
               ) : (
                 <div
@@ -124,7 +122,7 @@ export default function UserDetailPage() {
                     gap: "0.75rem",
                   }}
                 >
-                  {userTeams.map((team) => (
+                  {memberTeams.map((team) => (
                     <Link
                       key={team.id}
                       to={`/teams/${team.id}`}
@@ -150,7 +148,7 @@ export default function UserDetailPage() {
                       </div>
 
                       <div style={{ fontSize: "0.95rem", color: "#666" }}>
-                        Mitglieder: {team.memberCount}
+                        Zugeordnete Mitglieder: {team.memberCount}
                       </div>
                     </Link>
                   ))}

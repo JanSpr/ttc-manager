@@ -1,4 +1,4 @@
-export type UserRole = "PLAYER" | "CAPTAIN" | "ADMIN";
+export type GlobalRole = "ADMIN" | "BOARD";
 
 export type User = {
   id: number;
@@ -6,7 +6,7 @@ export type User = {
   lastName: string;
   fullName: string;
   email: string;
-  role: UserRole;
   active: boolean;
-  teamIds: number[];
+  roles: GlobalRole[];
+  memberId: number | null;
 };

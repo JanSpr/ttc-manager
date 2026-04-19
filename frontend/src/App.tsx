@@ -2,7 +2,7 @@ import { Routes, Route, Link } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import TeamsPage from "./pages/TeamsPage";
 import TeamDetailPage from "./pages/TeamDetailPage";
-import UserDetailPage from "./pages/UserDetailPage";
+import MemberDetailPage from "./pages/MemberDetailPage";
 
 function App() {
   return (
@@ -15,7 +15,7 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/teams" element={<TeamsPage />} />
         <Route path="/teams/:id" element={<TeamDetailPage />} />
-        <Route path="/users/:id" element={<UserDetailPage />} />
+        <Route path="/members/:id" element={<MemberDetailPage />} />
       </Routes>
     </div>
   );

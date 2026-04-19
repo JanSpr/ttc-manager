@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { fetchTeamById } from "../api/teamApi";
-import { fetchUsers } from "../api/userApi";
-import type { Team } from "../types/team";
-import type { User } from "../types/user";
+import type { Team, TeamMembershipSummary } from "../types/team";
 import {
   pageContainerStyle,
   contentCardStyle,
@@ -12,11 +10,28 @@ import {
   resetClickableCardHover,
 } from "../styles/ui";
 
+function formatMembershipRole(membership: TeamMembershipSummary): string {
+  const labels: string[] = [];
+
+  if (membership.captain) {
+    labels.push("Mannschaftsführer");
+  }
+
+  if (membership.viceCaptain) {
+    labels.push("Stellvertretung");
+  }
+
+  if (membership.player) {
+    labels.push("Spieler");
+  }
+
+  return labels.length > 0 ? labels.join(" · ") : "Keine Teamfunktion";
+}
+
 export default function TeamDetailPage() {
   const { id } = useParams();
 
   const [team, setTeam] = useState<Team | null>(null);
-  const [members, setMembers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -40,17 +55,8 @@ export default function TeamDetailPage() {
         setLoading(true);
         setError(null);
 
-        const [teamData, usersData] = await Promise.all([
-          fetchTeamById(teamId),
-          fetchUsers(),
-        ]);
-
-        const filteredMembers = usersData.filter((user) =>
-          user.teamIds.includes(teamId),
-        );
-
+        const teamData = await fetchTeamById(teamId);
         setTeam(teamData);
-        setMembers(filteredMembers);
       } catch (err) {
         console.error("Fehler beim Laden der Team-Details:", err);
         setError("Teamdetails konnten nicht geladen werden.");
@@ -78,7 +84,7 @@ export default function TeamDetailPage() {
           </p>
 
           <p style={{ marginTop: "1rem", fontWeight: "bold" }}>
-            Mitglieder: {members.length}
+            Zugeordnete Mitglieder: {team.memberCount}
           </p>
 
           <div style={{ marginTop: "1.5rem" }}>
@@ -86,16 +92,19 @@ export default function TeamDetailPage() {
               Teammitglieder
             </h2>
 
-            {members.length === 0 ? (
+            {team.memberships.length === 0 ? (
               <p style={{ color: "#666" }}>
                 Diesem Team sind aktuell keine Mitglieder zugeordnet.
               </p>
             ) : (
               <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-                {members.map((member) => (
-                  <li key={member.id} style={{ marginBottom: "0.75rem" }}>
+                {team.memberships.map((membership) => (
+                  <li
+                    key={membership.membershipId}
+                    style={{ marginBottom: "0.75rem" }}
+                  >
                     <Link
-                      to={`/users/${member.id}`}
+                      to={`/members/${membership.memberId}`}
                       state={{
                         fromTeamId: team.id,
                         fromTeamName: team.name,
@@ -114,16 +123,17 @@ export default function TeamDetailPage() {
                           marginBottom: "0.25rem",
                         }}
                       >
-                        {member.fullName}
+                        {membership.memberFullName}
                       </div>
 
                       <div style={{ color: "#555", marginBottom: "0.25rem" }}>
-                        {member.email}
+                        {formatMembershipRole(membership)}
                       </div>
 
                       <div style={{ fontSize: "0.95rem", color: "#666" }}>
-                        Rolle: {member.role} · Status:{" "}
-                        {member.active ? "Aktiv" : "Inaktiv"}
+                        {membership.userId
+                          ? `Mit Login verknüpft (User-ID: ${membership.userId})`
+                          : "Kein Login verknüpft"}
                       </div>
                     </Link>
                   </li>

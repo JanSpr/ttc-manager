@@ -63,7 +63,7 @@ export default function TeamsPage() {
               </p>
 
               <p style={{ margin: 0, color: "#666" }}>
-                Mitglieder: {team.memberCount}
+                Zugeordnete Mitglieder: {team.memberCount}
               </p>
             </Link>
           ))}

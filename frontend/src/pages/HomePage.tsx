@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { fetchTestMessage } from "../services/api";
+import { fetchTestMessage } from "../api/api";
 
 function HomePage() {
   const [message, setMessage] = useState("Lade Backend-Nachricht...");
