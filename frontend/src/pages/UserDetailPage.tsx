@@ -1,8 +1,16 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { fetchUserById } from "../api/userApi";
+import { fetchTeams } from "../api/teamApi";
 import type { User } from "../types/user";
-import { pageContainerStyle, contentCardStyle } from "../styles/ui";
+import type { Team } from "../types/team";
+import {
+  pageContainerStyle,
+  contentCardStyle,
+  clickableCardStyle,
+  applyClickableCardHover,
+  resetClickableCardHover,
+} from "../styles/ui";
 
 type UserDetailLocationState = {
   fromTeamId?: number;
@@ -15,11 +23,12 @@ export default function UserDetailPage() {
   const navigationState = (location.state as UserDetailLocationState) || {};
 
   const [user, setUser] = useState<User | null>(null);
+  const [userTeams, setUserTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function loadUser() {
+    async function loadUserDetail() {
       if (!id) {
         setError("Keine Benutzer-ID in der URL gefunden.");
         setLoading(false);
@@ -38,8 +47,17 @@ export default function UserDetailPage() {
         setLoading(true);
         setError(null);
 
-        const userData = await fetchUserById(userId);
+        const [userData, teamsData] = await Promise.all([
+          fetchUserById(userId),
+          fetchTeams(),
+        ]);
+
+        const resolvedTeams = teamsData.filter((team) =>
+          userData.teamIds.includes(team.id),
+        );
+
         setUser(userData);
+        setUserTeams(resolvedTeams);
       } catch (err) {
         console.error("Fehler beim Laden des Benutzers:", err);
         setError("Benutzerdetails konnten nicht geladen werden.");
@@ -48,7 +66,7 @@ export default function UserDetailPage() {
       }
     }
 
-    loadUser();
+    loadUserDetail();
   }, [id]);
 
   const backLink = navigationState.fromTeamId
@@ -64,6 +82,7 @@ export default function UserDetailPage() {
       <Link to={backLink}>{backLabel}</Link>
 
       {loading && <p style={{ marginTop: "1rem" }}>Benutzer wird geladen...</p>}
+
       {error && <p style={{ marginTop: "1rem", color: "red" }}>{error}</p>}
 
       {!loading && !error && user && (
@@ -94,8 +113,49 @@ export default function UserDetailPage() {
             </div>
 
             <div>
-              <strong>Team-IDs:</strong>{" "}
-              {user.teamIds.length > 0 ? user.teamIds.join(", ") : "Keine"}
+              <strong>Teams:</strong>
+              {userTeams.length === 0 ? (
+                <span> Keine</span>
+              ) : (
+                <div
+                  style={{
+                    marginTop: "0.75rem",
+                    display: "grid",
+                    gap: "0.75rem",
+                  }}
+                >
+                  {userTeams.map((team) => (
+                    <Link
+                      key={team.id}
+                      to={`/teams/${team.id}`}
+                      style={clickableCardStyle}
+                      onMouseEnter={(e) =>
+                        applyClickableCardHover(e.currentTarget)
+                      }
+                      onMouseLeave={(e) =>
+                        resetClickableCardHover(e.currentTarget)
+                      }
+                    >
+                      <div
+                        style={{
+                          fontWeight: "bold",
+                          marginBottom: "0.25rem",
+                        }}
+                      >
+                        {team.name}
+                      </div>
+
+                      <div style={{ color: "#555", marginBottom: "0.25rem" }}>
+                        {team.description || "Keine Beschreibung vorhanden."}
+                      </div>
+
+                      <div style={{ fontSize: "0.95rem", color: "#666" }}>
+                        Mitglieder: {team.memberCount}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
