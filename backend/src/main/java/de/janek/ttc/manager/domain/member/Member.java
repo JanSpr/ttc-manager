@@ -1,0 +1,131 @@
+package de.janek.ttc.manager.domain.member;
+
+import de.janek.ttc.manager.domain.user.User;
+import de.janek.ttc.manager.domain.team.TeamMembership;
+import jakarta.persistence.*;
+
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+
+/**
+ * Repräsentiert eine reale Person im Verein.
+ *
+ * Ein Member ist die fachliche Einheit: - kann Spieler sein - kann
+ * Mannschaftsführer sein - kann aktuell keinem Team angehören - kann von einem
+ * User verwaltet werden
+ *
+ * Wichtig: Ein Member kann, muss aber keinen User (Login) besitzen.
+ */
+@Entity
+@Table(name = "member")
+public class Member {
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+
+	/**
+	 * Vorname der Person.
+	 */
+	@Column(name = "first_name", nullable = false, length = 100)
+	private String firstName;
+
+	/**
+	 * Nachname der Person.
+	 */
+	@Column(name = "last_name", nullable = false, length = 100)
+	private String lastName;
+
+	/**
+	 * Gibt an, ob das Mitglied aktiv im Verein ist. (Optional – kann später
+	 * differenzierter werden)
+	 */
+	@Column(name = "active", nullable = false)
+	private boolean active = true;
+
+	/**
+	 * Optionaler Bezug zum User (Login-Konto). Nicht jedes Mitglied muss einen User
+	 * besitzen.
+	 */
+	@OneToOne
+	@JoinColumn(name = "user_id")
+	private User user;
+
+	/**
+	 * Team-Zuordnungen dieses Members.
+	 */
+	@OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+	private Set<TeamMembership> memberships = new HashSet<>();
+
+	public Member() {
+	}
+
+	public Member(String firstName, String lastName) {
+		this.firstName = firstName;
+		this.lastName = lastName;
+		this.active = true;
+	}
+
+	public Long getId() {
+		return id;
+	}
+
+	public String getFirstName() {
+		return firstName;
+	}
+
+	public String getLastName() {
+		return lastName;
+	}
+
+	public boolean isActive() {
+		return active;
+	}
+
+	public User getUser() {
+		return user;
+	}
+
+	public Set<TeamMembership> getMemberships() {
+		return memberships;
+	}
+
+	public void setFirstName(String firstName) {
+		this.firstName = firstName;
+	}
+
+	public void setLastName(String lastName) {
+		this.lastName = lastName;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
+	}
+
+	public void setUser(User user) {
+		this.user = user;
+	}
+
+	public void setMemberships(Set<TeamMembership> memberships) {
+		this.memberships = memberships;
+	}
+
+	public String getFullName() {
+		return firstName + " " + lastName;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (!(o instanceof Member member))
+			return false;
+		return id != null && Objects.equals(id, member.id);
+	}
+
+	@Override
+	public int hashCode() {
+		return getClass().hashCode();
+	}
+}
