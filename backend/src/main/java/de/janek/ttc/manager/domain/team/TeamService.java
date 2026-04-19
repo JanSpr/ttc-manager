@@ -4,6 +4,7 @@ import de.janek.ttc.manager.common.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -22,33 +23,16 @@ public class TeamService {
 		this.teamRepository = teamRepository;
 	}
 
-	/**
-	 * Liefert alle Teams.
-	 *
-	 * @return Liste aller Teams als Response-DTOs
-	 */
 	@Transactional(readOnly = true)
 	public List<TeamResponse> findAll() {
 		return teamRepository.findAll().stream().map(this::toResponse).toList();
 	}
 
-	/**
-	 * Liefert ein Team anhand seiner ID.
-	 *
-	 * @param id Team-ID
-	 * @return gefundenes Team als Response-DTO
-	 */
 	@Transactional(readOnly = true)
 	public TeamResponse findById(Long id) {
 		return toResponse(getTeamEntityById(id));
 	}
 
-	/**
-	 * Erstellt ein neues Team.
-	 *
-	 * @param request Request-Daten für das neue Team
-	 * @return gespeichertes Team als Response-DTO
-	 */
 	public TeamResponse create(CreateTeamRequest request) {
 		validateUniqueTeamName(request.getName(), null);
 
@@ -60,13 +44,6 @@ public class TeamService {
 		return toResponse(savedTeam);
 	}
 
-	/**
-	 * Aktualisiert ein bestehendes Team.
-	 *
-	 * @param id      Team-ID
-	 * @param request neue Team-Daten
-	 * @return aktualisiertes Team als Response-DTO
-	 */
 	public TeamResponse update(Long id, CreateTeamRequest request) {
 		Team existingTeam = getTeamEntityById(id);
 
@@ -79,36 +56,16 @@ public class TeamService {
 		return toResponse(savedTeam);
 	}
 
-	/**
-	 * Löscht ein Team.
-	 *
-	 * Bestehende TeamMemberships werden über orphanRemoval/cascade an der Entity
-	 * sauber mit entfernt.
-	 *
-	 * @param id Team-ID
-	 */
 	public void delete(Long id) {
 		Team team = getTeamEntityById(id);
 		teamRepository.delete(team);
 	}
 
-	/**
-	 * Lädt ein Team-Entity anhand seiner ID.
-	 *
-	 * @param id Team-ID
-	 * @return Team-Entity
-	 */
 	private Team getTeamEntityById(Long id) {
 		return teamRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Team mit ID " + id + " wurde nicht gefunden."));
 	}
 
-	/**
-	 * Prüft, ob ein Teamname bereits durch ein anderes Team belegt ist.
-	 *
-	 * @param teamName      gewünschter Teamname
-	 * @param currentTeamId ID des aktuell bearbeiteten Teams; bei Neuanlage null
-	 */
 	private void validateUniqueTeamName(String teamName, Long currentTeamId) {
 		teamRepository.findByName(teamName).ifPresent(existingTeam -> {
 			boolean isDifferentTeam = currentTeamId == null || !existingTeam.getId().equals(currentTeamId);
@@ -119,13 +76,18 @@ public class TeamService {
 		});
 	}
 
-	/**
-	 * Wandelt ein Team-Entity in ein Response-DTO um.
-	 *
-	 * @param team Team-Entity
-	 * @return TeamResponse
-	 */
 	private TeamResponse toResponse(Team team) {
-		return new TeamResponse(team.getId(), team.getName(), team.getDescription(), team.getMemberships().size());
+		List<TeamMembershipSummaryResponse> memberships = team.getMemberships().stream()
+				.sorted(Comparator
+						.comparing((TeamMembership m) -> m.getMember().getLastName(), String.CASE_INSENSITIVE_ORDER)
+						.thenComparing(m -> m.getMember().getFirstName(), String.CASE_INSENSITIVE_ORDER)
+						.thenComparing(m -> m.getMember().getFirstName(), String.CASE_INSENSITIVE_ORDER))
+				.map(membership -> new TeamMembershipSummaryResponse(membership.getId(), membership.getMember().getId(),
+						membership.getMember().getFullName(),
+						membership.getMember().getUser() != null ? membership.getMember().getUser().getId() : null,
+						membership.isPlayer(), membership.isCaptain(), membership.isViceCaptain()))
+				.toList();
+
+		return new TeamResponse(team.getId(), team.getName(), team.getDescription(), memberships.size(), memberships);
 	}
 }

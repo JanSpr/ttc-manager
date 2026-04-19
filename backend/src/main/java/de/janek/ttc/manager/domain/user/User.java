@@ -1,6 +1,8 @@
 package de.janek.ttc.manager.domain.user;
 
+import de.janek.ttc.manager.domain.member.Member;
 import jakarta.persistence.*;
+
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -8,8 +10,8 @@ import java.util.Set;
 /**
  * Repräsentiert einen Benutzer (Login-Konto).
  *
- * WICHTIG: - Kein direkter Team-Bezug mehr - Keine Spieler-/Captain-Rolle mehr
- * - Nur noch globale Rollen
+ * WICHTIG: - Kein direkter Team-Bezug - Nur globale Rollen - Optional mit genau
+ * einem Member verknüpft
  */
 @Entity
 @Table(name = "app_user")
@@ -20,31 +22,34 @@ public class User {
 	private Long id;
 
 	/**
-	 * Vorname (vorerst noch hier, später evtl. in Member verschieben)
+	 * Vorname des Benutzers.
+	 *
+	 * Hinweis: Diese Felder bleiben vorerst im User bestehen, auch wenn die
+	 * fachliche Person künftig primär über Member modelliert wird.
 	 */
 	@Column(name = "first_name", nullable = false, length = 100)
 	private String firstName;
 
 	/**
-	 * Nachname
+	 * Nachname des Benutzers.
 	 */
 	@Column(name = "last_name", nullable = false, length = 100)
 	private String lastName;
 
 	/**
-	 * E-Mail-Adresse (Login)
+	 * E-Mail-Adresse (Login).
 	 */
 	@Column(name = "email", length = 255, unique = true)
 	private String email;
 
 	/**
-	 * Passwort-Hash
+	 * Passwort-Hash.
 	 */
 	@Column(name = "password_hash", length = 255)
 	private String passwordHash;
 
 	/**
-	 * Globale Rollen
+	 * Globale Rollen.
 	 */
 	@ElementCollection(targetClass = GlobalRole.class)
 	@Enumerated(EnumType.STRING)
@@ -53,10 +58,19 @@ public class User {
 	private Set<GlobalRole> roles = new HashSet<>();
 
 	/**
-	 * Konto aktiv / deaktiviert
+	 * Konto aktiv / deaktiviert.
 	 */
 	@Column(name = "active", nullable = false)
 	private boolean active = true;
+
+	/**
+	 * Optional verknüpftes Member.
+	 *
+	 * Die fachliche Person liegt in der Member-Domäne. Die Join-Spalte liegt auf
+	 * der Member-Seite.
+	 */
+	@OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
+	private Member member;
 
 	public User() {
 	}
@@ -107,6 +121,10 @@ public class User {
 		return active;
 	}
 
+	public Member getMember() {
+		return member;
+	}
+
 	public void setFirstName(String firstName) {
 		this.firstName = firstName;
 	}
@@ -137,6 +155,10 @@ public class User {
 
 	public void setActive(boolean active) {
 		this.active = active;
+	}
+
+	public void setMember(Member member) {
+		this.member = member;
 	}
 
 	@Override

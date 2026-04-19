@@ -1,7 +1,7 @@
 package de.janek.ttc.manager.domain.member;
 
-import de.janek.ttc.manager.domain.user.User;
 import de.janek.ttc.manager.domain.team.TeamMembership;
+import de.janek.ttc.manager.domain.user.User;
 import jakarta.persistence.*;
 
 import java.util.HashSet;
@@ -12,10 +12,8 @@ import java.util.Set;
  * Repräsentiert eine reale Person im Verein.
  *
  * Ein Member ist die fachliche Einheit: - kann Spieler sein - kann
- * Mannschaftsführer sein - kann aktuell keinem Team angehören - kann von einem
- * User verwaltet werden
- *
- * Wichtig: Ein Member kann, muss aber keinen User (Login) besitzen.
+ * Mannschaftsführer sein - kann aktuell keinem Team angehören - kann optional
+ * mit einem User (Login-Konto) verknüpft sein
  */
 @Entity
 @Table(name = "member")
@@ -38,18 +36,17 @@ public class Member {
 	private String lastName;
 
 	/**
-	 * Gibt an, ob das Mitglied aktiv im Verein ist. (Optional – kann später
-	 * differenzierter werden)
+	 * Gibt an, ob das Mitglied aktiv im Verein ist.
 	 */
 	@Column(name = "active", nullable = false)
 	private boolean active = true;
 
 	/**
-	 * Optionaler Bezug zum User (Login-Konto). Nicht jedes Mitglied muss einen User
-	 * besitzen.
+	 * Optionaler Bezug zum User (Login-Konto). Ein Member kann, muss aber keinen
+	 * User besitzen.
 	 */
 	@OneToOne
-	@JoinColumn(name = "user_id")
+	@JoinColumn(name = "user_id", unique = true)
 	private User user;
 
 	/**
@@ -105,6 +102,10 @@ public class Member {
 
 	public void setUser(User user) {
 		this.user = user;
+
+		if (user != null && user.getMember() != this) {
+			user.setMember(this);
+		}
 	}
 
 	public void setMemberships(Set<TeamMembership> memberships) {
