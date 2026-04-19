@@ -1,110 +1,162 @@
 # TTC-Manager
 
-Backend-Anwendung zur Verwaltung von Tischtennis-Mannschaften.
+Webanwendung zur Verwaltung von Tischtennis-Mannschaften, Spielern und Spieltagen.
 
-Ziel des Projekts ist es, Mannschaftsführern und Spielern eine einfache Möglichkeit zu bieten, Spiele zu organisieren und Verfügbarkeiten zu koordinieren.
+Ziel ist es, Mannschaftsführern und Spielern eine moderne und einfache Möglichkeit zu bieten, Organisation und Kommunikation rund um Spiele zu vereinfachen.
 
 ---
 
 ## 🧩 Projektziel
 
-Der TTC-Manager soll insbesondere folgende Probleme lösen:
+Der TTC-Manager soll insbesondere folgende Fragen lösen:
 
 * Wer kann beim nächsten Spiel teilnehmen?
 * Welche Spieler stehen zur Verfügung?
-* Wer wird aufgestellt?
+* Wie ist die aktuelle Mannschaftsaufstellung?
 * Wann ist das nächste Spiel?
+* Wer spielt auf welcher Position?
 
 ---
 
 ## 🚀 MVP (Minimal Viable Product)
 
-Folgende Kernfunktionen sind für die erste Version geplant:
+Die aktuelle MVP-Version bietet:
 
-* Spieler können ihre Verfügbarkeit für Spiele angeben
-* Mannschaftsführer sehen:
+### Für Mannschaftsführer
 
-  * verfügbare Spieler
-  * geplante Aufstellungen
-* Spieler sehen:
+* Übersicht über Teams und Spieler
+* Anzeige der Mannschaftsaufstellung (Lineup)
 
-  * ihre kommenden Spiele
-  * ihren Einsatzstatus
+### Für Spieler
+
+* Übersicht über Teams
+* Anzeige der Teammitglieder
+* Transparente Darstellung der Aufstellung
 
 ---
 
 ## 🏗️ Aktueller Stand
 
-Das Projekt befindet sich aktuell im Backend-Grundaufbau.
+Das Projekt ist **funktionsfähig mit Backend + Frontend**.
 
-### Domain-Modelle
+### ✅ Backend
 
-* **User**
+* Spring Boot Anwendung
+* Saubere Domain-Struktur
+* REST API vollständig nutzbar
+* TeamMembership als zentrale Verknüpfung
 
-  * Benutzer des Systems (Spieler, Mannschaftsführer, etc.)
-* **Team**
+### ✅ Frontend
 
-  * Mannschaft mit mehreren Spielern
-* **Match**
-
-  * Spieltermin einer Mannschaft
-* **Availability**
-
-  * Rückmeldung eines Spielers zu einem Spiel
-
-### Technischer Stand
-
-* Spring Boot Projekt initialisiert
-* JPA Entities definiert
-* Repositories vorhanden
-* Grundstruktur und Packages bereinigt und vereinheitlicht
+* React + Vite
+* Routing mit React Router
+* Teamliste & Team-Detailseiten
+* Darstellung von Spielern inkl. Aufstellungsposition
 
 ---
 
-## 🧱 Architektur (aktuell)
+## 🧠 Domain-Modell
+
+### Zentrale Entities
+
+* **User**
+
+  * Benutzer des Systems (Spieler, Mannschaftsführer)
+* **Team**
+
+  * Mannschaft
+* **TeamMembership**
+
+  * Verknüpft User ↔ Team
+  * Enthält zusätzliche Informationen:
+
+    * `lineupPosition` (Aufstellung im Team)
+* **Match** *(in Vorbereitung für MVP-Erweiterung)*
+* **Availability** *(in Vorbereitung für MVP-Erweiterung)*
+
+---
+
+## 🧱 Architektur
 
 ```text
+Backend:
 de.janek.ttc.manager
 └── domain
     ├── user
     ├── team
+    ├── teammembership
     ├── match
     └── availability
-```
 
-Weitere Schichten (Services, Controller, Security, etc.) werden im nächsten Schritt aufgebaut.
+Frontend:
+src/
+├── pages
+├── api
+└── styles
+```
 
 ---
 
 ## ⚙️ Tech Stack
 
+### Backend
+
 * Java 21
 * Spring Boot
 * Spring Data JPA
 * Hibernate
-* (geplant) PostgreSQL
-* (aktuell möglich) H2 für lokale Entwicklung
+* H2 (aktuell)
+* PostgreSQL (geplant)
+
+### Frontend
+
+* React
+* TypeScript
+* Vite
+* React Router
 
 ---
 
 ## ▶️ Projekt starten
 
-### Mit Maven
+### Backend
 
 ```bash
+cd backend
 mvn spring-boot:run
 ```
 
-Alternativ direkt über die IDE (z. B. Eclipse) starten.
+Standard-Port:
+
+```
+http://localhost:8081
+```
+
+---
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Standard:
+
+```
+http://localhost:5173
+```
 
 ---
 
 ## 📌 Entwicklungsansatz
 
-Dieses Projekt wird als Lern- und Praxisprojekt entwickelt mit Fokus auf:
+Dieses Projekt ist ein **Lern- und Praxisprojekt** mit Fokus auf:
 
 * saubere Architektur
-* verständliche Domain-Modelle
+* klare Domain-Modelle
+* realistische Anwendungsfälle
 * iterative Entwicklung (MVP → Erweiterung)
 * nachvollziehbare Git-Historie
 
@@ -112,16 +164,17 @@ Dieses Projekt wird als Lern- und Praxisprojekt entwickelt mit Fokus auf:
 
 ## 🗺️ Nächste Schritte
 
-* Services für Domain-Logik implementieren
-* REST-Controller hinzufügen
-* Erste API-Endpunkte definieren
-* Validierung und Fehlerhandling
-* Security / Authentifizierung
+* Bearbeiten der Aufstellung im Frontend (Drag & Drop / Edit-Modus)
+* Match-Planung implementieren
+* Verfügbarkeiten (Availability) integrieren
+* Rollen & Rechte (z. B. Mannschaftsführer)
+* Authentifizierung (Login-System)
+* Persistente Datenbank (PostgreSQL)
 
 ---
 
 ## 🧑‍💻 Autor
 
-Janek
+Janek Sprengart
 
 ---
