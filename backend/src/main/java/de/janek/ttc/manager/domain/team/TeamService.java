@@ -80,7 +80,6 @@ public class TeamService {
 		List<TeamMembershipSummaryResponse> memberships = team.getMemberships().stream()
 				.sorted(Comparator
 						.comparing((TeamMembership m) -> m.getMember().getLastName(), String.CASE_INSENSITIVE_ORDER)
-						.thenComparing(m -> m.getMember().getFirstName(), String.CASE_INSENSITIVE_ORDER)
 						.thenComparing(m -> m.getMember().getFirstName(), String.CASE_INSENSITIVE_ORDER))
 				.map(membership -> new TeamMembershipSummaryResponse(membership.getId(), membership.getMember().getId(),
 						membership.getMember().getFullName(),

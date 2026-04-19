@@ -159,6 +159,10 @@ public class User {
 
 	public void setMember(Member member) {
 		this.member = member;
+
+		if (member != null && member.getUser() != this) {
+			member.setUser(this);
+		}
 	}
 
 	@Override
