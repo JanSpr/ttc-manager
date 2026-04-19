@@ -9,7 +9,7 @@ import java.util.Objects;
  * Repräsentiert die Zugehörigkeit eines Members zu einem Team.
  *
  * Enthält alle teambezogenen Funktionen: - Spieler - Mannschaftsführer -
- * Stellvertretung
+ * Stellvertretung - Aufstellungsposition innerhalb des Teams
  */
 @Entity
 @Table(name = "team_membership", uniqueConstraints = {
@@ -33,6 +33,14 @@ public class TeamMembership {
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "team_id", nullable = false)
 	private Team team;
+
+	/**
+	 * Position des Spielers im Team.
+	 *
+	 * Beispiel: 1 = stärkster Spieler 2 = zweiter Spieler usw.
+	 */
+	@Column(name = "lineup_position")
+	private Integer lineupPosition;
 
 	/**
 	 * Ist das Mitglied Spieler in diesem Team?
@@ -72,6 +80,10 @@ public class TeamMembership {
 		return team;
 	}
 
+	public Integer getLineupPosition() {
+		return lineupPosition;
+	}
+
 	public boolean isPlayer() {
 		return player;
 	}
@@ -90,6 +102,10 @@ public class TeamMembership {
 
 	public void setTeam(Team team) {
 		this.team = team;
+	}
+
+	public void setLineupPosition(Integer lineupPosition) {
+		this.lineupPosition = lineupPosition;
 	}
 
 	public void setPlayer(boolean player) {

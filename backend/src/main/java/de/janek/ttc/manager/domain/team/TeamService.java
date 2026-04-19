@@ -10,8 +10,9 @@ import java.util.List;
 /**
  * Service für die Verwaltung von Teams.
  *
- * Aktueller Zwischenstand: - Team verwaltet keine direkten User-Mitglieder mehr
- * - memberCount basiert auf TeamMemberships
+ * Aktueller Stand: - Team verwaltet keine direkten User-Mitglieder mehr -
+ * memberCount basiert auf TeamMemberships - TeamMemberships werden
+ * standardmäßig nach Aufstellungsposition sortiert
  */
 @Service
 @Transactional
@@ -78,15 +79,20 @@ public class TeamService {
 
 	private TeamResponse toResponse(Team team) {
 		List<TeamMembershipSummaryResponse> memberships = team.getMemberships().stream()
-				.sorted(Comparator
-						.comparing((TeamMembership m) -> m.getMember().getLastName(), String.CASE_INSENSITIVE_ORDER)
-						.thenComparing(m -> m.getMember().getFirstName(), String.CASE_INSENSITIVE_ORDER))
+				.sorted(teamMembershipComparator())
 				.map(membership -> new TeamMembershipSummaryResponse(membership.getId(), membership.getMember().getId(),
 						membership.getMember().getFullName(),
 						membership.getMember().getUser() != null ? membership.getMember().getUser().getId() : null,
-						membership.isPlayer(), membership.isCaptain(), membership.isViceCaptain()))
+						membership.getLineupPosition(), membership.isPlayer(), membership.isCaptain(),
+						membership.isViceCaptain()))
 				.toList();
 
 		return new TeamResponse(team.getId(), team.getName(), team.getDescription(), memberships.size(), memberships);
+	}
+
+	private Comparator<TeamMembership> teamMembershipComparator() {
+		return Comparator.comparing(TeamMembership::getLineupPosition, Comparator.nullsLast(Integer::compareTo))
+				.thenComparing(membership -> membership.getMember().getLastName(), String.CASE_INSENSITIVE_ORDER)
+				.thenComparing(membership -> membership.getMember().getFirstName(), String.CASE_INSENSITIVE_ORDER);
 	}
 }

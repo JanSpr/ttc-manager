@@ -9,6 +9,9 @@ public class CreateTeamMembershipRequest {
 
 	@NotNull(message = "Die Member-ID ist erforderlich.")
 	private Long memberId;
+	
+	@NotNull(message = "Es muss eine Position im Team angegeben werden.")
+	private Integer lineupPosition;
 
 	@NotNull(message = "Es muss angegeben werden, ob das Member Spieler ist.")
 	private Boolean player;
@@ -29,6 +32,14 @@ public class CreateTeamMembershipRequest {
 	public void setMemberId(Long memberId) {
 		this.memberId = memberId;
 	}
+	
+    public Integer getLineupPosition() {
+        return lineupPosition;
+    }
+
+    public void setLineupPosition(Integer lineupPosition) {
+        this.lineupPosition = lineupPosition;
+    }
 
 	public Boolean getPlayer() {
 		return player;

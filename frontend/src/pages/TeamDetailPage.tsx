@@ -28,6 +28,13 @@ function formatMembershipRole(membership: TeamMembershipSummary): string {
   return labels.length > 0 ? labels.join(" · ") : "Keine Teamfunktion";
 }
 
+function formatLineupPosition(position: number | null): string {
+  if (position == null) {
+    return "–";
+  }
+  return String(position);
+}
+
 export default function TeamDetailPage() {
   const { id } = useParams();
 
@@ -109,7 +116,12 @@ export default function TeamDetailPage() {
                         fromTeamId: team.id,
                         fromTeamName: team.name,
                       }}
-                      style={clickableCardStyle}
+                      style={{
+                        ...clickableCardStyle,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "1rem",
+                      }}
                       onMouseEnter={(e) =>
                         applyClickableCardHover(e.currentTarget)
                       }
@@ -117,23 +129,39 @@ export default function TeamDetailPage() {
                         resetClickableCardHover(e.currentTarget)
                       }
                     >
+                      {/* LINEUP POSITION */}
                       <div
                         style={{
+                          minWidth: "2rem",
+                          textAlign: "center",
+                          fontSize: "1.2rem",
                           fontWeight: "bold",
-                          marginBottom: "0.25rem",
+                          color: "#1d4ed8",
                         }}
                       >
-                        {membership.memberFullName}
+                        {formatLineupPosition(membership.lineupPosition)}
                       </div>
 
-                      <div style={{ color: "#555", marginBottom: "0.25rem" }}>
-                        {formatMembershipRole(membership)}
-                      </div>
+                      {/* CONTENT */}
+                      <div style={{ flex: 1 }}>
+                        <div
+                          style={{
+                            fontWeight: "bold",
+                            marginBottom: "0.25rem",
+                          }}
+                        >
+                          {membership.memberFullName}
+                        </div>
 
-                      <div style={{ fontSize: "0.95rem", color: "#666" }}>
-                        {membership.userId
-                          ? `Mit Login verknüpft (User-ID: ${membership.userId})`
-                          : "Kein Login verknüpft"}
+                        <div style={{ color: "#555", marginBottom: "0.25rem" }}>
+                          {formatMembershipRole(membership)}
+                        </div>
+
+                        <div style={{ fontSize: "0.95rem", color: "#666" }}>
+                          {membership.userId
+                            ? `Mit Login verknüpft (User-ID: ${membership.userId})`
+                            : "Kein Login verknüpft"}
+                        </div>
                       </div>
                     </Link>
                   </li>

@@ -3,6 +3,7 @@ export type TeamMembershipSummary = {
   memberId: number;
   memberFullName: string;
   userId: number | null;
+  lineupPosition: number | null;
   player: boolean;
   captain: boolean;
   viceCaptain: boolean;

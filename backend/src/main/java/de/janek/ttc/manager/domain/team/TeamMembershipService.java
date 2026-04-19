@@ -6,6 +6,7 @@ import de.janek.ttc.manager.domain.member.MemberService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -30,14 +31,18 @@ public class TeamMembershipService {
 	public List<TeamMembershipResponse> findAllByTeamId(Long teamId) {
 		getTeamEntityById(teamId);
 
-		return teamMembershipRepository.findAllByTeamId(teamId).stream().map(this::toResponse).toList();
+		return teamMembershipRepository.findAllByTeamId(teamId).stream().sorted(teamMembershipComparator())
+				.map(this::toResponse).toList();
 	}
 
 	@Transactional(readOnly = true)
 	public List<TeamMembershipResponse> findAllByMemberId(Long memberId) {
 		memberService.getMemberEntityById(memberId);
 
-		return teamMembershipRepository.findAllByMemberId(memberId).stream().map(this::toResponse).toList();
+		return teamMembershipRepository.findAllByMemberId(memberId).stream()
+				.sorted(Comparator.comparing((TeamMembership membership) -> membership.getTeam().getName(),
+						String.CASE_INSENSITIVE_ORDER).thenComparing(teamMembershipComparator()))
+				.map(this::toResponse).toList();
 	}
 
 	public TeamMembershipResponse create(Long teamId, CreateTeamMembershipRequest request) {
@@ -52,9 +57,10 @@ public class TeamMembershipService {
 		TeamMembership membership = new TeamMembership();
 		membership.setTeam(team);
 		membership.setMember(member);
-		membership.setPlayer(request.getPlayer());
-		membership.setCaptain(request.getCaptain());
-		membership.setViceCaptain(request.getViceCaptain());
+		membership.setLineupPosition(request.getLineupPosition());
+		membership.setPlayer(Boolean.TRUE.equals(request.getPlayer()));
+		membership.setCaptain(Boolean.TRUE.equals(request.getCaptain()));
+		membership.setViceCaptain(Boolean.TRUE.equals(request.getViceCaptain()));
 
 		TeamMembership savedMembership = teamMembershipRepository.save(membership);
 		return toResponse(savedMembership);
@@ -77,9 +83,10 @@ public class TeamMembershipService {
 		}
 
 		existingMembership.setMember(member);
-		existingMembership.setPlayer(request.getPlayer());
-		existingMembership.setCaptain(request.getCaptain());
-		existingMembership.setViceCaptain(request.getViceCaptain());
+		existingMembership.setLineupPosition(request.getLineupPosition());
+		existingMembership.setPlayer(Boolean.TRUE.equals(request.getPlayer()));
+		existingMembership.setCaptain(Boolean.TRUE.equals(request.getCaptain()));
+		existingMembership.setViceCaptain(Boolean.TRUE.equals(request.getViceCaptain()));
 
 		TeamMembership savedMembership = teamMembershipRepository.save(existingMembership);
 		return toResponse(savedMembership);
@@ -109,6 +116,13 @@ public class TeamMembershipService {
 	private TeamMembershipResponse toResponse(TeamMembership membership) {
 		return new TeamMembershipResponse(membership.getId(), membership.getTeam().getId(),
 				membership.getTeam().getName(), membership.getMember().getId(), membership.getMember().getFullName(),
-				membership.isPlayer(), membership.isCaptain(), membership.isViceCaptain());
+				membership.getLineupPosition(), membership.isPlayer(), membership.isCaptain(),
+				membership.isViceCaptain());
+	}
+
+	private Comparator<TeamMembership> teamMembershipComparator() {
+		return Comparator.comparing(TeamMembership::getLineupPosition, Comparator.nullsLast(Integer::compareTo))
+				.thenComparing(membership -> membership.getMember().getLastName(), String.CASE_INSENSITIVE_ORDER)
+				.thenComparing(membership -> membership.getMember().getFirstName(), String.CASE_INSENSITIVE_ORDER);
 	}
 }

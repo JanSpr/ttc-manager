@@ -9,6 +9,7 @@ public class TeamMembershipSummaryResponse {
 	private Long memberId;
 	private String memberFullName;
 	private Long userId;
+	private Integer lineupPosition;
 	private boolean player;
 	private boolean captain;
 	private boolean viceCaptain;
@@ -17,11 +18,12 @@ public class TeamMembershipSummaryResponse {
 	}
 
 	public TeamMembershipSummaryResponse(Long membershipId, Long memberId, String memberFullName, Long userId,
-			boolean player, boolean captain, boolean viceCaptain) {
+			Integer lineupPosition, boolean player, boolean captain, boolean viceCaptain) {
 		this.membershipId = membershipId;
 		this.memberId = memberId;
 		this.memberFullName = memberFullName;
 		this.userId = userId;
+		this.lineupPosition = lineupPosition;
 		this.player = player;
 		this.captain = captain;
 		this.viceCaptain = viceCaptain;
@@ -41,6 +43,10 @@ public class TeamMembershipSummaryResponse {
 
 	public Long getUserId() {
 		return userId;
+	}
+
+	public Integer getLineupPosition() {
+		return lineupPosition;
 	}
 
 	public boolean isPlayer() {
