@@ -25,100 +25,94 @@ import java.util.List;
 /**
  * Zentrale Spring-Security-Konfiguration.
  *
- * Ziel für den aktuellen MVP:
- * - Session-basierte Authentifizierung
- * - Login/Logout über eigene REST-Endpunkte
- * - React-Frontend über CORS erlaubt
- * - alle Fach-Endpunkte standardmäßig nur für eingeloggte Benutzer
+ * Ziel für den aktuellen MVP: - Session-basierte Authentifizierung -
+ * Login/Logout über eigene REST-Endpunkte - React-Frontend über CORS erlaubt -
+ * alle Fach-Endpunkte standardmäßig nur für eingeloggte Benutzer
  */
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    private final CustomUserDetailsService customUserDetailsService;
+	private final CustomUserDetailsService customUserDetailsService;
 
-    @Value("${app.frontend.base-url:http://localhost:5173}")
-    private String frontendBaseUrl;
+	@Value("${app.frontend.base-url:http://localhost:5173}")
+	private String frontendBaseUrl;
 
-    public SecurityConfig(CustomUserDetailsService customUserDetailsService) {
-        this.customUserDetailsService = customUserDetailsService;
-    }
+	public SecurityConfig(CustomUserDetailsService customUserDetailsService) {
+		this.customUserDetailsService = customUserDetailsService;
+	}
 
-    /**
-     * Passwort-Encoder für sichere Passwort-Speicherung.
-     */
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+	/**
+	 * Passwort-Encoder für sichere Passwort-Speicherung.
+	 */
+	@Bean
+	public PasswordEncoder passwordEncoder() {
+		return new BCryptPasswordEncoder();
+	}
 
-    /**
-     * AuthenticationProvider auf Basis unseres UserDetailsService.
-     */
-    @Bean
-    public DaoAuthenticationProvider authenticationProvider(PasswordEncoder passwordEncoder) {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(customUserDetailsService);
-        provider.setPasswordEncoder(passwordEncoder);
-        return provider;
-    }
+	/**
+	 * AuthenticationProvider auf Basis unseres UserDetailsService.
+	 */
+	@Bean
+	public DaoAuthenticationProvider authenticationProvider(PasswordEncoder passwordEncoder) {
+		DaoAuthenticationProvider provider = new DaoAuthenticationProvider(customUserDetailsService);
+		provider.setPasswordEncoder(passwordEncoder);
+		return provider;
+	}
 
-    /**
-     * AuthenticationManager wird von Spring bereitgestellt und nutzt unseren Provider.
-     */
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
-        return configuration.getAuthenticationManager();
-    }
+	/**
+	 * AuthenticationManager wird von Spring bereitgestellt und nutzt unseren
+	 * Provider.
+	 */
+	@Bean
+	public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+		return configuration.getAuthenticationManager();
+	}
 
-    /**
-     * Zentrale HTTP-Security-Konfiguration.
-     */
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .cors(Customizer.withDefaults())
-                .csrf(AbstractHttpConfigurer::disable)
-                .httpBasic(AbstractHttpConfigurer::disable)
-                .formLogin(AbstractHttpConfigurer::disable)
-                .logout(AbstractHttpConfigurer::disable)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+	/**
+	 * Zentrale HTTP-Security-Konfiguration.
+	 */
+	@Bean
+	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+		http.cors(Customizer.withDefaults()).csrf(AbstractHttpConfigurer::disable)
+				.httpBasic(AbstractHttpConfigurer::disable).formLogin(AbstractHttpConfigurer::disable)
+				.logout(AbstractHttpConfigurer::disable)
+				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+				.authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        /*
-                         * Öffentliche Endpunkte für Auth und erste Tests.
-                         * /api/users ist für den Moment offen, damit du per Postman Test-User anlegen kannst.
-                         * Später sollten wir das wieder absichern, z. B. nur für ADMIN.
-                         */
-                        .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/auth/logout").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/auth/me").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/test").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
+						/*
+						 * Öffentliche Endpunkte für Auth und erste Tests. /api/users ist für den Moment
+						 * offen, damit du per Postman Test-User anlegen kannst. Später sollten wir das
+						 * wieder absichern, z. B. nur für ADMIN.
+						 */
+						.requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+						.requestMatchers(HttpMethod.POST, "/api/auth/logout").permitAll()
+						.requestMatchers(HttpMethod.GET, "/api/auth/me").permitAll()
+						.requestMatchers(HttpMethod.GET, "/api/test").permitAll()
+						.requestMatchers(HttpMethod.POST, "/api/users").permitAll()
 
-                        .anyRequest().authenticated()
-                );
+						.anyRequest().authenticated());
 
-        return http.build();
-    }
+		return http.build();
+	}
 
-    /**
-     * Globale CORS-Konfiguration für das React-Frontend.
-     *
-     * Wichtig:
-     * - bei Cookies / Session muss allowCredentials(true) gesetzt sein
-     * - gleichzeitig darf nicht mit "*" gearbeitet werden, sondern mit einer konkreten Origin
-     */
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(frontendBaseUrl));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Content-Type", "Accept", "X-Requested-With", "Origin"));
-        configuration.setAllowCredentials(true);
+	/**
+	 * Globale CORS-Konfiguration für das React-Frontend.
+	 *
+	 * Wichtig: - bei Cookies / Session muss allowCredentials(true) gesetzt sein -
+	 * gleichzeitig darf nicht mit "*" gearbeitet werden, sondern mit einer
+	 * konkreten Origin
+	 */
+	@Bean
+	public CorsConfigurationSource corsConfigurationSource() {
+		CorsConfiguration configuration = new CorsConfiguration();
+		configuration.setAllowedOrigins(List.of(frontendBaseUrl));
+		configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+		configuration.setAllowedHeaders(List.of("Content-Type", "Accept", "X-Requested-With", "Origin"));
+		configuration.setAllowCredentials(true);
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
+		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+		source.registerCorsConfiguration("/**", configuration);
+		return source;
+	}
 }
