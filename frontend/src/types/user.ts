@@ -5,6 +5,7 @@ export type User = {
   firstName: string;
   lastName: string;
   fullName: string;
+  username: string;
   email: string;
   active: boolean;
   roles: GlobalRole[];

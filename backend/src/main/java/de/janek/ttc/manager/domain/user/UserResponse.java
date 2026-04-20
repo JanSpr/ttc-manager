@@ -11,6 +11,7 @@ public class UserResponse {
 	private String firstName;
 	private String lastName;
 	private String fullName;
+	private String username;
 	private String email;
 	private boolean active;
 	private Set<GlobalRole> roles;
@@ -19,12 +20,13 @@ public class UserResponse {
 	public UserResponse() {
 	}
 
-	public UserResponse(Long id, String firstName, String lastName, String fullName, String email, boolean active,
-			Set<GlobalRole> roles, Long memberId) {
+	public UserResponse(Long id, String firstName, String lastName, String fullName, String username, String email,
+			boolean active, Set<GlobalRole> roles, Long memberId) {
 		this.id = id;
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.fullName = fullName;
+		this.username = username;
 		this.email = email;
 		this.active = active;
 		this.roles = roles;
@@ -45,6 +47,10 @@ public class UserResponse {
 
 	public String getFullName() {
 		return fullName;
+	}
+
+	public String getUsername() {
+		return username;
 	}
 
 	public String getEmail() {

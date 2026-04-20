@@ -11,9 +11,9 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.*;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -38,14 +38,14 @@ public class AuthController {
 	}
 
 	/**
-	 * Login mit E-Mail und Passwort.
+	 * Login mit E-Mail oder Username und Passwort.
 	 */
 	@PostMapping("/login")
 	public AuthResponse login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse) {
 		try {
 			UsernamePasswordAuthenticationToken authenticationToken = UsernamePasswordAuthenticationToken
-					.unauthenticated(request.getEmail().trim(), request.getPassword());
+					.unauthenticated(request.getIdentifier().trim(), request.getPassword());
 
 			Authentication authentication = authenticationManager.authenticate(authenticationToken);
 
@@ -55,10 +55,10 @@ public class AuthController {
 
 			securityContextRepository.saveContext(context, httpRequest, httpResponse);
 
-			UserResponse user = userService.findByEmail(authentication.getName());
+			UserResponse user = userService.findByLoginIdentifier(authentication.getName());
 			return AuthResponse.authenticated(user);
 		} catch (BadCredentialsException ex) {
-			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "E-Mail oder Passwort ist falsch.");
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "E-Mail/Username oder Passwort ist falsch.");
 		}
 	}
 
@@ -71,7 +71,7 @@ public class AuthController {
 			return AuthResponse.unauthenticated();
 		}
 
-		UserResponse user = userService.findByEmail(authentication.getName());
+		UserResponse user = userService.findByLoginIdentifier(authentication.getName());
 		return AuthResponse.authenticated(user);
 	}
 

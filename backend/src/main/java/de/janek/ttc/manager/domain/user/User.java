@@ -14,7 +14,8 @@ import java.util.Set;
  * einem Member verknüpft
  */
 @Entity
-@Table(name = "app_user")
+@Table(name = "app_user", uniqueConstraints = { @UniqueConstraint(name = "uk_app_user_email", columnNames = "email"),
+		@UniqueConstraint(name = "uk_app_user_username", columnNames = "username") })
 public class User {
 
 	@Id
@@ -37,15 +38,25 @@ public class User {
 	private String lastName;
 
 	/**
-	 * E-Mail-Adresse (Login).
+	 * Automatisch erzeugter, eindeutiger Username.
+	 *
+	 * Beispiel: max + mus = maxmus
 	 */
-	@Column(name = "email", length = 255, unique = true)
+	@Column(name = "username", nullable = false, length = 100, unique = true)
+	private String username;
+
+	/**
+	 * E-Mail-Adresse.
+	 *
+	 * Darf weiterhin für den Login verwendet werden.
+	 */
+	@Column(name = "email", nullable = false, length = 255, unique = true)
 	private String email;
 
 	/**
 	 * Passwort-Hash.
 	 */
-	@Column(name = "password_hash", length = 255)
+	@Column(name = "password_hash", nullable = false, length = 255)
 	private String passwordHash;
 
 	/**
@@ -81,9 +92,10 @@ public class User {
 		this.active = true;
 	}
 
-	public User(String firstName, String lastName, String email, String passwordHash) {
+	public User(String firstName, String lastName, String username, String email, String passwordHash) {
 		this.firstName = firstName;
 		this.lastName = lastName;
+		this.username = username;
 		this.email = email;
 		this.passwordHash = passwordHash;
 		this.active = true;
@@ -103,6 +115,10 @@ public class User {
 
 	public String getFullName() {
 		return firstName + " " + lastName;
+	}
+
+	public String getUsername() {
+		return username;
 	}
 
 	public String getEmail() {
@@ -131,6 +147,10 @@ public class User {
 
 	public void setLastName(String lastName) {
 		this.lastName = lastName;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
 	}
 
 	public void setEmail(String email) {

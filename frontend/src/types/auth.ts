@@ -1,7 +1,7 @@
 import type { User } from "./user";
 
 export type LoginRequest = {
-  email: string;
+  identifier: string;
   password: string;
 };
 

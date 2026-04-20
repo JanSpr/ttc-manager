@@ -34,15 +34,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void init();
   }, [refreshCurrentUser]);
 
-  const login = useCallback(async ({ email, password }: { email: string; password: string }) => {
-    const response = await loginRequest({ email, password });
+  const login = useCallback(
+    async ({
+      identifier,
+      password,
+    }: {
+      identifier: string;
+      password: string;
+    }) => {
+      const response = await loginRequest({ identifier, password });
 
-    if (!response.authenticated || !response.user) {
-      throw new Error("Login fehlgeschlagen");
-    }
+      if (!response.authenticated || !response.user) {
+        throw new Error("Login fehlgeschlagen");
+      }
 
-    setUser(response.user);
-  }, []);
+      setUser(response.user);
+    },
+    []
+  );
 
   const logout = useCallback(async () => {
     await logoutRequest();

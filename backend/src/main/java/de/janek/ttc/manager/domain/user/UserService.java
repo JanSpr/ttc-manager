@@ -6,8 +6,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.Normalizer;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -15,7 +17,7 @@ import java.util.Set;
  *
  * Aktueller Zwischenstand: - verwaltet User / Login-Konten - keine direkte
  * Team-Zuordnung - globale Rollen statt alter Einzelrolle - Passwort wird beim
- * Speichern sicher gehasht
+ * Speichern sicher gehasht - Username wird beim Erstellen automatisch erzeugt
  */
 @Service
 @Transactional
@@ -41,19 +43,48 @@ public class UserService {
 
 	@Transactional(readOnly = true)
 	public UserResponse findByEmail(String email) {
-		User user = userRepository.findByEmailIgnoreCase(email).orElseThrow(
+		User user = userRepository.findByEmailIgnoreCase(normalizeEmail(email)).orElseThrow(
 				() -> new ResourceNotFoundException("User mit E-Mail '" + email + "' wurde nicht gefunden."));
 
 		return toResponse(user);
 	}
 
+	@Transactional(readOnly = true)
+	public UserResponse findByUsername(String username) {
+		User user = userRepository.findByUsernameIgnoreCase(normalizeLoginIdentifier(username)).orElseThrow(
+				() -> new ResourceNotFoundException("User mit Username '" + username + "' wurde nicht gefunden."));
+
+		return toResponse(user);
+	}
+
+	@Transactional(readOnly = true)
+	public UserResponse findByLoginIdentifier(String identifier) {
+		User user = getUserEntityByLoginIdentifier(identifier);
+		return toResponse(user);
+	}
+
+	@Transactional(readOnly = true)
+	public User getUserEntityByLoginIdentifier(String identifier) {
+		String normalizedIdentifier = normalizeLoginIdentifier(identifier);
+
+		return userRepository.findByEmailIgnoreCaseOrUsernameIgnoreCase(normalizedIdentifier, normalizedIdentifier)
+				.orElseThrow(() -> new ResourceNotFoundException(
+						"User mit Login '" + identifier + "' wurde nicht gefunden."));
+	}
+
 	public UserResponse create(CreateUserRequest request) {
 		validateUniqueEmail(request.getEmail(), null);
 
+		String normalizedFirstName = request.getFirstName().trim();
+		String normalizedLastName = request.getLastName().trim();
+		String normalizedEmail = normalizeEmail(request.getEmail());
+		String generatedUsername = generateUniqueUsername(normalizedFirstName, normalizedLastName);
+
 		User user = new User();
-		user.setFirstName(request.getFirstName().trim());
-		user.setLastName(request.getLastName().trim());
-		user.setEmail(normalizeEmail(request.getEmail()));
+		user.setFirstName(normalizedFirstName);
+		user.setLastName(normalizedLastName);
+		user.setUsername(generatedUsername);
+		user.setEmail(normalizedEmail);
 		user.setPasswordHash(passwordEncoder.encode(request.getPasswordHash()));
 		user.setActive(request.getActive());
 		user.setRoles(copyRoles(request.getRoles()));
@@ -74,6 +105,10 @@ public class UserService {
 		existingUser.setActive(request.getActive());
 		existingUser.setRoles(copyRoles(request.getRoles()));
 
+		/*
+		 * Username bleibt bei Updates bewusst stabil. Er wird nur bei der Erstellung
+		 * automatisch vergeben.
+		 */
 		User savedUser = userRepository.save(existingUser);
 		return toResponse(savedUser);
 	}
@@ -103,7 +138,11 @@ public class UserService {
 	}
 
 	private String normalizeEmail(String email) {
-		return email.trim().toLowerCase();
+		return email.trim().toLowerCase(Locale.ROOT);
+	}
+
+	private String normalizeLoginIdentifier(String identifier) {
+		return identifier.trim().toLowerCase(Locale.ROOT);
 	}
 
 	private Set<GlobalRole> copyRoles(Set<GlobalRole> roles) {
@@ -114,6 +153,67 @@ public class UserService {
 		Long memberId = user.getMember() != null ? user.getMember().getId() : null;
 
 		return new UserResponse(user.getId(), user.getFirstName(), user.getLastName(), user.getFullName(),
-				user.getEmail(), user.isActive(), Set.copyOf(user.getRoles()), memberId);
+				user.getUsername(), user.getEmail(), user.isActive(), Set.copyOf(user.getRoles()), memberId);
+	}
+
+	/**
+	 * Erzeugt aus Vor- und Nachname einen eindeutigen Username.
+	 *
+	 * Regel: - erste 3 Zeichen des normalisierten Vornamens - plus erste 3 Zeichen
+	 * des normalisierten Nachnamens - Umlaute werden sauber umgeschrieben (ä->ae,
+	 * ö->oe, ü->ue, ß->ss) - Sonderzeichen, Leerzeichen usw. werden entfernt -
+	 * falls der Username bereits existiert, wird eine laufende Zahl angehängt
+	 */
+	private String generateUniqueUsername(String firstName, String lastName) {
+		String firstPart = extractUsernamePart(firstName, 3);
+		String lastPart = extractUsernamePart(lastName, 3);
+
+		String baseUsername = (firstPart + lastPart).toLowerCase(Locale.ROOT);
+
+		if (baseUsername.isBlank()) {
+			baseUsername = "user";
+		}
+
+		String candidate = baseUsername;
+		int suffix = 2;
+
+		while (userRepository.existsByUsernameIgnoreCase(candidate)) {
+			candidate = baseUsername + suffix;
+			suffix++;
+		}
+
+		return candidate;
+	}
+
+	private String extractUsernamePart(String value, int maxLength) {
+		String normalized = normalizeNameForUsername(value);
+
+		if (normalized.isBlank()) {
+			return "";
+		}
+
+		return normalized.length() <= maxLength ? normalized : normalized.substring(0, maxLength);
+	}
+
+	/**
+	 * Normalisiert Namensbestandteile für den Username.
+	 *
+	 * Beispiele: - Müller -> mueller - Jörg -> joerg - Groß -> gross - Émile ->
+	 * emile - Anne-Marie -> annemarie
+	 */
+	private String normalizeNameForUsername(String input) {
+		if (input == null) {
+			return "";
+		}
+
+		String value = input.trim().toLowerCase(Locale.ROOT);
+
+		value = value.replace("ä", "ae").replace("ö", "oe").replace("ü", "ue").replace("ß", "ss");
+
+		value = Normalizer.normalize(value, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
+
+		value = value.replaceAll("[^a-z0-9]", "");
+
+		return value;
 	}
 }

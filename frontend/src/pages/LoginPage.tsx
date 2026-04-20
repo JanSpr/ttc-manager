@@ -7,7 +7,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
@@ -16,10 +16,10 @@ export default function LoginPage() {
     setError("");
 
     try {
-      await login({ email, password });
+      await login({ identifier, password });
       navigate("/");
     } catch {
-      setError("Login fehlgeschlagen. Bitte überprüfe E-Mail und Passwort.");
+      setError("Login fehlgeschlagen. Bitte überprüfe E-Mail/Username und Passwort.");
     }
   }
 
@@ -110,22 +110,22 @@ export default function LoginPage() {
           >
             <div style={{ display: "grid", gap: "8px" }}>
               <label
-                htmlFor="email"
+                htmlFor="identifier"
                 style={{
                   fontSize: "0.92rem",
                   fontWeight: 700,
                   color: colors.text,
                 }}
               >
-                E-Mail
+                E-Mail oder Username
               </label>
 
               <input
-                id="email"
-                type="email"
-                placeholder="name@verein.de"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="identifier"
+                type="text"
+                placeholder="name@verein.de oder maxmus"
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
                 autoComplete="username"
                 style={{
                   width: "100%",
