@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
+import { useToast } from "../context/useToast";
 import { updateOwnEmail } from "../api/userApi";
 import {
   pageContainerStyle,
@@ -50,12 +51,11 @@ function ProfileField({
 
 function UserProfilePage() {
   const { user, isAuthenticated, updateAuthenticatedUser } = useAuth();
+  const { showToast } = useToast();
 
   const [isEditingEmail, setIsEditingEmail] = useState(false);
   const [emailInput, setEmailInput] = useState("");
   const [isSavingEmail, setIsSavingEmail] = useState(false);
-  const [emailSuccessMessage, setEmailSuccessMessage] = useState("");
-  const [emailErrorMessage, setEmailErrorMessage] = useState("");
 
   if (!isAuthenticated || !user) {
     return <Navigate to="/login" replace />;
@@ -64,20 +64,18 @@ function UserProfilePage() {
   const currentUser = user;
 
   const displayName =
-    [currentUser.firstName, currentUser.lastName].filter(Boolean).join(" ").trim() ||
-    currentUser.username;
+    [currentUser.firstName, currentUser.lastName]
+      .filter(Boolean)
+      .join(" ")
+      .trim() || currentUser.username;
 
   function handleStartEmailEdit() {
     setEmailInput(currentUser.email ?? "");
-    setEmailErrorMessage("");
-    setEmailSuccessMessage("");
     setIsEditingEmail(true);
   }
 
   function handleCancelEmailEdit() {
     setEmailInput(currentUser.email ?? "");
-    setEmailErrorMessage("");
-    setEmailSuccessMessage("");
     setIsEditingEmail(false);
   }
 
@@ -85,37 +83,32 @@ function UserProfilePage() {
     const normalizedEmail = emailInput.trim();
 
     if (!normalizedEmail) {
-      setEmailErrorMessage("Bitte gib eine E-Mail-Adresse ein.");
-      setEmailSuccessMessage("");
+      showToast("Bitte gib eine E-Mail-Adresse ein.", "error");
       return;
     }
 
     if (normalizedEmail === currentUser.email) {
-      setEmailErrorMessage("");
-      setEmailSuccessMessage("");
       setIsEditingEmail(false);
       return;
     }
 
     try {
       setIsSavingEmail(true);
-      setEmailErrorMessage("");
-      setEmailSuccessMessage("");
 
       const updatedUser = await updateOwnEmail({ email: normalizedEmail });
 
       updateAuthenticatedUser(updatedUser);
       setEmailInput(updatedUser.email);
       setIsEditingEmail(false);
-      setEmailSuccessMessage("Deine E-Mail-Adresse wurde erfolgreich aktualisiert.");
+      showToast("E-Mail-Adresse erfolgreich aktualisiert.", "success");
     } catch (error) {
       console.error(error);
-      setEmailErrorMessage(
+      showToast(
         error instanceof Error
           ? error.message
-          : "Die E-Mail-Adresse konnte nicht gespeichert werden."
+          : "Die E-Mail-Adresse konnte nicht gespeichert werden.",
+        "error"
       );
-      setEmailSuccessMessage("");
     } finally {
       setIsSavingEmail(false);
     }
@@ -221,11 +214,137 @@ function UserProfilePage() {
           <ProfileField label="Vorname" value={currentUser.firstName || "-"} />
           <ProfileField label="Nachname" value={currentUser.lastName || "-"} />
           <ProfileField label="Username" value={currentUser.username || "-"} />
-          <ProfileField
-            label="E-Mail"
-            value={currentUser.email || "-"}
-            preserveFullValue
-          />
+
+          <div
+            style={{
+              padding: "1rem 1.1rem",
+              border: `1px solid ${colors.border}`,
+              borderRadius: "14px",
+              backgroundColor: colors.surface,
+              minWidth: 0,
+              position: "relative",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "flex-start",
+                justifyContent: "space-between",
+                gap: "0.75rem",
+                marginBottom: "0.35rem",
+              }}
+            >
+              <div style={subtleLabelStyle}>E-Mail</div>
+
+              {!isEditingEmail ? (
+                <button
+                  type="button"
+                  onClick={handleStartEmailEdit}
+                  aria-label="E-Mail bearbeiten"
+                  title="E-Mail bearbeiten"
+                  style={{
+                    border: `1px solid ${colors.border}`,
+                    backgroundColor: colors.surfaceSoft,
+                    color: colors.textMuted,
+                    borderRadius: "8px",
+                    width: "32px",
+                    height: "32px",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    flexShrink: 0,
+                    fontSize: "0.95rem",
+                    lineHeight: 1,
+                  }}
+                >
+                  ✎
+                </button>
+              ) : null}
+            </div>
+
+            {!isEditingEmail ? (
+              <div
+                style={{
+                  color: colors.text,
+                  fontWeight: 600,
+                  lineHeight: 1.4,
+                  overflowWrap: "anywhere",
+                  wordBreak: "break-word",
+                }}
+              >
+                {currentUser.email || "-"}
+              </div>
+            ) : (
+              <div
+                style={{
+                  display: "grid",
+                  gap: "0.75rem",
+                }}
+              >
+                <input
+                  type="email"
+                  value={emailInput}
+                  onChange={(event) => setEmailInput(event.target.value)}
+                  disabled={isSavingEmail}
+                  autoFocus
+                  style={{
+                    width: "100%",
+                    padding: "0.8rem 0.95rem",
+                    borderRadius: "10px",
+                    border: `1px solid ${colors.border}`,
+                    backgroundColor: "#ffffff",
+                    color: colors.text,
+                  }}
+                />
+
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "0.65rem",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={handleSaveEmail}
+                    disabled={isSavingEmail}
+                    style={{
+                      padding: "0.7rem 0.95rem",
+                      borderRadius: "10px",
+                      border: "none",
+                      backgroundColor: colors.primary,
+                      color: "#ffffff",
+                      fontWeight: 700,
+                      cursor: isSavingEmail ? "default" : "pointer",
+                      opacity: isSavingEmail ? 0.7 : 1,
+                    }}
+                  >
+                    {isSavingEmail ? "Speichere..." : "Speichern"}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleCancelEmailEdit}
+                    disabled={isSavingEmail}
+                    style={{
+                      padding: "0.7rem 0.95rem",
+                      borderRadius: "10px",
+                      border: `1px solid ${colors.borderStrong}`,
+                      backgroundColor: colors.surface,
+                      color: colors.text,
+                      fontWeight: 700,
+                      cursor: isSavingEmail ? "default" : "pointer",
+                      opacity: isSavingEmail ? 0.7 : 1,
+                    }}
+                  >
+                    Abbrechen
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
           <ProfileField
             label="Member-Verknüpfung"
             value={
@@ -261,174 +380,6 @@ function UserProfilePage() {
             </p>
           )}
         </div>
-      </section>
-
-      <section style={contentCardStyle}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-            gap: "1rem",
-            flexWrap: "wrap",
-            marginBottom: "1rem",
-          }}
-        >
-          <div>
-            <h2
-              style={{
-                margin: 0,
-                fontSize: "1.15rem",
-                color: colors.text,
-              }}
-            >
-              E-Mail-Adresse ändern
-            </h2>
-            <p
-              style={{
-                margin: "0.45rem 0 0 0",
-                color: colors.textMuted,
-                lineHeight: 1.6,
-              }}
-            >
-              Aktuell kann im Profil nur die eigene E-Mail-Adresse bearbeitet werden.
-            </p>
-          </div>
-
-          {!isEditingEmail ? (
-            <button
-              type="button"
-              onClick={handleStartEmailEdit}
-              style={{
-                padding: "0.7rem 1rem",
-                borderRadius: "10px",
-                border: `1px solid ${colors.borderStrong}`,
-                backgroundColor: colors.surface,
-                color: colors.text,
-                fontWeight: 700,
-                cursor: "pointer",
-              }}
-            >
-              E-Mail bearbeiten
-            </button>
-          ) : null}
-        </div>
-
-        {emailSuccessMessage ? (
-          <div
-            style={{
-              marginBottom: "1rem",
-              padding: "0.85rem 1rem",
-              borderRadius: "12px",
-              border: `1px solid ${colors.border}`,
-              backgroundColor: colors.primarySoft,
-              color: colors.primary,
-              fontWeight: 600,
-            }}
-          >
-            {emailSuccessMessage}
-          </div>
-        ) : null}
-
-        {emailErrorMessage ? (
-          <div
-            style={{
-              marginBottom: "1rem",
-              padding: "0.85rem 1rem",
-              borderRadius: "12px",
-              border: `1px solid #fecaca`,
-              backgroundColor: colors.dangerSoft,
-              color: colors.danger,
-              fontWeight: 600,
-            }}
-          >
-            {emailErrorMessage}
-          </div>
-        ) : null}
-
-        {isEditingEmail ? (
-          <div
-            style={{
-              display: "grid",
-              gap: "0.9rem",
-              maxWidth: "520px",
-            }}
-          >
-            <div>
-              <label
-                htmlFor="email"
-                style={{
-                  display: "block",
-                  marginBottom: "0.4rem",
-                  color: colors.text,
-                  fontWeight: 600,
-                }}
-              >
-                Neue E-Mail-Adresse
-              </label>
-
-              <input
-                id="email"
-                type="email"
-                value={emailInput}
-                onChange={(event) => setEmailInput(event.target.value)}
-                disabled={isSavingEmail}
-                style={{
-                  width: "100%",
-                  padding: "0.8rem 0.95rem",
-                  borderRadius: "10px",
-                  border: `1px solid ${colors.border}`,
-                  backgroundColor: "#ffffff",
-                  color: colors.text,
-                }}
-              />
-            </div>
-
-            <div
-              style={{
-                display: "flex",
-                gap: "0.75rem",
-                flexWrap: "wrap",
-              }}
-            >
-              <button
-                type="button"
-                onClick={handleSaveEmail}
-                disabled={isSavingEmail}
-                style={{
-                  padding: "0.75rem 1rem",
-                  borderRadius: "10px",
-                  border: "none",
-                  backgroundColor: colors.primary,
-                  color: "#ffffff",
-                  fontWeight: 700,
-                  cursor: isSavingEmail ? "default" : "pointer",
-                  opacity: isSavingEmail ? 0.7 : 1,
-                }}
-              >
-                {isSavingEmail ? "Speichere..." : "Speichern"}
-              </button>
-
-              <button
-                type="button"
-                onClick={handleCancelEmailEdit}
-                disabled={isSavingEmail}
-                style={{
-                  padding: "0.75rem 1rem",
-                  borderRadius: "10px",
-                  border: `1px solid ${colors.borderStrong}`,
-                  backgroundColor: colors.surface,
-                  color: colors.text,
-                  fontWeight: 700,
-                  cursor: isSavingEmail ? "default" : "pointer",
-                  opacity: isSavingEmail ? 0.7 : 1,
-                }}
-              >
-                Abbrechen
-              </button>
-            </div>
-          </div>
-        ) : null}
       </section>
     </div>
   );

@@ -1,25 +1,46 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
+import { useToast } from "../context/useToast";
 import { colors } from "../styles/ui";
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { showToast } = useToast();
 
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    setError("");
+
+    if (!identifier.trim() || !password.trim()) {
+      showToast("Bitte E-Mail/Username und Passwort eingeben.", "error");
+      return;
+    }
 
     try {
-      await login({ identifier, password });
+      setIsSubmitting(true);
+
+      await login({
+        identifier: identifier.trim(),
+        password,
+      });
+
+      showToast("Erfolgreich eingeloggt.", "success");
       navigate("/");
-    } catch {
-      setError("Login fehlgeschlagen. Bitte überprüfe E-Mail/Username und Passwort.");
+    } catch (error) {
+      console.error(error);
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "Login fehlgeschlagen. Bitte überprüfe E-Mail/Username und Passwort.",
+        "error"
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -127,6 +148,7 @@ export default function LoginPage() {
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 autoComplete="username"
+                disabled={isSubmitting}
                 style={{
                   width: "100%",
                   padding: "12px 14px",
@@ -156,6 +178,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
+                disabled={isSubmitting}
                 style={{
                   width: "100%",
                   padding: "12px 14px",
@@ -166,23 +189,9 @@ export default function LoginPage() {
               />
             </div>
 
-            {error && (
-              <div
-                style={{
-                  padding: "12px 14px",
-                  borderRadius: "12px",
-                  backgroundColor: colors.dangerSoft,
-                  color: colors.danger,
-                  border: "1px solid #fecaca",
-                  fontSize: "0.92rem",
-                }}
-              >
-                {error}
-              </div>
-            )}
-
             <button
               type="submit"
+              disabled={isSubmitting}
               style={{
                 marginTop: "4px",
                 border: "none",
@@ -194,9 +203,11 @@ export default function LoginPage() {
                 fontSize: "0.98rem",
                 fontWeight: 800,
                 boxShadow: "0 12px 24px rgba(37, 99, 235, 0.18)",
+                cursor: isSubmitting ? "default" : "pointer",
+                opacity: isSubmitting ? 0.8 : 1,
               }}
             >
-              Einloggen
+              {isSubmitting ? "Einloggen..." : "Einloggen"}
             </button>
           </form>
 
