@@ -79,84 +79,140 @@ export default function MemberDetailPage() {
 
   return (
     <div style={pageContainerStyle}>
-      <Link to={backLink}>{backLabel}</Link>
+      <div style={{ marginBottom: "1rem" }}>
+        <Link to={backLink} style={{ color: "#2563eb", textDecoration: "none" }}>
+          {backLabel}
+        </Link>
+      </div>
 
       {loading && <p style={{ marginTop: "1rem" }}>Member wird geladen...</p>}
-      {error && <p style={{ marginTop: "1rem", color: "red" }}>{error}</p>}
+      {error && <p style={{ marginTop: "1rem", color: "#b91c1c" }}>{error}</p>}
 
       {!loading && !error && member && (
-        <div style={contentCardStyle}>
-          <h1 style={{ marginTop: 0, marginBottom: "0.75rem" }}>
-            {member.fullName}
-          </h1>
+        <>
+          <div style={{ ...contentCardStyle, marginBottom: "1.5rem" }}>
+            <h1 style={{ marginTop: 0, marginBottom: "1rem" }}>
+              {member.fullName}
+            </h1>
 
-          <div style={{ display: "grid", gap: "0.75rem" }}>
-            <div>
-              <strong>Vorname:</strong> {member.firstName}
-            </div>
-
-            <div>
-              <strong>Nachname:</strong> {member.lastName}
-            </div>
-
-            <div>
-              <strong>Status:</strong> {member.active ? "Aktiv" : "Inaktiv"}
-            </div>
-
-            <div>
-              <strong>Verknüpfter User:</strong>{" "}
-              {member.userId
-                ? `User-ID ${member.userId}`
-                : "Kein Login verknüpft"}
-            </div>
-
-            <div>
-              <strong>Teams:</strong>
-              {memberTeams.length === 0 ? (
-                <span> Keine</span>
-              ) : (
-                <div
-                  style={{
-                    marginTop: "0.75rem",
-                    display: "grid",
-                    gap: "0.75rem",
-                  }}
-                >
-                  {memberTeams.map((team) => (
-                    <Link
-                      key={team.id}
-                      to={`/teams/${team.id}`}
-                      style={clickableCardStyle}
-                      onMouseEnter={(e) =>
-                        applyClickableCardHover(e.currentTarget)
-                      }
-                      onMouseLeave={(e) =>
-                        resetClickableCardHover(e.currentTarget)
-                      }
-                    >
-                      <div
-                        style={{
-                          fontWeight: "bold",
-                          marginBottom: "0.25rem",
-                        }}
-                      >
-                        {team.name}
-                      </div>
-
-                      <div style={{ color: "#555", marginBottom: "0.25rem" }}>
-                        {team.description || "Keine Beschreibung vorhanden."}
-                      </div>
-
-                      <div style={{ fontSize: "0.95rem", color: "#666" }}>
-                        Zugeordnete Mitglieder: {team.memberCount}
-                      </div>
-                    </Link>
-                  ))}
+            <div
+              style={{
+                display: "grid",
+                gap: "0.9rem",
+                gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+              }}
+            >
+              <div>
+                <div style={{ fontSize: "0.9rem", color: "#6b7280", marginBottom: "0.2rem" }}>
+                  Vorname
                 </div>
-              )}
+                <div style={{ fontWeight: 600 }}>{member.firstName}</div>
+              </div>
+
+              <div>
+                <div style={{ fontSize: "0.9rem", color: "#6b7280", marginBottom: "0.2rem" }}>
+                  Nachname
+                </div>
+                <div style={{ fontWeight: 600 }}>{member.lastName}</div>
+              </div>
+
+              <div>
+                <div style={{ fontSize: "0.9rem", color: "#6b7280", marginBottom: "0.2rem" }}>
+                  Status
+                </div>
+                <div style={{ fontWeight: 600 }}>
+                  {member.active ? "Aktiv" : "Inaktiv"}
+                </div>
+              </div>
+
+              <div>
+                <div style={{ fontSize: "0.9rem", color: "#6b7280", marginBottom: "0.2rem" }}>
+                  Verknüpfter User
+                </div>
+                <div style={{ fontWeight: 600 }}>
+                  {member.userId
+                    ? `User-ID ${member.userId}`
+                    : "Kein Login verknüpft"}
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+
+          <div style={contentCardStyle}>
+            <h2 style={{ marginTop: 0, marginBottom: "0.75rem", fontSize: "1.2rem" }}>
+              Zugeordnete Teams
+            </h2>
+
+            {memberTeams.length === 0 ? (
+              <p style={{ margin: 0, color: "#666" }}>Keine Teams zugeordnet.</p>
+            ) : (
+              <div
+                style={{
+                  marginTop: "0.75rem",
+                  display: "grid",
+                  gap: "0.75rem",
+                }}
+              >
+                {memberTeams.map((team) => (
+                  <Link
+                    key={team.id}
+                    to={`/teams/${team.id}`}
+                    style={{
+                      ...clickableCardStyle,
+                      borderRadius: "14px",
+                    }}
+                    onMouseEnter={(e) =>
+                      applyClickableCardHover(e.currentTarget)
+                    }
+                    onMouseLeave={(e) =>
+                      resetClickableCardHover(e.currentTarget)
+                    }
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        gap: "1rem",
+                        alignItems: "flex-start",
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      <div>
+                        <div
+                          style={{
+                            fontWeight: "bold",
+                            marginBottom: "0.25rem",
+                            color: "#111827",
+                          }}
+                        >
+                          {team.name}
+                        </div>
+
+                        <div style={{ color: "#555", marginBottom: "0.25rem" }}>
+                          {team.description || "Keine Beschreibung vorhanden."}
+                        </div>
+                      </div>
+
+                      <div
+                        style={{
+                          padding: "0.35rem 0.65rem",
+                          borderRadius: "999px",
+                          backgroundColor: "#eff6ff",
+                          color: "#1d4ed8",
+                          fontWeight: 700,
+                          fontSize: "0.95rem",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {team.memberCount} Mitglieder
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        </>
       )}
     </div>
   );

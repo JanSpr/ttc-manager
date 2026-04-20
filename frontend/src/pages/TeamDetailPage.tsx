@@ -77,30 +77,59 @@ export default function TeamDetailPage() {
 
   return (
     <div style={pageContainerStyle}>
-      <Link to="/teams">← Zurück zur Teamliste</Link>
+      <div style={{ marginBottom: "1rem" }}>
+        <Link to="/teams" style={{ color: "#2563eb", textDecoration: "none" }}>
+          ← Zurück zur Teamliste
+        </Link>
+      </div>
 
       {loading && <p style={{ marginTop: "1rem" }}>Team wird geladen...</p>}
-      {error && <p style={{ marginTop: "1rem", color: "red" }}>{error}</p>}
+      {error && <p style={{ marginTop: "1rem", color: "#b91c1c" }}>{error}</p>}
 
       {!loading && !error && team && (
-        <div style={contentCardStyle}>
-          <h1 style={{ marginTop: 0, marginBottom: "0.75rem" }}>{team.name}</h1>
+        <>
+          <div style={{ ...contentCardStyle, marginBottom: "1.5rem" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                gap: "1rem",
+                alignItems: "flex-start",
+                flexWrap: "wrap",
+              }}
+            >
+              <div>
+                <h1 style={{ marginTop: 0, marginBottom: "0.75rem" }}>
+                  {team.name}
+                </h1>
 
-          <p style={{ margin: 0, color: "#555", lineHeight: 1.5 }}>
-            {team.description || "Keine Beschreibung vorhanden."}
-          </p>
+                <p style={{ margin: 0, color: "#555", lineHeight: 1.6 }}>
+                  {team.description || "Keine Beschreibung vorhanden."}
+                </p>
+              </div>
 
-          <p style={{ marginTop: "1rem", fontWeight: "bold" }}>
-            Zugeordnete Mitglieder: {team.memberCount}
-          </p>
+              <div
+                style={{
+                  padding: "0.45rem 0.8rem",
+                  borderRadius: "999px",
+                  backgroundColor: "#eff6ff",
+                  color: "#1d4ed8",
+                  fontWeight: 700,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {team.memberCount} Mitglieder
+              </div>
+            </div>
+          </div>
 
-          <div style={{ marginTop: "1.5rem" }}>
-            <h2 style={{ marginBottom: "0.75rem", fontSize: "1.2rem" }}>
+          <div style={contentCardStyle}>
+            <h2 style={{ marginTop: 0, marginBottom: "0.75rem", fontSize: "1.2rem" }}>
               Teammitglieder
             </h2>
 
             {team.memberships.length === 0 ? (
-              <p style={{ color: "#666" }}>
+              <p style={{ color: "#666", margin: 0 }}>
                 Diesem Team sind aktuell keine Mitglieder zugeordnet.
               </p>
             ) : (
@@ -121,6 +150,7 @@ export default function TeamDetailPage() {
                         display: "flex",
                         alignItems: "center",
                         gap: "1rem",
+                        borderRadius: "14px",
                       }}
                       onMouseEnter={(e) =>
                         applyClickableCardHover(e.currentTarget)
@@ -129,25 +159,30 @@ export default function TeamDetailPage() {
                         resetClickableCardHover(e.currentTarget)
                       }
                     >
-                      {/* LINEUP POSITION */}
                       <div
                         style={{
-                          minWidth: "2rem",
-                          textAlign: "center",
-                          fontSize: "1.2rem",
-                          fontWeight: "bold",
+                          minWidth: "2.5rem",
+                          height: "2.5rem",
+                          borderRadius: "999px",
+                          backgroundColor: "#eff6ff",
                           color: "#1d4ed8",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: "1rem",
+                          fontWeight: "bold",
+                          flexShrink: 0,
                         }}
                       >
                         {formatLineupPosition(membership.lineupPosition)}
                       </div>
 
-                      {/* CONTENT */}
                       <div style={{ flex: 1 }}>
                         <div
                           style={{
                             fontWeight: "bold",
                             marginBottom: "0.25rem",
+                            color: "#111827",
                           }}
                         >
                           {membership.memberFullName}
@@ -169,7 +204,7 @@ export default function TeamDetailPage() {
               </ul>
             )}
           </div>
-        </div>
+        </>
       )}
     </div>
   );
