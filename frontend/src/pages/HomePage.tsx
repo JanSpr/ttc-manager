@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { fetchTestMessage } from "../api/api";
+import { useToast } from "../context/useToast";
 import {
   pageContainerStyle,
   contentCardStyle,
@@ -9,8 +10,8 @@ import {
 } from "../styles/ui";
 
 function HomePage() {
+  const { showToast } = useToast();
   const [message, setMessage] = useState("Lade Backend-Nachricht...");
-  const [error, setError] = useState("");
 
   useEffect(() => {
     async function loadMessage() {
@@ -19,12 +20,13 @@ function HomePage() {
         setMessage(result);
       } catch (err) {
         console.error(err);
-        setError("Backend konnte nicht erreicht werden.");
+        setMessage("Backend-Test aktuell nicht verfügbar.");
+        showToast("Backend konnte nicht erreicht werden.", "error");
       }
     }
 
-    loadMessage();
-  }, []);
+    void loadMessage();
+  }, [showToast]);
 
   return (
     <div style={pageContainerStyle}>
@@ -95,11 +97,7 @@ function HomePage() {
           Backend-Test
         </h2>
 
-        {error ? (
-          <p style={{ margin: 0, color: colors.danger }}>{error}</p>
-        ) : (
-          <p style={{ margin: 0, color: colors.text }}>{message}</p>
-        )}
+        <p style={{ margin: 0, color: colors.text }}>{message}</p>
       </div>
     </div>
   );
