@@ -10,6 +10,10 @@ import {
   clickableCardStyle,
   applyClickableCardHover,
   resetClickableCardHover,
+  sectionTitleStyle,
+  subtleLabelStyle,
+  badgeStyle,
+  colors,
 } from "../styles/ui";
 
 type MemberDetailLocationState = {
@@ -80,20 +84,18 @@ export default function MemberDetailPage() {
   return (
     <div style={pageContainerStyle}>
       <div style={{ marginBottom: "1rem" }}>
-        <Link to={backLink} style={{ color: "#2563eb", textDecoration: "none" }}>
+        <Link to={backLink} style={{ color: colors.primary }}>
           {backLabel}
         </Link>
       </div>
 
       {loading && <p style={{ marginTop: "1rem" }}>Member wird geladen...</p>}
-      {error && <p style={{ marginTop: "1rem", color: "#b91c1c" }}>{error}</p>}
+      {error && <p style={{ marginTop: "1rem", color: colors.danger }}>{error}</p>}
 
       {!loading && !error && member && (
         <>
-          <div style={{ ...contentCardStyle, marginBottom: "1.5rem" }}>
-            <h1 style={{ marginTop: 0, marginBottom: "1rem" }}>
-              {member.fullName}
-            </h1>
+          <div style={{ ...contentCardStyle, marginTop: 0 }}>
+            <h1 style={sectionTitleStyle}>{member.fullName}</h1>
 
             <div
               style={{
@@ -103,33 +105,25 @@ export default function MemberDetailPage() {
               }}
             >
               <div>
-                <div style={{ fontSize: "0.9rem", color: "#6b7280", marginBottom: "0.2rem" }}>
-                  Vorname
-                </div>
-                <div style={{ fontWeight: 600 }}>{member.firstName}</div>
+                <div style={subtleLabelStyle}>Vorname</div>
+                <div style={{ fontWeight: 700 }}>{member.firstName}</div>
               </div>
 
               <div>
-                <div style={{ fontSize: "0.9rem", color: "#6b7280", marginBottom: "0.2rem" }}>
-                  Nachname
-                </div>
-                <div style={{ fontWeight: 600 }}>{member.lastName}</div>
+                <div style={subtleLabelStyle}>Nachname</div>
+                <div style={{ fontWeight: 700 }}>{member.lastName}</div>
               </div>
 
               <div>
-                <div style={{ fontSize: "0.9rem", color: "#6b7280", marginBottom: "0.2rem" }}>
-                  Status
-                </div>
-                <div style={{ fontWeight: 600 }}>
+                <div style={subtleLabelStyle}>Status</div>
+                <div style={{ fontWeight: 700 }}>
                   {member.active ? "Aktiv" : "Inaktiv"}
                 </div>
               </div>
 
               <div>
-                <div style={{ fontSize: "0.9rem", color: "#6b7280", marginBottom: "0.2rem" }}>
-                  Verknüpfter User
-                </div>
-                <div style={{ fontWeight: 600 }}>
+                <div style={subtleLabelStyle}>Verknüpfter User</div>
+                <div style={{ fontWeight: 700 }}>
                   {member.userId
                     ? `User-ID ${member.userId}`
                     : "Kein Login verknüpft"}
@@ -144,7 +138,7 @@ export default function MemberDetailPage() {
             </h2>
 
             {memberTeams.length === 0 ? (
-              <p style={{ margin: 0, color: "#666" }}>Keine Teams zugeordnet.</p>
+              <p style={{ margin: 0, color: colors.textMuted }}>Keine Teams zugeordnet.</p>
             ) : (
               <div
                 style={{
@@ -159,7 +153,7 @@ export default function MemberDetailPage() {
                     to={`/teams/${team.id}`}
                     style={{
                       ...clickableCardStyle,
-                      borderRadius: "14px",
+                      borderRadius: "16px",
                     }}
                     onMouseEnter={(e) =>
                       applyClickableCardHover(e.currentTarget)
@@ -180,32 +174,20 @@ export default function MemberDetailPage() {
                       <div>
                         <div
                           style={{
-                            fontWeight: "bold",
+                            fontWeight: 700,
                             marginBottom: "0.25rem",
-                            color: "#111827",
+                            color: colors.text,
                           }}
                         >
                           {team.name}
                         </div>
 
-                        <div style={{ color: "#555", marginBottom: "0.25rem" }}>
+                        <div style={{ color: colors.textMuted, marginBottom: "0.25rem" }}>
                           {team.description || "Keine Beschreibung vorhanden."}
                         </div>
                       </div>
 
-                      <div
-                        style={{
-                          padding: "0.35rem 0.65rem",
-                          borderRadius: "999px",
-                          backgroundColor: "#eff6ff",
-                          color: "#1d4ed8",
-                          fontWeight: 700,
-                          fontSize: "0.95rem",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {team.memberCount} Mitglieder
-                      </div>
+                      <div style={badgeStyle}>{team.memberCount} Mitglieder</div>
                     </div>
                   </Link>
                 ))}

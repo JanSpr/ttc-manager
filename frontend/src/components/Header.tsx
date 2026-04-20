@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 import type { User } from "../types/user";
+import { colors } from "../styles/ui";
 
 type HeaderProps = {
   user: User;
@@ -12,87 +13,147 @@ function Header({ user, onLogout }: HeaderProps) {
 
   const navLinkStyle = ({ isActive }: { isActive: boolean }) => ({
     textDecoration: "none",
-    color: isActive ? "#111827" : "#4b5563",
-    fontWeight: isActive ? 700 : 500,
-    padding: "8px 12px",
-    borderRadius: "8px",
-    backgroundColor: isActive ? "#e5e7eb" : "transparent",
+    color: isActive ? colors.text : colors.textMuted,
+    fontWeight: isActive ? 700 : 600,
+    padding: "9px 14px",
+    borderRadius: "10px",
+    backgroundColor: isActive ? colors.primarySoft : "transparent",
+    transition: "background-color 0.15s ease, color 0.15s ease",
   });
 
   return (
     <header
       style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        gap: "16px",
-        padding: "16px 24px",
-        marginBottom: "24px",
-        borderBottom: "1px solid #e5e7eb",
-        backgroundColor: "#ffffff",
         position: "sticky",
         top: 0,
+        zIndex: 20,
+        borderBottom: `1px solid ${colors.border}`,
+        backgroundColor: "rgba(255, 255, 255, 0.92)",
+        backdropFilter: "blur(10px)",
       }}
     >
       <div
         style={{
+          maxWidth: "1100px",
+          margin: "0 auto",
+          padding: "16px 24px",
           display: "flex",
+          justifyContent: "space-between",
           alignItems: "center",
-          gap: "24px",
+          gap: "16px",
           flexWrap: "wrap",
         }}
       >
-        <div style={{ fontSize: "20px", fontWeight: 700 }}>TTC Manager</div>
-
-        <nav
+        <div
           style={{
             display: "flex",
             alignItems: "center",
-            gap: "8px",
+            gap: "24px",
+            flexWrap: "wrap",
           }}
         >
-          <NavLink to="/" style={navLinkStyle} end>
-            Home
-          </NavLink>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <div
+              style={{
+                position: "relative",
+                width: "34px",
+                height: "34px",
+                borderRadius: "12px",
+                background:
+                  "linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#ffffff",
+                fontWeight: 800,
+                fontSize: "13px",
+                letterSpacing: "0.04em",
+                boxShadow: "0 8px 18px rgba(37, 99, 235, 0.22)",
+              }}
+            >
+              TTC
+            </div>
 
-          <NavLink to="/teams" style={navLinkStyle}>
-            Teams
-          </NavLink>
-        </nav>
-      </div>
+            <div>
+              <div
+                style={{
+                  fontSize: "1rem",
+                  fontWeight: 800,
+                  color: colors.text,
+                  lineHeight: 1.1,
+                }}
+              >
+                TTC Manager
+              </div>
+              <div
+                style={{
+                  fontSize: "0.8rem",
+                  color: colors.textMuted,
+                  lineHeight: 1.1,
+                }}
+              >
+                Mannschaften verwalten
+              </div>
+            </div>
+          </div>
 
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "12px",
-          flexWrap: "wrap",
-          justifyContent: "flex-end",
-        }}
-      >
-        <span
+          <nav
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              flexWrap: "wrap",
+            }}
+          >
+            <NavLink to="/" style={navLinkStyle} end>
+              Home
+            </NavLink>
+
+            <NavLink to="/teams" style={navLinkStyle}>
+              Teams
+            </NavLink>
+          </nav>
+        </div>
+
+        <div
           style={{
-            color: "#374151",
-            fontSize: "14px",
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            flexWrap: "wrap",
+            justifyContent: "flex-end",
           }}
         >
-          Eingeloggt als <strong>{displayName}</strong>
-        </span>
+          <div
+            style={{
+              padding: "8px 12px",
+              borderRadius: "999px",
+              backgroundColor: colors.surfaceSoft,
+              border: `1px solid ${colors.border}`,
+              fontSize: "0.92rem",
+              color: colors.textMuted,
+            }}
+          >
+            Eingeloggt als <strong style={{ color: colors.text }}>{displayName}</strong>
+          </div>
 
-        <button
-          type="button"
-          onClick={onLogout}
-          style={{
-            padding: "8px 12px",
-            borderRadius: "8px",
-            border: "1px solid #d1d5db",
-            backgroundColor: "#f9fafb",
-            cursor: "pointer",
-            fontWeight: 600,
-          }}
-        >
-          Logout
-        </button>
+          <button
+            type="button"
+            onClick={onLogout}
+            style={{
+              padding: "10px 14px",
+              borderRadius: "10px",
+              border: `1px solid ${colors.borderStrong}`,
+              backgroundColor: colors.surface,
+              color: colors.text,
+              fontWeight: 700,
+              cursor: "pointer",
+              transition: "background-color 0.15s ease, transform 0.15s ease",
+            }}
+          >
+            Logout
+          </button>
+        </div>
       </div>
     </header>
   );

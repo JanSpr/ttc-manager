@@ -46,7 +46,7 @@ function AppContent() {
         style={{
           maxWidth: "1100px",
           margin: "0 auto",
-          padding: "0 24px 32px",
+          padding: "16px 24px 32px",
         }}
       >
         <Routes>

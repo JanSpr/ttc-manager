@@ -7,6 +7,10 @@ import {
   clickableCardStyle,
   applyClickableCardHover,
   resetClickableCardHover,
+  sectionTitleStyle,
+  sectionDescriptionStyle,
+  badgeStyle,
+  colors,
 } from "../styles/ui";
 
 export default function TeamsPage() {
@@ -36,15 +40,15 @@ export default function TeamsPage() {
   return (
     <div style={pageContainerStyle}>
       <div style={{ marginBottom: "1.5rem" }}>
-        <h1 style={{ margin: "0 0 0.5rem 0" }}>Teams</h1>
-        <p style={{ margin: 0, color: "#555", lineHeight: 1.6 }}>
+        <h1 style={sectionTitleStyle}>Teams</h1>
+        <p style={sectionDescriptionStyle}>
           Hier findest du alle angelegten Mannschaften und kannst direkt in die
           jeweilige Detailansicht wechseln.
         </p>
       </div>
 
       {loading && <p>Teams werden geladen...</p>}
-      {error && <p style={{ color: "#b91c1c" }}>{error}</p>}
+      {error && <p style={{ color: colors.danger }}>{error}</p>}
 
       {!loading && !error && teams.length === 0 && (
         <p>Es wurden noch keine Teams gefunden.</p>
@@ -58,7 +62,7 @@ export default function TeamsPage() {
               to={`/teams/${team.id}`}
               style={{
                 ...clickableCardStyle,
-                borderRadius: "14px",
+                borderRadius: "16px",
               }}
               onMouseEnter={(e) => applyClickableCardHover(e.currentTarget)}
               onMouseLeave={(e) => resetClickableCardHover(e.currentTarget)}
@@ -77,24 +81,12 @@ export default function TeamsPage() {
                     {team.name}
                   </h2>
 
-                  <p style={{ margin: "0 0 0.35rem 0", color: "#555" }}>
+                  <p style={{ margin: "0 0 0.35rem 0", color: colors.textMuted }}>
                     {team.description || "Keine Beschreibung vorhanden."}
                   </p>
                 </div>
 
-                <div
-                  style={{
-                    padding: "0.35rem 0.65rem",
-                    borderRadius: "999px",
-                    backgroundColor: "#eff6ff",
-                    color: "#1d4ed8",
-                    fontWeight: 700,
-                    fontSize: "0.95rem",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {team.memberCount} Mitglieder
-                </div>
+                <div style={badgeStyle}>{team.memberCount} Mitglieder</div>
               </div>
             </Link>
           ))}

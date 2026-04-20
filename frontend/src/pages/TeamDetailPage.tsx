@@ -8,6 +8,10 @@ import {
   clickableCardStyle,
   applyClickableCardHover,
   resetClickableCardHover,
+  sectionTitleStyle,
+  sectionDescriptionStyle,
+  badgeStyle,
+  colors,
 } from "../styles/ui";
 
 function formatMembershipRole(membership: TeamMembershipSummary): string {
@@ -78,17 +82,17 @@ export default function TeamDetailPage() {
   return (
     <div style={pageContainerStyle}>
       <div style={{ marginBottom: "1rem" }}>
-        <Link to="/teams" style={{ color: "#2563eb", textDecoration: "none" }}>
+        <Link to="/teams" style={{ color: colors.primary }}>
           ← Zurück zur Teamliste
         </Link>
       </div>
 
       {loading && <p style={{ marginTop: "1rem" }}>Team wird geladen...</p>}
-      {error && <p style={{ marginTop: "1rem", color: "#b91c1c" }}>{error}</p>}
+      {error && <p style={{ marginTop: "1rem", color: colors.danger }}>{error}</p>}
 
       {!loading && !error && team && (
         <>
-          <div style={{ ...contentCardStyle, marginBottom: "1.5rem" }}>
+          <div style={{ ...contentCardStyle, marginTop: 0 }}>
             <div
               style={{
                 display: "flex",
@@ -99,27 +103,13 @@ export default function TeamDetailPage() {
               }}
             >
               <div>
-                <h1 style={{ marginTop: 0, marginBottom: "0.75rem" }}>
-                  {team.name}
-                </h1>
-
-                <p style={{ margin: 0, color: "#555", lineHeight: 1.6 }}>
+                <h1 style={sectionTitleStyle}>{team.name}</h1>
+                <p style={sectionDescriptionStyle}>
                   {team.description || "Keine Beschreibung vorhanden."}
                 </p>
               </div>
 
-              <div
-                style={{
-                  padding: "0.45rem 0.8rem",
-                  borderRadius: "999px",
-                  backgroundColor: "#eff6ff",
-                  color: "#1d4ed8",
-                  fontWeight: 700,
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {team.memberCount} Mitglieder
-              </div>
+              <div style={badgeStyle}>{team.memberCount} Mitglieder</div>
             </div>
           </div>
 
@@ -129,7 +119,7 @@ export default function TeamDetailPage() {
             </h2>
 
             {team.memberships.length === 0 ? (
-              <p style={{ color: "#666", margin: 0 }}>
+              <p style={{ color: colors.textMuted, margin: 0 }}>
                 Diesem Team sind aktuell keine Mitglieder zugeordnet.
               </p>
             ) : (
@@ -150,7 +140,7 @@ export default function TeamDetailPage() {
                         display: "flex",
                         alignItems: "center",
                         gap: "1rem",
-                        borderRadius: "14px",
+                        borderRadius: "16px",
                       }}
                       onMouseEnter={(e) =>
                         applyClickableCardHover(e.currentTarget)
@@ -161,16 +151,16 @@ export default function TeamDetailPage() {
                     >
                       <div
                         style={{
-                          minWidth: "2.5rem",
-                          height: "2.5rem",
+                          minWidth: "2.6rem",
+                          height: "2.6rem",
                           borderRadius: "999px",
-                          backgroundColor: "#eff6ff",
-                          color: "#1d4ed8",
+                          backgroundColor: colors.primarySoft,
+                          color: colors.primary,
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
                           fontSize: "1rem",
-                          fontWeight: "bold",
+                          fontWeight: 800,
                           flexShrink: 0,
                         }}
                       >
@@ -180,19 +170,24 @@ export default function TeamDetailPage() {
                       <div style={{ flex: 1 }}>
                         <div
                           style={{
-                            fontWeight: "bold",
+                            fontWeight: 700,
                             marginBottom: "0.25rem",
-                            color: "#111827",
+                            color: colors.text,
                           }}
                         >
                           {membership.memberFullName}
                         </div>
 
-                        <div style={{ color: "#555", marginBottom: "0.25rem" }}>
+                        <div
+                          style={{
+                            color: colors.textMuted,
+                            marginBottom: "0.25rem",
+                          }}
+                        >
                           {formatMembershipRole(membership)}
                         </div>
 
-                        <div style={{ fontSize: "0.95rem", color: "#666" }}>
+                        <div style={{ fontSize: "0.95rem", color: colors.textMuted }}>
                           {membership.userId
                             ? `Mit Login verknüpft (User-ID: ${membership.userId})`
                             : "Kein Login verknüpft"}
