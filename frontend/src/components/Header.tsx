@@ -18,7 +18,9 @@ function Header({ user, onLogout }: HeaderProps) {
     padding: "9px 14px",
     borderRadius: "10px",
     backgroundColor: isActive ? colors.primarySoft : "transparent",
-    transition: "background-color 0.15s ease, color 0.15s ease",
+    transition:
+      "background-color 0.15s ease, color 0.15s ease, transform 0.15s ease",
+    boxShadow: isActive ? "inset 0 0 0 1px rgba(37, 99, 235, 0.08)" : "none",
   });
 
   return (
@@ -27,21 +29,25 @@ function Header({ user, onLogout }: HeaderProps) {
         position: "sticky",
         top: 0,
         zIndex: 20,
-        borderBottom: `1px solid ${colors.border}`,
-        backgroundColor: "rgba(255, 255, 255, 0.92)",
-        backdropFilter: "blur(10px)",
+        padding: "14px 16px 0",
+        background: "transparent",
       }}
     >
       <div
         style={{
           maxWidth: "1100px",
           margin: "0 auto",
-          padding: "16px 24px",
+          padding: "16px 22px",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
           gap: "16px",
           flexWrap: "wrap",
+          border: `1px solid ${colors.border}`,
+          borderRadius: "18px",
+          backgroundColor: "rgba(255, 255, 255, 0.88)",
+          backdropFilter: "blur(12px)",
+          boxShadow: "0 14px 34px rgba(15, 23, 42, 0.08)",
         }}
       >
         <div
@@ -55,9 +61,8 @@ function Header({ user, onLogout }: HeaderProps) {
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <div
               style={{
-                position: "relative",
-                width: "34px",
-                height: "34px",
+                width: "38px",
+                height: "38px",
                 borderRadius: "12px",
                 background:
                   "linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)",
@@ -68,7 +73,7 @@ function Header({ user, onLogout }: HeaderProps) {
                 fontWeight: 800,
                 fontSize: "13px",
                 letterSpacing: "0.04em",
-                boxShadow: "0 8px 18px rgba(37, 99, 235, 0.22)",
+                boxShadow: "0 10px 24px rgba(37, 99, 235, 0.24)",
               }}
             >
               TTC
@@ -148,7 +153,19 @@ function Header({ user, onLogout }: HeaderProps) {
               color: colors.text,
               fontWeight: 700,
               cursor: "pointer",
-              transition: "background-color 0.15s ease, transform 0.15s ease",
+              boxShadow: "0 2px 8px rgba(15, 23, 42, 0.04)",
+              transition:
+                "background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateY(-1px)";
+              e.currentTarget.style.boxShadow = "0 8px 20px rgba(15, 23, 42, 0.08)";
+              e.currentTarget.style.backgroundColor = "#fcfcfd";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "0 2px 8px rgba(15, 23, 42, 0.04)";
+              e.currentTarget.style.backgroundColor = colors.surface;
             }}
           >
             Logout
