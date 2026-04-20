@@ -2,6 +2,7 @@ package de.janek.ttc.manager.domain.user;
 
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -66,6 +67,22 @@ public class UserController {
 	@PutMapping("/{id}")
 	public UserResponse updateUser(@PathVariable Long id, @Valid @RequestBody CreateUserRequest request) {
 		return userService.update(id, request);
+	}
+
+	/**
+	 * Aktualisiert die eigene E-Mail-Adresse des aktuell eingeloggten Benutzers.
+	 *
+	 * Der Benutzer wird nicht über eine ID aus dem Frontend bestimmt, sondern über
+	 * die aktuelle Authentication / Session.
+	 *
+	 * @param authentication aktuelle Spring-Security-Authentication
+	 * @param request        neue E-Mail-Adresse
+	 * @return aktualisierter Benutzer als Response-DTO
+	 */
+	@PutMapping("/me/email")
+	public UserResponse updateOwnEmail(Authentication authentication,
+			@Valid @RequestBody UpdateOwnEmailRequest request) {
+		return userService.updateOwnEmail(authentication.getName(), request);
 	}
 
 	/**

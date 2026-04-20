@@ -113,6 +113,26 @@ public class UserService {
 		return toResponse(savedUser);
 	}
 
+	/**
+	 * Aktualisiert ausschließlich die E-Mail-Adresse des aktuell eingeloggten
+	 * Benutzers.
+	 *
+	 * @param loginIdentifier Username oder E-Mail aus dem aktuellen
+	 *                        Security-Kontext
+	 * @param request         Request mit neuer E-Mail-Adresse
+	 * @return aktualisierter Benutzer als Response-DTO
+	 */
+	public UserResponse updateOwnEmail(String loginIdentifier, UpdateOwnEmailRequest request) {
+		User existingUser = getUserEntityByLoginIdentifier(loginIdentifier);
+
+		validateUniqueEmail(request.getEmail(), existingUser.getId());
+
+		existingUser.setEmail(normalizeEmail(request.getEmail()));
+
+		User savedUser = userRepository.save(existingUser);
+		return toResponse(savedUser);
+	}
+
 	public void delete(Long id) {
 		User user = getUserEntityById(id);
 		userRepository.delete(user);

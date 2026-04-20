@@ -31,6 +31,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await refreshCurrentUser();
       setIsLoading(false);
     }
+
     void init();
   }, [refreshCurrentUser]);
 
@@ -58,6 +59,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
+  const updateAuthenticatedUser = useCallback((updatedUser: User) => {
+    setUser(updatedUser);
+  }, []);
+
   const value = useMemo(
     () => ({
       user,
@@ -65,8 +70,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isLoading,
       login,
       logout,
+      refreshCurrentUser,
+      updateAuthenticatedUser,
     }),
-    [user, isLoading, login, logout]
+    [user, isLoading, login, logout, refreshCurrentUser, updateAuthenticatedUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
