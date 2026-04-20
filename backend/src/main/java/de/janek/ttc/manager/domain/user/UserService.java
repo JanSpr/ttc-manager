@@ -2,6 +2,7 @@ package de.janek.ttc.manager.domain.user;
 
 import de.janek.ttc.manager.common.exception.ResourceNotFoundException;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,16 +14,19 @@ import java.util.Set;
  * Service für Benutzerverwaltung.
  *
  * Aktueller Zwischenstand: - verwaltet User / Login-Konten - keine direkte
- * Team-Zuordnung - globale Rollen statt alter Einzelrolle
+ * Team-Zuordnung - globale Rollen statt alter Einzelrolle - Passwort wird beim
+ * Speichern sicher gehasht
  */
 @Service
 @Transactional
 public class UserService {
 
 	private final UserRepository userRepository;
+	private final PasswordEncoder passwordEncoder;
 
-	public UserService(UserRepository userRepository) {
+	public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
 		this.userRepository = userRepository;
+		this.passwordEncoder = passwordEncoder;
 	}
 
 	@Transactional(readOnly = true)
@@ -35,14 +39,22 @@ public class UserService {
 		return toResponse(getUserEntityById(id));
 	}
 
+	@Transactional(readOnly = true)
+	public UserResponse findByEmail(String email) {
+		User user = userRepository.findByEmailIgnoreCase(email).orElseThrow(
+				() -> new ResourceNotFoundException("User mit E-Mail '" + email + "' wurde nicht gefunden."));
+
+		return toResponse(user);
+	}
+
 	public UserResponse create(CreateUserRequest request) {
 		validateUniqueEmail(request.getEmail(), null);
 
 		User user = new User();
-		user.setFirstName(request.getFirstName());
-		user.setLastName(request.getLastName());
-		user.setEmail(request.getEmail());
-		user.setPasswordHash(request.getPasswordHash());
+		user.setFirstName(request.getFirstName().trim());
+		user.setLastName(request.getLastName().trim());
+		user.setEmail(normalizeEmail(request.getEmail()));
+		user.setPasswordHash(passwordEncoder.encode(request.getPasswordHash()));
 		user.setActive(request.getActive());
 		user.setRoles(copyRoles(request.getRoles()));
 
@@ -55,10 +67,10 @@ public class UserService {
 
 		validateUniqueEmail(request.getEmail(), id);
 
-		existingUser.setFirstName(request.getFirstName());
-		existingUser.setLastName(request.getLastName());
-		existingUser.setEmail(request.getEmail());
-		existingUser.setPasswordHash(request.getPasswordHash());
+		existingUser.setFirstName(request.getFirstName().trim());
+		existingUser.setLastName(request.getLastName().trim());
+		existingUser.setEmail(normalizeEmail(request.getEmail()));
+		existingUser.setPasswordHash(passwordEncoder.encode(request.getPasswordHash()));
 		existingUser.setActive(request.getActive());
 		existingUser.setRoles(copyRoles(request.getRoles()));
 
@@ -78,14 +90,20 @@ public class UserService {
 	}
 
 	private void validateUniqueEmail(String email, Long currentUserId) {
-		userRepository.findByEmail(email).ifPresent(existingUser -> {
+		String normalizedEmail = normalizeEmail(email);
+
+		userRepository.findByEmailIgnoreCase(normalizedEmail).ifPresent(existingUser -> {
 			boolean isDifferentUser = currentUserId == null || !existingUser.getId().equals(currentUserId);
 
 			if (isDifferentUser) {
 				throw new IllegalArgumentException(
-						"Ein Benutzer mit der E-Mail-Adresse '" + email + "' existiert bereits.");
+						"Ein Benutzer mit der E-Mail-Adresse '" + normalizedEmail + "' existiert bereits.");
 			}
 		});
+	}
+
+	private String normalizeEmail(String email) {
+		return email.trim().toLowerCase();
 	}
 
 	private Set<GlobalRole> copyRoles(Set<GlobalRole> roles) {
