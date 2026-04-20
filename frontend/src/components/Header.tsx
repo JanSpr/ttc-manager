@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import type { CSSProperties } from "react";
 import type { User } from "../types/user";
 import { colors } from "../styles/ui";
+import UserAvatar from "./UserAvatar";
 
 type HeaderProps = {
   user: User;
@@ -17,18 +18,6 @@ function Header({ user, onLogout }: HeaderProps) {
   const displayName =
     [user.firstName, user.lastName].filter(Boolean).join(" ").trim() ||
     user.email;
-
-  const navLinkStyle = ({ isActive }: { isActive: boolean }): CSSProperties => ({
-    textDecoration: "none",
-    color: isActive ? colors.text : colors.textMuted,
-    fontWeight: isActive ? 700 : 600,
-    padding: "9px 14px",
-    borderRadius: "10px",
-    backgroundColor: isActive ? colors.primarySoft : "transparent",
-    transition:
-      "background-color 0.15s ease, color 0.15s ease, transform 0.15s ease",
-    boxShadow: isActive ? "inset 0 0 0 1px rgba(37, 99, 235, 0.08)" : "none",
-  });
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -68,6 +57,22 @@ function Header({ user, onLogout }: HeaderProps) {
     setMenuOpen(false);
     await onLogout();
   }
+
+  const navLinkStyle = ({
+    isActive,
+  }: {
+    isActive: boolean;
+  }): CSSProperties => ({
+    textDecoration: "none",
+    color: isActive ? colors.text : colors.textMuted,
+    fontWeight: isActive ? 700 : 600,
+    padding: "9px 14px",
+    borderRadius: "10px",
+    backgroundColor: isActive ? colors.primarySoft : "transparent",
+    transition:
+      "background-color 0.15s ease, color 0.15s ease, transform 0.15s ease",
+    boxShadow: isActive ? "inset 0 0 0 1px rgba(37, 99, 235, 0.08)" : "none",
+  });
 
   return (
     <header
@@ -149,7 +154,7 @@ function Header({ user, onLogout }: HeaderProps) {
           </div>
 
           {/* Navigation */}
-          <nav style={{ display: "flex", gap: "8px" }}>
+          <nav style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
             <NavLink to="/" style={navLinkStyle} end>
               Home
             </NavLink>
@@ -160,7 +165,7 @@ function Header({ user, onLogout }: HeaderProps) {
           </nav>
         </div>
 
-        {/* Rechte Seite (User Dropdown) */}
+        {/* Rechte Seite (User Menü) */}
         <div
           ref={menuRef}
           style={{
@@ -177,24 +182,55 @@ function Header({ user, onLogout }: HeaderProps) {
               borderRadius: "999px",
               backgroundColor: colors.surfaceSoft,
               border: `1px solid ${colors.border}`,
-              fontSize: "0.92rem",
-              color: colors.textMuted,
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
-              gap: "8px",
+              gap: "10px",
+              minHeight: "52px",
             }}
           >
-            <span>
-              Eingeloggt als{" "}
-              <strong style={{ color: colors.text }}>{displayName}</strong>
-            </span>
+            <UserAvatar user={user} size={34} fontSize="0.9rem" />
+
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-start",
+                lineHeight: 1.1,
+                minWidth: 0,
+              }}
+            >
+              <span
+                style={{
+                  color: colors.textMuted,
+                  fontSize: "0.72rem",
+                  fontWeight: 500,
+                }}
+              >
+                Angemeldet als
+              </span>
+
+              <span
+                style={{
+                  color: colors.text,
+                  fontWeight: 700,
+                  fontSize: "0.92rem",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {displayName}
+              </span>
+            </div>
 
             <span
               style={{
+                color: colors.textMuted,
                 fontSize: "0.8rem",
+                lineHeight: 1,
+                alignSelf: "center",
                 transform: menuOpen ? "rotate(180deg)" : "rotate(0deg)",
                 transition: "transform 0.15s ease",
+                marginLeft: "2px",
               }}
             >
               ▾
@@ -208,7 +244,7 @@ function Header({ user, onLogout }: HeaderProps) {
                 top: "100%",
                 right: 0,
                 paddingTop: "8px",
-                minWidth: "240px",
+                minWidth: "260px",
                 zIndex: 30,
               }}
             >
@@ -224,31 +260,38 @@ function Header({ user, onLogout }: HeaderProps) {
                 {/* User Info */}
                 <div
                   style={{
-                    padding: "12px 14px",
+                    display: "flex",
+                    gap: "12px",
+                    alignItems: "center",
+                    padding: "14px",
                     borderBottom: `1px solid ${colors.border}`,
                     backgroundColor: colors.surfaceSoft,
                   }}
                 >
-                  <div
-                    style={{
-                      color: colors.text,
-                      fontWeight: 700,
-                    }}
-                  >
-                    {displayName}
-                  </div>
-                  <div
-                    style={{
-                      color: colors.textMuted,
-                      fontSize: "0.9rem",
-                      marginTop: "2px",
-                    }}
-                  >
-                    @{user.username}
+                  <UserAvatar user={user} size={42} fontSize="0.95rem" />
+
+                  <div style={{ minWidth: 0 }}>
+                    <div
+                      style={{
+                        color: colors.text,
+                        fontWeight: 700,
+                      }}
+                    >
+                      {displayName}
+                    </div>
+                    <div
+                      style={{
+                        color: colors.textMuted,
+                        fontSize: "0.9rem",
+                        marginTop: "2px",
+                      }}
+                    >
+                      @{user.username}
+                    </div>
                   </div>
                 </div>
 
-                {/* Actions */}
+                {/* Aktionen */}
                 <button
                   type="button"
                   onClick={handleNavigateToProfile}

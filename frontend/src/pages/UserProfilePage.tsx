@@ -9,6 +9,7 @@ import {
   subtleLabelStyle,
   colors,
 } from "../styles/ui";
+import UserAvatar from "../components/UserAvatar";
 
 function ProfileField({
   label,
@@ -52,6 +53,10 @@ function UserProfilePage() {
     return <Navigate to="/login" replace />;
   }
 
+  const displayName =
+    [user.firstName, user.lastName].filter(Boolean).join(" ").trim() ||
+    user.username;
+
   return (
     <div style={pageContainerStyle}>
       <section
@@ -89,16 +94,45 @@ function UserProfilePage() {
         <div
           style={{
             display: "flex",
-            justifyContent: "space-between",
             alignItems: "center",
+            justifyContent: "space-between",
             gap: "1rem",
             flexWrap: "wrap",
-            marginBottom: "1.5rem",
+            marginBottom: "1.75rem",
           }}
         >
-          <h2 style={{ margin: 0, color: colors.text }}>
-            {user.firstName} {user.lastName}
-          </h2>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "1rem",
+              flexWrap: "wrap",
+            }}
+          >
+            <UserAvatar user={user} size={84} fontSize="1.55rem" />
+
+            <div>
+              <h2
+                style={{
+                  margin: 0,
+                  color: colors.text,
+                  fontSize: "1.35rem",
+                }}
+              >
+                {displayName}
+              </h2>
+
+              <p
+                style={{
+                  margin: "0.35rem 0 0 0",
+                  color: colors.textMuted,
+                  fontSize: "0.98rem",
+                }}
+              >
+                @{user.username}
+              </p>
+            </div>
+          </div>
 
           <div
             style={{
