@@ -84,8 +84,8 @@ function HomePage() {
             Nächste Ausbaustufe
           </h2>
           <p style={{ margin: 0, color: colors.textMuted, lineHeight: 1.6 }}>
-            Als Nächstes können wir die Startseite mit echten Vereinsdaten,
-            Kennzahlen oder den nächsten Spielen füllen.
+            Als Nächstes Startseite mit echten Vereinsdaten,
+            Kennzahlen oder den nächsten Spielen befüllen.
           </p>
         </div>
       </div>

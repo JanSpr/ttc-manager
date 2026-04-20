@@ -10,6 +10,7 @@ import TeamsPage from "./pages/TeamsPage";
 import TeamDetailPage from "./pages/TeamDetailPage";
 import MemberDetailPage from "./pages/MemberDetailPage";
 import LoginPage from "./pages/LoginPage";
+import UserProfilePage from "./pages/UserProfilePage";
 
 function AppContent() {
   const auth = useContext(AuthContext);
@@ -84,6 +85,15 @@ function AppContent() {
             element={
               <ProtectedRoute>
                 <MemberDetailPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <UserProfilePage />
               </ProtectedRoute>
             }
           />

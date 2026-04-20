@@ -1,4 +1,6 @@
-import { NavLink } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import type { CSSProperties } from "react";
 import type { User } from "../types/user";
 import { colors } from "../styles/ui";
 
@@ -8,10 +10,15 @@ type HeaderProps = {
 };
 
 function Header({ user, onLogout }: HeaderProps) {
-  const displayName =
-    [user.firstName, user.lastName].filter(Boolean).join(" ").trim() || user.email;
+  const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
 
-  const navLinkStyle = ({ isActive }: { isActive: boolean }) => ({
+  const displayName =
+    [user.firstName, user.lastName].filter(Boolean).join(" ").trim() ||
+    user.email;
+
+  const navLinkStyle = ({ isActive }: { isActive: boolean }): CSSProperties => ({
     textDecoration: "none",
     color: isActive ? colors.text : colors.textMuted,
     fontWeight: isActive ? 700 : 600,
@@ -22,6 +29,45 @@ function Header({ user, onLogout }: HeaderProps) {
       "background-color 0.15s ease, color 0.15s ease, transform 0.15s ease",
     boxShadow: isActive ? "inset 0 0 0 1px rgba(37, 99, 235, 0.08)" : "none",
   });
+
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    function handleClickOutside(event: MouseEvent) {
+      if (!menuRef.current) return;
+      if (!menuRef.current.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [menuOpen]);
+
+  function toggleMenu() {
+    setMenuOpen((prev) => !prev);
+  }
+
+  function handleNavigateToProfile() {
+    setMenuOpen(false);
+    navigate("/profile");
+  }
+
+  async function handleLogoutClick() {
+    setMenuOpen(false);
+    await onLogout();
+  }
 
   return (
     <header
@@ -50,6 +96,7 @@ function Header({ user, onLogout }: HeaderProps) {
           boxShadow: "0 14px 34px rgba(15, 23, 42, 0.08)",
         }}
       >
+        {/* Linke Seite */}
         <div
           style={{
             display: "flex",
@@ -58,6 +105,7 @@ function Header({ user, onLogout }: HeaderProps) {
             flexWrap: "wrap",
           }}
         >
+          {/* Logo */}
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <div
               style={{
@@ -85,7 +133,6 @@ function Header({ user, onLogout }: HeaderProps) {
                   fontSize: "1rem",
                   fontWeight: 800,
                   color: colors.text,
-                  lineHeight: 1.1,
                 }}
               >
                 TTC Manager
@@ -94,7 +141,6 @@ function Header({ user, onLogout }: HeaderProps) {
                 style={{
                   fontSize: "0.8rem",
                   color: colors.textMuted,
-                  lineHeight: 1.1,
                 }}
               >
                 Mannschaften verwalten
@@ -102,14 +148,8 @@ function Header({ user, onLogout }: HeaderProps) {
             </div>
           </div>
 
-          <nav
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              flexWrap: "wrap",
-            }}
-          >
+          {/* Navigation */}
+          <nav style={{ display: "flex", gap: "8px" }}>
             <NavLink to="/" style={navLinkStyle} end>
               Home
             </NavLink>
@@ -120,16 +160,18 @@ function Header({ user, onLogout }: HeaderProps) {
           </nav>
         </div>
 
+        {/* Rechte Seite (User Dropdown) */}
         <div
+          ref={menuRef}
           style={{
+            position: "relative",
             display: "flex",
             alignItems: "center",
-            gap: "12px",
-            flexWrap: "wrap",
-            justifyContent: "flex-end",
           }}
         >
-          <div
+          <button
+            type="button"
+            onClick={toggleMenu}
             style={{
               padding: "8px 12px",
               borderRadius: "999px",
@@ -137,43 +179,109 @@ function Header({ user, onLogout }: HeaderProps) {
               border: `1px solid ${colors.border}`,
               fontSize: "0.92rem",
               color: colors.textMuted,
-            }}
-          >
-            Eingeloggt als <strong style={{ color: colors.text }}>{displayName}</strong>
-          </div>
-
-          <button
-            type="button"
-            onClick={onLogout}
-            style={{
-              padding: "10px 14px",
-              borderRadius: "10px",
-              border: `1px solid ${colors.borderStrong}`,
-              backgroundColor: colors.surface,
-              color: colors.text,
-              fontWeight: 700,
               cursor: "pointer",
-              boxShadow: "0 2px 8px rgba(15, 23, 42, 0.04)",
-              transition:
-                "background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "translateY(-1px)";
-              e.currentTarget.style.boxShadow = "0 8px 20px rgba(15, 23, 42, 0.08)";
-              e.currentTarget.style.backgroundColor = "#fcfcfd";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "0 2px 8px rgba(15, 23, 42, 0.04)";
-              e.currentTarget.style.backgroundColor = colors.surface;
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
             }}
           >
-            Logout
+            <span>
+              Eingeloggt als{" "}
+              <strong style={{ color: colors.text }}>{displayName}</strong>
+            </span>
+
+            <span
+              style={{
+                fontSize: "0.8rem",
+                transform: menuOpen ? "rotate(180deg)" : "rotate(0deg)",
+                transition: "transform 0.15s ease",
+              }}
+            >
+              ▾
+            </span>
           </button>
+
+          {menuOpen && (
+            <div
+              style={{
+                position: "absolute",
+                top: "100%",
+                right: 0,
+                paddingTop: "8px",
+                minWidth: "240px",
+                zIndex: 30,
+              }}
+            >
+              <div
+                style={{
+                  backgroundColor: colors.surface,
+                  border: `1px solid ${colors.border}`,
+                  borderRadius: "14px",
+                  boxShadow: "0 16px 40px rgba(15, 23, 42, 0.12)",
+                  overflow: "hidden",
+                }}
+              >
+                {/* User Info */}
+                <div
+                  style={{
+                    padding: "12px 14px",
+                    borderBottom: `1px solid ${colors.border}`,
+                    backgroundColor: colors.surfaceSoft,
+                  }}
+                >
+                  <div
+                    style={{
+                      color: colors.text,
+                      fontWeight: 700,
+                    }}
+                  >
+                    {displayName}
+                  </div>
+                  <div
+                    style={{
+                      color: colors.textMuted,
+                      fontSize: "0.9rem",
+                      marginTop: "2px",
+                    }}
+                  >
+                    @{user.username}
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <button
+                  type="button"
+                  onClick={handleNavigateToProfile}
+                  style={menuItemStyle}
+                >
+                  Profil
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleLogoutClick}
+                  style={menuItemStyle}
+                >
+                  Logout
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </header>
   );
 }
+
+const menuItemStyle: CSSProperties = {
+  width: "100%",
+  padding: "12px 14px",
+  border: "none",
+  backgroundColor: "transparent",
+  color: colors.text,
+  textAlign: "left",
+  fontWeight: 600,
+  cursor: "pointer",
+};
 
 export default Header;
