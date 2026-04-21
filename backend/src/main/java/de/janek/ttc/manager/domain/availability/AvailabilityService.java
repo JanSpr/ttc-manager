@@ -1,10 +1,11 @@
 package de.janek.ttc.manager.domain.availability;
 
-import de.janek.ttc.manager.common.exception.ResourceNotFoundException;
 import de.janek.ttc.manager.domain.match.Match;
 import de.janek.ttc.manager.domain.match.MatchRepository;
 import de.janek.ttc.manager.domain.user.User;
 import de.janek.ttc.manager.domain.user.UserRepository;
+import de.janek.ttc.manager.exception.ResourceNotFoundException;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

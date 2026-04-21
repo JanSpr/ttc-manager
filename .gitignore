@@ -1,17 +1,162 @@
-# Backend (Spring)
-backend/target/
-backend/*.log
+# =========================
 
-# Node (für später)
-frontend/node_modules/
-frontend/dist/
-frontend/.env
+# OS / System
 
-# IDE
-.idea/
-.vscode/
-*.iml
+# =========================
 
-# OS
 .DS_Store
 Thumbs.db
+
+# =========================
+
+# IDEs
+
+# =========================
+
+# IntelliJ / WebStorm
+
+.idea/
+*.iml
+
+# Eclipse
+
+.project
+.classpath
+.settings/
+
+# VS Code
+
+.vscode/
+
+# =========================
+
+# Logs
+
+# =========================
+
+logs/
+*.log
+
+# =========================
+
+# Backend (Spring Boot / Maven)
+
+# =========================
+
+# Maven target
+
+backend/target/
+target/
+
+# Maven Wrapper (optional behalten, falls genutzt)
+
+!backend/.mvn/wrapper/maven-wrapper.jar
+
+# Build output
+
+*.class
+*.jar
+*.war
+
+# =========================
+
+# Frontend (React / Vite)
+
+# =========================
+
+# Node modules
+
+frontend/node_modules/
+node_modules/
+
+# Build output
+
+frontend/dist/
+dist/
+
+# Vite cache
+
+frontend/.vite/
+.vite/
+
+# =========================
+
+# Environment Files
+
+# =========================
+
+# .env files (sensible Daten)
+
+.env
+.env.*
+frontend/.env
+frontend/.env.*
+
+# Beispiel-Dateien dürfen bleiben
+
+!*.env.example
+
+# =========================
+
+# Postman / API Tools
+
+# =========================
+
+.postman/
+postman/
+*.postman_collection.json
+*.postman_environment.json
+
+# =========================
+
+# Database / Local Dev
+
+# =========================
+
+# H2 (falls lokal genutzt)
+
+*.h2.db
+*.mv.db
+
+# SQLite (falls jemals genutzt)
+
+*.sqlite
+*.sqlite3
+
+# =========================
+
+# Misc
+
+# =========================
+
+# Temporary files
+
+*.tmp
+*.temp
+*.swp
+
+# Coverage / Test
+
+coverage/
+.nyc_output/
+
+# =========================
+
+# Optional (falls später genutzt)
+
+# =========================
+
+# Docker
+
+.docker/
+docker-compose.override.yml
+
+# Mac specific
+
+.AppleDouble
+.LSOverride
+
+# Windows
+
+ehthumbs.db
+Desktop.ini

@@ -1,8 +1,9 @@
 package de.janek.ttc.manager.domain.team;
 
-import de.janek.ttc.manager.common.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import de.janek.ttc.manager.exception.ResourceNotFoundException;
 
 import java.util.Comparator;
 import java.util.List;

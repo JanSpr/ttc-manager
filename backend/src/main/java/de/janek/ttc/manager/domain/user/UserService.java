@@ -1,10 +1,11 @@
 package de.janek.ttc.manager.domain.user;
 
-import de.janek.ttc.manager.common.exception.ResourceNotFoundException;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import de.janek.ttc.manager.exception.ResourceNotFoundException;
 
 import java.text.Normalizer;
 import java.util.HashSet;

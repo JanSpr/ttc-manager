@@ -1,4 +1,4 @@
-package de.janek.ttc.manager.common.exception;
+package de.janek.ttc.manager.exception;
 
 import java.time.LocalDateTime;
 import java.util.Map;

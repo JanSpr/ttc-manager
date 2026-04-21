@@ -1,4 +1,4 @@
-package de.janek.ttc.manager.common.exception;
+package de.janek.ttc.manager.exception;
 
 /**
  * Wird geworfen, wenn eine angeforderte Ressource fachlich nicht gefunden wurde.

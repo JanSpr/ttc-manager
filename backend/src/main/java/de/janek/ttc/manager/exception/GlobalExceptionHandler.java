@@ -1,4 +1,4 @@
-package de.janek.ttc.manager.common.exception;
+package de.janek.ttc.manager.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;

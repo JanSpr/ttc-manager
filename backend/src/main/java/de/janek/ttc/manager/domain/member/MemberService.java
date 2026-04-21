@@ -1,9 +1,10 @@
 package de.janek.ttc.manager.domain.member;
 
-import de.janek.ttc.manager.common.exception.ResourceNotFoundException;
 import de.janek.ttc.manager.domain.team.TeamMembership;
 import de.janek.ttc.manager.domain.user.User;
 import de.janek.ttc.manager.domain.user.UserRepository;
+import de.janek.ttc.manager.exception.ResourceNotFoundException;
+
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

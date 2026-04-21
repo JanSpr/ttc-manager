@@ -1,140 +1,138 @@
-# TTC-Manager
+# TTC Manager
 
-Webanwendung zur Verwaltung von Tischtennis-Mannschaften, Spielern und Spieltagen.
+TTC Manager ist eine Webanwendung zur Organisation von Tischtennis-Mannschaften.
+Der Fokus liegt auf der Unterstützung von Mannschaftsführern bei der Planung von Spielen sowie der Verwaltung von Spielern, Teams und Verfügbarkeiten.
 
-Ziel ist es, Mannschaftsführern und Spielern eine moderne und einfache Möglichkeit zu bieten, Organisation und Kommunikation rund um Spiele zu vereinfachen.
-
----
-
-## 🧩 Projektziel
-
-Der TTC-Manager soll insbesondere folgende Fragen lösen:
-
-* Wer kann beim nächsten Spiel teilnehmen?
-* Welche Spieler stehen zur Verfügung?
-* Wie ist die aktuelle Mannschaftsaufstellung?
-* Wann ist das nächste Spiel?
-* Wer spielt auf welcher Position?
+Das Projekt dient als Lern- und Entwicklungsprojekt mit dem Ziel, eine saubere und erweiterbare Architektur aufzubauen.
 
 ---
 
-## 🚀 MVP (Minimal Viable Product)
+## 🚀 Aktueller Funktionsumfang
 
-Die aktuelle MVP-Version bietet:
+### 🔐 Authentifizierung
 
-### Für Mannschaftsführer
-
-* Übersicht über Teams und Spieler
-* Anzeige der Mannschaftsaufstellung (Lineup)
-
-### Für Spieler
-
-* Übersicht über Teams
-* Anzeige der Teammitglieder
-* Transparente Darstellung der Aufstellung
+* Login über **E-Mail oder Username**
+* Session-basierte Authentifizierung (Spring Security)
+* „Angemeldeter Benutzer“ (`/api/auth/me`)
+* Logout-Funktion
+* Benutzerprofil bearbeiten (inkl. E-Mail ändern)
 
 ---
 
-## 🏗️ Aktueller Stand
+### 👤 Benutzer & Mitglieder
 
-Das Projekt ist **funktionsfähig mit Backend + Frontend**.
+* **User** = Login-Account
+* **Member** = reale Vereinsperson (kann ohne User existieren)
+* User kann einem Member zugeordnet werden
 
-### ✅ Backend
+---
 
-* Spring Boot Anwendung
-* Saubere Domain-Struktur
-* REST API vollständig nutzbar
-* TeamMembership als zentrale Verknüpfung
+### 🏓 Teams & Aufstellung
 
-### ✅ Frontend
+* Teams anzeigen
+* Team-Detailseite mit Spielern
+* Spieler werden über **TeamMembership** verwaltet
+* Unterstützung für **lineupPosition** (Aufstellungsreihenfolge innerhalb eines Teams)
+
+---
+
+### 🎨 Frontend
 
 * React + Vite
-* Routing mit React Router
-* Teamliste & Team-Detailseiten
-* Darstellung von Spielern inkl. Aufstellungsposition
-
----
-
-## 🧠 Domain-Modell
-
-### Zentrale Entities
-
-* **User**
-
-  * Benutzer des Systems (Spieler, Mannschaftsführer)
-* **Team**
-
-  * Mannschaft
-* **TeamMembership**
-
-  * Verknüpft User ↔ Team
-  * Enthält zusätzliche Informationen:
-
-    * `lineupPosition` (Aufstellung im Team)
-* **Match** *(in Vorbereitung für MVP-Erweiterung)*
-* **Availability** *(in Vorbereitung für MVP-Erweiterung)*
+* Geschützte Routen (ProtectedRoute)
+* Globaler Auth-Context
+* Toast-Benachrichtigungen (zentrale Anzeige unten im Screen)
+* Konsistente UI-Struktur mit Header & Seitenlayout
 
 ---
 
 ## 🧱 Architektur
 
-```text
-Backend:
-de.janek.ttc.manager
-└── domain
-    ├── user
-    ├── team
-    ├── teammembership
-    ├── match
-    └── availability
+### Backend (Spring Boot)
 
-Frontend:
-src/
-├── pages
-├── api
-└── styles
+```id="backend-structure"
+de.janek.ttc.manager
+├── config          # Security, Konfiguration
+├── domain
+│   ├── user        # User (Login-Accounts)
+│   ├── member      # Vereinsmitglieder
+│   ├── team        # Team + TeamMembership
+│   ├── match       # (geplant)
+│   └── availability # (geplant)
+├── exception       # GlobalExceptionHandler etc.
 ```
 
 ---
 
-## ⚙️ Tech Stack
+### 🧠 Domänenmodell
+
+* **User**
+
+  * Login-Daten (Email, Username, Passwort)
+  * optional mit Member verknüpft
+
+* **Member**
+
+  * reale Person im Verein
+  * existiert unabhängig vom Login
+
+* **Team**
+
+  * Mannschaft
+
+* **TeamMembership**
+
+  * Verbindung zwischen Member und Team
+  * enthält zusätzliche Informationen:
+
+    * `lineupPosition` (Spielstärke/Reihenfolge)
+
+---
+
+### Frontend (React)
+
+```id="frontend-structure"
+src/
+├── components      # Wiederverwendbare UI-Komponenten
+├── context         # Auth, Toast
+├── pages           # Seiten (Teams, Login, Profil etc.)
+├── services        # API-Kommunikation
+├── types           # TypeScript-Typen
+```
+
+---
+
+## ⚙️ Technologie-Stack
 
 ### Backend
 
-* Java 21
 * Spring Boot
-* Spring Data JPA
+* Spring Security
 * Hibernate
-* H2 (aktuell)
-* PostgreSQL (geplant)
+* PostgreSQL
 
 ### Frontend
 
 * React
-* TypeScript
 * Vite
-* React Router
+* TypeScript
 
 ---
 
-## ▶️ Projekt starten
+## 🛠️ Setup
 
-### Backend
+### Backend starten
 
 ```bash
 cd backend
-mvn spring-boot:run
+./mvnw spring-boot:run
 ```
 
-Standard-Port:
-
-```
-http://localhost:8081
-```
+oder in Eclipse / IntelliJ direkt starten.
 
 ---
 
-### Frontend
+### Frontend starten
 
 ```bash
 cd frontend
@@ -142,39 +140,52 @@ npm install
 npm run dev
 ```
 
-Standard:
+Frontend läuft standardmäßig auf:
 
 ```
 http://localhost:5173
 ```
 
----
+Backend:
 
-## 📌 Entwicklungsansatz
-
-Dieses Projekt ist ein **Lern- und Praxisprojekt** mit Fokus auf:
-
-* saubere Architektur
-* klare Domain-Modelle
-* realistische Anwendungsfälle
-* iterative Entwicklung (MVP → Erweiterung)
-* nachvollziehbare Git-Historie
+```
+http://localhost:8081
+```
 
 ---
 
-## 🗺️ Nächste Schritte
+## 🔒 Sicherheit (aktueller Stand)
 
-* Bearbeiten der Aufstellung im Frontend (Drag & Drop / Edit-Modus)
-* Match-Planung implementieren
-* Verfügbarkeiten (Availability) integrieren
-* Rollen & Rechte (z. B. Mannschaftsführer)
-* Authentifizierung (Login-System)
-* Persistente Datenbank (PostgreSQL)
+* Session-basierte Authentifizierung
+* CORS für lokales Frontend aktiviert
+* 일부 Endpoints aktuell bewusst offen (z. B. User-Erstellung für Entwicklung)
+
+⚠️ Wird später verschärft (Rollen, Rechte, Admin-Funktionen)
 
 ---
 
-## 🧑‍💻 Autor
+## 🧭 Roadmap (nächste Schritte)
 
-Janek Sprengart
+* Spielplanung (Matches)
+* Verfügbarkeiten (Availability)
+* Aufstellungslogik erweitern
+* Rollenmodell (Admin, Mannschaftsführer, Spieler)
+* UI-Komponenten vereinheitlichen
+* Einladungs-/Registrierungsprozess für User
+
+---
+
+## 🎯 Ziel des Projekts
+
+* saubere Fullstack-Architektur lernen
+* reale Problemstellung (Vereinsorganisation) abbilden
+* langfristig ausbaufähige Anwendung entwickeln
+
+---
+
+## 📌 Hinweis
+
+Dieses Projekt befindet sich aktiv in Entwicklung.
+Struktur und Features können sich noch ändern.
 
 ---
