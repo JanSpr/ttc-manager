@@ -4,7 +4,7 @@ export interface Team {
   id: number;
   name: string;
   description?: string;
-  type: TeamType; // 👈 NEU
+  type: TeamType;
   memberCount: number;
   memberships: TeamMembershipSummary[];
 }
@@ -19,3 +19,9 @@ export interface TeamMembershipSummary {
   captain: boolean;
   viceCaptain: boolean;
 }
+
+export type TeamUpsertRequest = {
+  name: string;
+  description: string;
+  type: TeamType;
+};

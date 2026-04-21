@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
-import MemberListItem from "./MemberListItem";
 import Card from "../ui/Card";
 import StatusMessage from "../ui/StatusMessage";
-import type { Member } from "../../types/member";
+import TeamListItem from "./TeamListItem";
+import type { Team } from "../../types/team";
 import {
   badgeStyle,
   cardTitleStyle,
@@ -10,21 +10,21 @@ import {
   secondaryButtonStyle,
 } from "../../styles/ui";
 
-type MembersListPanelProps = {
-  memberCount: number;
-  filteredMembers: Member[];
+type TeamsListPanelProps = {
+  teamCount: number;
+  filteredTeams: Team[];
   searchValue: string;
   onSearchChange: (value: string) => void;
   onClearSearch: () => void;
-  onCreateMember: () => void;
+  onCreateTeam: () => void;
   isLoading: boolean;
   loadError: string;
   isEditorOpen: boolean;
-  editingMemberId: number | null;
-  hoveredMemberId: number | null;
-  onHoverMember: (memberId: number) => void;
-  onLeaveMember: (memberId: number) => void;
-  onOpenEdit: (memberId: number) => void;
+  editingTeamId: number | null;
+  hoveredTeamId: number | null;
+  onHoverTeam: (teamId: number) => void;
+  onLeaveTeam: (teamId: number) => void;
+  onOpenEdit: (teamId: number) => void;
 };
 
 function IconWrapper({
@@ -72,24 +72,24 @@ function PlusIcon({ size = 16 }: { size?: number }) {
   );
 }
 
-function MembersListPanel({
-  memberCount,
-  filteredMembers,
+function TeamsListPanel({
+  teamCount,
+  filteredTeams,
   searchValue,
   onSearchChange,
   onClearSearch,
-  onCreateMember,
+  onCreateTeam,
   isLoading,
   loadError,
   isEditorOpen,
-  editingMemberId,
-  hoveredMemberId,
-  onHoverMember,
-  onLeaveMember,
+  editingTeamId,
+  hoveredTeamId,
+  onHoverTeam,
+  onLeaveTeam,
   onOpenEdit,
-}: MembersListPanelProps) {
-  const memberCountLabel =
-    memberCount === 1 ? "1 Mitglied" : `${memberCount} Mitglieder`;
+}: TeamsListPanelProps) {
+  const teamCountLabel =
+    teamCount === 1 ? "1 Mannschaft" : `${teamCount} Mannschaften`;
 
   return (
     <Card style={{ marginTop: 0 }}>
@@ -105,7 +105,7 @@ function MembersListPanel({
       >
         <div>
           <h2 style={{ ...cardTitleStyle, marginBottom: "0.2rem" }}>
-            Mitglieder
+            Mannschaften
           </h2>
           <p
             style={{
@@ -114,11 +114,11 @@ function MembersListPanel({
               fontSize: "0.92rem",
             }}
           >
-            Mitglieder auswählen, suchen und bearbeiten
+            Mannschaften auswählen, suchen und bearbeiten
           </p>
         </div>
 
-        {!isEditorOpen ? <div style={badgeStyle}>{memberCountLabel}</div> : null}
+        {!isEditorOpen ? <div style={badgeStyle}>{teamCountLabel}</div> : null}
       </div>
 
       <div style={{ marginBottom: "0.8rem", position: "relative" }}>
@@ -126,7 +126,7 @@ function MembersListPanel({
           type="text"
           value={searchValue}
           onChange={(event) => onSearchChange(event.target.value)}
-          placeholder="Mitglied suchen..."
+          placeholder="Mannschaft suchen..."
           style={{
             width: "100%",
             padding: "11px 36px 11px 13px",
@@ -179,7 +179,7 @@ function MembersListPanel({
       >
         <button
           type="button"
-          onClick={onCreateMember}
+          onClick={onCreateTeam}
           style={{
             ...secondaryButtonStyle,
             padding: "0.58rem 0.85rem",
@@ -191,19 +191,19 @@ function MembersListPanel({
           }}
         >
           <PlusIcon />
-          <span>Neues Mitglied</span>
+          <span>Neue Mannschaft</span>
         </button>
       </div>
 
       {isLoading ? (
-        <StatusMessage marginTop="0">Lade Mitglieder...</StatusMessage>
+        <StatusMessage marginTop="0">Lade Mannschaften...</StatusMessage>
       ) : loadError ? (
         <StatusMessage variant="error" marginTop="0">
           {loadError}
         </StatusMessage>
-      ) : filteredMembers.length === 0 ? (
+      ) : filteredTeams.length === 0 ? (
         <StatusMessage variant="muted" marginTop="0">
-          Keine Mitglieder gefunden.
+          Keine Mannschaften gefunden.
         </StatusMessage>
       ) : (
         <div
@@ -220,17 +220,17 @@ function MembersListPanel({
               overflowY: "auto",
             }}
           >
-            {filteredMembers.map((member, index) => (
-              <MemberListItem
-                key={member.id}
-                member={member}
-                isLast={index === filteredMembers.length - 1}
+            {filteredTeams.map((team, index) => (
+              <TeamListItem
+                key={team.id}
+                team={team}
+                isLast={index === filteredTeams.length - 1}
                 isEditorOpen={isEditorOpen}
-                isEditingThisMember={member.id === editingMemberId}
-                isHovered={hoveredMemberId === member.id}
-                onMouseEnter={() => onHoverMember(member.id)}
-                onMouseLeave={() => onLeaveMember(member.id)}
-                onOpenEdit={() => onOpenEdit(member.id)}
+                isEditingThisTeam={team.id === editingTeamId}
+                isHovered={hoveredTeamId === team.id}
+                onMouseEnter={() => onHoverTeam(team.id)}
+                onMouseLeave={() => onLeaveTeam(team.id)}
+                onOpenEdit={() => onOpenEdit(team.id)}
               />
             ))}
           </div>
@@ -240,4 +240,4 @@ function MembersListPanel({
   );
 }
 
-export default MembersListPanel;
+export default TeamsListPanel;

@@ -1,22 +1,41 @@
 import { useNavigate } from "react-router-dom";
 import type { CSSProperties, ReactNode } from "react";
-import type { Member } from "../../types/member";
+import type { Team } from "../../types/team";
 import { colors } from "../../styles/ui";
 
-type MemberListItemProps = {
-  member: Member;
+type TeamListItemProps = {
+  team: Team;
   isLast: boolean;
   isEditorOpen: boolean;
-  isEditingThisMember: boolean;
+  isEditingThisTeam: boolean;
   isHovered: boolean;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
   onOpenEdit: () => void;
 };
 
-function getMemberTypeLabel(type: Member["type"]): string {
+function getTeamTypeLabel(type: Team["type"]): string {
   return type === "YOUTH" ? "Jugend" : "Erwachsene";
 }
+
+function getTeamShortCode(team: Team): string {
+  const normalizedName = team.name.trim();
+
+  const romanMatch = normalizedName.match(
+    /\b(I|II|III|IV|V|VI|VII|VIII|IX|X)\b/i
+  );
+  const digitMatch = normalizedName.match(/\b(\d+)\b/);
+
+  const teamNumber = digitMatch?.[1] ?? romanMatch?.[1]?.toUpperCase() ?? "";
+
+  if (team.type === "YOUTH") {
+    return teamNumber ? `J${teamNumber}` : "J";
+  }
+
+  return teamNumber ? `H${teamNumber}` : "H";
+}
+
+/* ================= ICONS ================= */
 
 function IconWrapper({
   children,
@@ -83,24 +102,29 @@ function EyeIcon({ size = 16 }: { size?: number }) {
   );
 }
 
-function MemberListItem({
-  member,
+/* ================= COMPONENT ================= */
+
+function TeamListItem({
+  team,
   isLast,
   isEditorOpen,
-  isEditingThisMember,
+  isEditingThisTeam,
   isHovered,
   onMouseEnter,
   onMouseLeave,
   onOpenEdit,
-}: MemberListItemProps) {
+}: TeamListItemProps) {
   const navigate = useNavigate();
+
+  const memberLabel =
+    team.memberCount === 1 ? "1 Mitglied" : `${team.memberCount} Mitglieder`;
 
   const showActionsInList = !isEditorOpen && isHovered;
   const showActionsInEditor =
-    isEditorOpen && (isHovered || isEditingThisMember);
+    isEditorOpen && (isHovered || isEditingThisTeam);
 
   function handleOpenDetails() {
-    navigate(`/members/${member.id}`);
+    navigate(`/teams/${team.id}`);
   }
 
   return (
@@ -113,18 +137,20 @@ function MemberListItem({
         gap: "0.8rem",
         padding: "0.78rem 0.9rem",
         borderBottom: !isLast ? `1px solid ${colors.border}` : "none",
-        backgroundColor: isEditingThisMember
+        backgroundColor: isEditingThisTeam
           ? colors.primarySoft
           : colors.surface,
       }}
     >
+      {/* Avatar */}
       <div
         style={{
           width: "38px",
           height: "38px",
           borderRadius: "12px",
           border: `1px solid ${colors.borderStrong}`,
-          background: "linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%)",
+          background:
+            "linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%)",
           color: colors.primary,
           display: "flex",
           alignItems: "center",
@@ -132,14 +158,12 @@ function MemberListItem({
           fontSize: "0.88rem",
           fontWeight: 800,
           flexShrink: 0,
-          userSelect: "none",
         }}
       >
-        {`${member.firstName.charAt(0)}${member.lastName.charAt(0)}`
-          .toUpperCase()
-          .trim() || "?"}
+        {getTeamShortCode(team)}
       </div>
 
+      {/* Text */}
       <button
         type="button"
         onClick={() => isEditorOpen && onOpenEdit()}
@@ -148,39 +172,18 @@ function MemberListItem({
           background: "transparent",
           padding: 0,
           margin: 0,
-          minWidth: 0,
           flex: 1,
           textAlign: "left",
           cursor: isEditorOpen ? "pointer" : "default",
         }}
       >
-        <div
-          style={{
-            color: colors.text,
-            fontWeight: isEditingThisMember ? 800 : 700,
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}
-        >
-          {member.fullName}
-        </div>
-
-        <div
-          style={{
-            marginTop: "0.18rem",
-            color: colors.textMuted,
-            fontSize: "0.84rem",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}
-        >
-          {getMemberTypeLabel(member.type)}
-          {member.userId != null ? ` · User-ID ${member.userId}` : ""}
+        <div style={{ fontWeight: 700 }}>{team.name}</div>
+        <div style={{ fontSize: "0.85rem", color: colors.textMuted }}>
+          {getTeamTypeLabel(team.type)} · {memberLabel}
         </div>
       </button>
 
+      {/* ACTIONS */}
       {isEditorOpen ? (
         <div
           style={{
@@ -188,27 +191,25 @@ function MemberListItem({
             gap: "0.45rem",
             opacity: showActionsInEditor ? 1 : 0,
             pointerEvents: showActionsInEditor ? "auto" : "none",
-            transition: "opacity 0.15s ease",
+            transition: "opacity 0.15s",
           }}
         >
           <button
             type="button"
             onClick={handleOpenDetails}
-            aria-label={`${member.fullName} Details anzeigen`}
             title="Details anzeigen"
-            style={iconOnlyActionStyle}
+            style={iconOnlyButton}
           >
-            <EyeIcon size={15} />
+            <EyeIcon />
           </button>
 
           <button
             type="button"
             onClick={onOpenEdit}
-            aria-label={`${member.fullName} bearbeiten`}
-            title="Mitglied bearbeiten"
-            style={iconOnlyActionStyle}
+            title="Bearbeiten"
+            style={iconOnlyButton}
           >
-            <EditIcon size={15} />
+            <EditIcon />
           </button>
         </div>
       ) : (
@@ -218,28 +219,24 @@ function MemberListItem({
             gap: "0.45rem",
             opacity: showActionsInList ? 1 : 0,
             pointerEvents: showActionsInList ? "auto" : "none",
-            transition: "opacity 0.15s ease",
+            transition: "opacity 0.15s",
           }}
         >
           <button
             type="button"
             onClick={handleOpenDetails}
-            aria-label={`${member.fullName} Details anzeigen`}
-            title="Details anzeigen"
-            style={listActionButtonStyle}
+            style={listActionButton}
           >
-            <EyeIcon size={15} />
+            <EyeIcon />
             <span>Details</span>
           </button>
 
           <button
             type="button"
             onClick={onOpenEdit}
-            aria-label={`${member.fullName} bearbeiten`}
-            title="Mitglied bearbeiten"
-            style={listActionButtonStyle}
+            style={listActionButton}
           >
-            <EditIcon size={15} />
+            <EditIcon />
             <span>Bearbeiten</span>
           </button>
         </div>
@@ -248,33 +245,30 @@ function MemberListItem({
   );
 }
 
-const listActionButtonStyle: CSSProperties = {
-  minHeight: "36px",
-  padding: "0.48rem 0.72rem",
-  borderRadius: "10px",
-  border: `1px solid ${colors.border}`,
-  backgroundColor: "#ffffff",
-  color: colors.textMuted,
+/* ================= STYLES ================= */
+
+const listActionButton: CSSProperties = {
   display: "inline-flex",
   alignItems: "center",
-  gap: "0.45rem",
-  fontSize: "0.88rem",
-  fontWeight: 600,
+  gap: "0.4rem",
+  padding: "0.45rem 0.7rem",
+  borderRadius: "10px",
+  border: `1px solid ${colors.border}`,
+  background: "#fff",
   cursor: "pointer",
+  fontSize: "0.85rem",
 };
 
-const iconOnlyActionStyle: CSSProperties = {
+const iconOnlyButton: CSSProperties = {
   width: "36px",
   height: "36px",
   borderRadius: "10px",
   border: `1px solid ${colors.border}`,
-  backgroundColor: "#ffffff",
-  color: colors.textMuted,
-  display: "inline-flex",
+  background: "#fff",
+  display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  textDecoration: "none",
   cursor: "pointer",
 };
 
-export default MemberListItem;
+export default TeamListItem;

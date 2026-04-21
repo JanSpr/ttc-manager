@@ -185,7 +185,7 @@ function ManagementMembersPage() {
     <div style={pageContainerStyle}>
       <PageIntro
         title="Mitgliederverwaltung"
-        description="Verwalte hier Mitglieder schnell und kompakt an einer Stelle."
+        description="Erfasse, suche und pflege hier die Mitglieder deines Vereins."
         eyebrow="Verwaltung"
         accent
         style={{ padding: "1.1rem 1.3rem" }}

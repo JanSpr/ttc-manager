@@ -13,7 +13,7 @@ function ManagementPage() {
     <div style={pageContainerStyle}>
       <PageIntro
         title="Verwaltung"
-        description="Wähle hier aus, welchen Bereich du bearbeiten möchtest."
+        description="Pflege hier die zentralen Stammdaten für Mitglieder und Mannschaften."
         eyebrow="Intern"
         accent
         style={{ padding: "1.1rem 1.3rem" }}
@@ -36,86 +36,15 @@ function ManagementPage() {
               style={{
                 display: "flex",
                 flexDirection: "column",
-                gap: "0.9rem",
+                gap: "0.8rem",
               }}
             >
-              <div
-                style={{
-                  width: "44px",
-                  height: "44px",
-                  borderRadius: "14px",
-                  background:
-                    "linear-gradient(135deg, rgba(37, 99, 235, 0.12) 0%, rgba(124, 58, 237, 0.12) 100%)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "1.15rem",
-                }}
-              >
-                👤
+              <div style={badgeStyle}>
+                Mitglieder
               </div>
 
-              <div>
-                <div style={{ ...badgeStyle, marginBottom: "0.7rem" }}>
-                  Bereits verfügbar
-                </div>
-
-                <h2 style={{ ...cardTitleStyle, marginBottom: "0.45rem" }}>
-                  Mitglieder verwalten
-                </h2>
-
-                <p
-                  style={{
-                    margin: 0,
-                    color: colors.textMuted,
-                    lineHeight: 1.6,
-                  }}
-                >
-                  Mitglieder kompakt auswählen, anlegen, bearbeiten und löschen.
-                </p>
-              </div>
-            </div>
-          </ClickableCard>
-        </Link>
-
-        <ClickableCard style={{ height: "100%", opacity: 0.8 }}>
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "0.9rem",
-            }}
-          >
-            <div
-              style={{
-                width: "44px",
-                height: "44px",
-                borderRadius: "14px",
-                background:
-                  "linear-gradient(135deg, rgba(37, 99, 235, 0.12) 0%, rgba(124, 58, 237, 0.12) 100%)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "1.15rem",
-              }}
-            >
-              🏓
-            </div>
-
-            <div>
-              <div
-                style={{
-                  ...badgeStyle,
-                  marginBottom: "0.7rem",
-                  backgroundColor: "#f3f4f6",
-                  color: colors.textMuted,
-                }}
-              >
-                Als Nächstes
-              </div>
-
-              <h2 style={{ ...cardTitleStyle, marginBottom: "0.45rem" }}>
-                Mannschaften verwalten
+              <h2 style={{ ...cardTitleStyle, margin: 0 }}>
+                Mitgliederverwaltung
               </h2>
 
               <p
@@ -125,11 +54,46 @@ function ManagementPage() {
                   lineHeight: 1.6,
                 }}
               >
-                Dieser Bereich folgt im nächsten Schritt mit derselben Struktur.
+                Erfasse Vereinsmitglieder, pflege persönliche Grunddaten und
+                verknüpfe sie bei Bedarf mit einem Benutzerkonto.
               </p>
             </div>
-          </div>
-        </ClickableCard>
+          </ClickableCard>
+        </Link>
+
+        <Link
+          to="/management/teams"
+          style={{ textDecoration: "none", color: "inherit" }}
+        >
+          <ClickableCard style={{ height: "100%" }}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.8rem",
+              }}
+            >
+              <div style={badgeStyle}>
+                Mannschaften
+              </div>
+
+              <h2 style={{ ...cardTitleStyle, margin: 0 }}>
+                Mannschaftsverwaltung
+              </h2>
+
+              <p
+                style={{
+                  margin: 0,
+                  color: colors.textMuted,
+                  lineHeight: 1.6,
+                }}
+              >
+                Lege Mannschaften an, ordne sie nach Erwachsenen- oder
+                Jugendbereich ein und pflege ihre grundlegenden Informationen.
+              </p>
+            </div>
+          </ClickableCard>
+        </Link>
       </div>
     </div>
   );

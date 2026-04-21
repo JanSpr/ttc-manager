@@ -2,11 +2,7 @@ import { useState } from "react";
 import type { CSSProperties, FormEvent, ReactNode } from "react";
 import FormField from "../ui/FormField";
 import StatusMessage from "../ui/StatusMessage";
-import type {
-  Member,
-  MemberType,
-  MemberUpsertRequest,
-} from "../../types/member";
+import type { Team, TeamType, TeamUpsertRequest } from "../../types/team";
 import {
   colors,
   primaryButtonStyle,
@@ -14,45 +10,59 @@ import {
   textInputStyle,
 } from "../../styles/ui";
 
-type MemberFormProps = {
-  member?: Member | null;
+type TeamFormProps = {
+  team?: Team | null;
   isSubmitting: boolean;
-  onSubmit: (request: MemberUpsertRequest) => Promise<void>;
+  onSubmit: (request: TeamUpsertRequest) => Promise<void>;
   onCancelEdit?: () => void;
   onDelete?: () => Promise<void>;
 };
 
 type FormValues = {
-  firstName: string;
-  lastName: string;
-  type: MemberType;
-  userIdInput: string;
+  name: string;
+  description: string;
+  type: TeamType;
 };
 
 type IconProps = {
   size?: number;
 };
 
-function createFormValues(member?: Member | null): FormValues {
-  if (!member) {
+function createFormValues(team?: Team | null): FormValues {
+  if (!team) {
     return {
-      firstName: "",
-      lastName: "",
+      name: "",
+      description: "",
       type: "ADULT",
-      userIdInput: "",
     };
   }
 
   return {
-    firstName: member.firstName,
-    lastName: member.lastName,
-    type: member.type,
-    userIdInput: member.userId != null ? String(member.userId) : "",
+    name: team.name,
+    description: team.description ?? "",
+    type: team.type,
   };
 }
 
-function getMemberTypeLabel(type: MemberType): string {
-  return type === "ADULT" ? "Erwachsene" : "Jugend";
+function getTeamTypeLabel(type: TeamType): string {
+  return type === "YOUTH" ? "Jugend" : "Erwachsene";
+}
+
+function getTeamShortCode(team: Pick<Team, "name" | "type">): string {
+  const normalizedName = team.name.trim();
+
+  const romanMatch = normalizedName.match(
+    /\b(I|II|III|IV|V|VI|VII|VIII|IX|X)\b/i
+  );
+  const digitMatch = normalizedName.match(/\b(\d+)\b/);
+
+  const teamNumber = digitMatch?.[1] ?? romanMatch?.[1]?.toUpperCase() ?? "";
+
+  if (team.type === "YOUTH") {
+    return teamNumber ? `J${teamNumber}` : "J";
+  }
+
+  return teamNumber ? `H${teamNumber}` : "H";
 }
 
 function IconWrapper({
@@ -124,18 +134,18 @@ function TrashIcon({ size = 17 }: IconProps) {
   );
 }
 
-function MemberForm({
-  member,
+function TeamForm({
+  team,
   isSubmitting,
   onSubmit,
   onCancelEdit,
   onDelete,
-}: MemberFormProps) {
-  const [values, setValues] = useState<FormValues>(() => createFormValues(member));
+}: TeamFormProps) {
+  const [values, setValues] = useState<FormValues>(() => createFormValues(team));
   const [errorMessage, setErrorMessage] = useState("");
 
-  const isEditMode = Boolean(member);
-  const title = isEditMode ? "Mitglied bearbeiten" : "Mitglied anlegen";
+  const isEditMode = Boolean(team);
+  const title = isEditMode ? "Mannschaft bearbeiten" : "Mannschaft anlegen";
 
   function updateField<K extends keyof FormValues>(key: K, value: FormValues[K]) {
     setValues((current) => ({
@@ -144,41 +154,21 @@ function MemberForm({
     }));
   }
 
-  function buildRequest(): MemberUpsertRequest | null {
-    const firstName = values.firstName.trim();
-    const lastName = values.lastName.trim();
+  function buildRequest(): TeamUpsertRequest | null {
+    const name = values.name.trim();
+    const description = values.description.trim();
 
-    if (!firstName) {
-      setErrorMessage("Bitte gib einen Vornamen ein.");
+    if (!name) {
+      setErrorMessage("Bitte gib einen Mannschaftsnamen ein.");
       return null;
-    }
-
-    if (!lastName) {
-      setErrorMessage("Bitte gib einen Nachnamen ein.");
-      return null;
-    }
-
-    let userId: number | null = null;
-
-    if (values.userIdInput.trim() !== "") {
-      const parsedUserId = Number(values.userIdInput);
-
-      if (!Number.isInteger(parsedUserId) || parsedUserId <= 0) {
-        setErrorMessage("Die User-ID muss eine positive ganze Zahl sein.");
-        return null;
-      }
-
-      userId = parsedUserId;
     }
 
     setErrorMessage("");
 
     return {
-      firstName,
-      lastName,
+      name,
+      description,
       type: values.type,
-      userId,
-      active: member?.active ?? true,
     };
   }
 
@@ -204,63 +194,49 @@ function MemberForm({
           <h2 style={titleStyle}>{title}</h2>
           <p style={descriptionStyle}>
             {isEditMode
-              ? "Passe hier Stammdaten und die optionale User-Verknüpfung des Mitglieds an."
-              : "Erfasse hier ein neues Vereinsmitglied und ordne es bei Bedarf direkt einem User zu."}
+              ? "Passe hier Name, Kategorie und Beschreibung der Mannschaft an."
+              : "Lege hier eine neue Mannschaft für den Spielbetrieb oder die Planung an."}
           </p>
         </div>
       </div>
 
-      {isEditMode && member ? (
+      {isEditMode && team ? (
         <div style={selectedInfoStyle}>
-          <div style={selectedAvatarStyle}>
-            {`${member.firstName.charAt(0)}${member.lastName.charAt(0)}`
-              .toUpperCase()
-              .trim() || "?"}
-          </div>
+          <div style={selectedIconStyle}>{getTeamShortCode(team)}</div>
 
           <div style={{ minWidth: 0 }}>
-            <div style={selectedNameStyle}>{member.fullName}</div>
+            <div style={selectedNameStyle}>{team.name}</div>
             <div style={selectedMetaStyle}>
-              ID: {member.id}
-              {member.userId != null ? ` · User-ID: ${member.userId}` : ""}
+              ID: {team.id}
               {" · "}
-              {getMemberTypeLabel(member.type)}
+              {getTeamTypeLabel(team.type)}
+              {" · "}
+              {team.memberCount}{" "}
+              {team.memberCount === 1 ? "Mitglied" : "Mitglieder"}
             </div>
           </div>
         </div>
       ) : null}
 
       <div style={gridStyle}>
-        <FormField label="Vorname" htmlFor="member-first-name">
+        <FormField label="Name" htmlFor="team-name">
           <input
-            id="member-first-name"
+            id="team-name"
             type="text"
-            value={values.firstName}
-            onChange={(event) => updateField("firstName", event.target.value)}
+            value={values.name}
+            onChange={(event) => updateField("name", event.target.value)}
             style={textInputStyle}
-            placeholder="Max"
+            placeholder="z. B. Herren I"
             disabled={isSubmitting}
           />
         </FormField>
 
-        <FormField label="Nachname" htmlFor="member-last-name">
-          <input
-            id="member-last-name"
-            type="text"
-            value={values.lastName}
-            onChange={(event) => updateField("lastName", event.target.value)}
-            style={textInputStyle}
-            placeholder="Mustermann"
-            disabled={isSubmitting}
-          />
-        </FormField>
-
-        <FormField label="Kategorie" htmlFor="member-type">
+        <FormField label="Kategorie" htmlFor="team-type">
           <select
-            id="member-type"
+            id="team-type"
             value={values.type}
             onChange={(event) =>
-              updateField("type", event.target.value as MemberType)
+              updateField("type", event.target.value as TeamType)
             }
             style={textInputStyle}
             disabled={isSubmitting}
@@ -269,23 +245,27 @@ function MemberForm({
             <option value="YOUTH">Jugend</option>
           </select>
         </FormField>
-
-        <FormField label="User-ID" htmlFor="member-user-id">
-          <input
-            id="member-user-id"
-            type="text"
-            value={values.userIdInput}
-            onChange={(event) => updateField("userIdInput", event.target.value)}
-            style={textInputStyle}
-            placeholder="Optional"
-            disabled={isSubmitting}
-          />
-        </FormField>
       </div>
 
+      <FormField label="Beschreibung" htmlFor="team-description">
+        <textarea
+          id="team-description"
+          value={values.description}
+          onChange={(event) => updateField("description", event.target.value)}
+          style={{
+            ...textInputStyle,
+            resize: "vertical",
+            minHeight: "120px",
+            fontFamily: "inherit",
+          }}
+          placeholder="Optionaler Hinweis, z. B. Liga, Saison oder Besonderheiten"
+          disabled={isSubmitting}
+        />
+      </FormField>
+
       <p style={hintStyle}>
-        Über die User-ID kannst du ein Mitglied mit einem bestehenden Login
-        verknüpfen. Das Feld kann leer bleiben.
+        Die Beschreibung ist optional und eignet sich zum Beispiel für Liga,
+        Altersklasse, Saisonhinweise oder interne Notizen.
       </p>
 
       {errorMessage ? (
@@ -344,7 +324,7 @@ function MemberForm({
               }}
             >
               <TrashIcon />
-              <span>Mitglied löschen</span>
+              <span>Mannschaft löschen</span>
             </button>
           </div>
         </div>
@@ -365,7 +345,7 @@ function MemberForm({
               }}
             >
               <SaveIcon />
-              <span>{isSubmitting ? "Speichern..." : "Mitglied anlegen"}</span>
+              <span>{isSubmitting ? "Speichern..." : "Mannschaft anlegen"}</span>
             </button>
 
             <button
@@ -425,7 +405,7 @@ const selectedInfoStyle: CSSProperties = {
   backgroundColor: colors.surfaceSoft,
 };
 
-const selectedAvatarStyle: CSSProperties = {
+const selectedIconStyle: CSSProperties = {
   width: "42px",
   height: "42px",
   borderRadius: "12px",
@@ -504,4 +484,4 @@ const dangerButtonStyle: CSSProperties = {
   fontWeight: 700,
 };
 
-export default MemberForm;
+export default TeamForm;
