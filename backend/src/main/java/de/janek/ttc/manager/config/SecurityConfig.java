@@ -27,7 +27,8 @@ import java.util.List;
  *
  * Ziel für den aktuellen MVP: - Session-basierte Authentifizierung -
  * Login/Logout über eigene REST-Endpunkte - React-Frontend über CORS erlaubt -
- * alle Fach-Endpunkte standardmäßig nur für eingeloggte Benutzer
+ * ausgewählte Lese-Endpunkte aktuell öffentlich - schreibende Fach-Endpunkte
+ * weiterhin nur für eingeloggte Benutzer
  */
 @Configuration
 @EnableMethodSecurity
@@ -81,9 +82,7 @@ public class SecurityConfig {
 				.authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
 						/*
-						 * Öffentliche Endpunkte für Auth und erste Tests. /api/users ist für den Moment
-						 * offen, damit du per Postman Test-User anlegen kannst. Später sollten wir das
-						 * wieder absichern, z. B. nur für ADMIN.
+						 * Öffentliche Endpunkte für Auth und erste Tests.
 						 */
 						.requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
 						.requestMatchers(HttpMethod.POST, "/api/auth/logout").permitAll()
@@ -91,6 +90,17 @@ public class SecurityConfig {
 						.requestMatchers(HttpMethod.GET, "/api/test").permitAll()
 						.requestMatchers(HttpMethod.POST, "/api/users").permitAll()
 
+						/*
+						 * Öffentliche Lese-Endpunkte für den aktuellen MVP.
+						 */
+						.requestMatchers(HttpMethod.GET, "/api/teams").permitAll()
+						.requestMatchers(HttpMethod.GET, "/api/teams/**").permitAll()
+						.requestMatchers(HttpMethod.GET, "/api/members").permitAll()
+						.requestMatchers(HttpMethod.GET, "/api/members/**").permitAll()
+
+						/*
+						 * Alles andere bleibt geschützt.
+						 */
 						.anyRequest().authenticated());
 
 		return http.build();
