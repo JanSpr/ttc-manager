@@ -5,7 +5,6 @@ import { colors } from "../../styles/ui";
 
 type MemberListItemProps = {
   member: Member;
-  index: number;
   isLast: boolean;
   isEditorOpen: boolean;
   isEditingThisMember: boolean;

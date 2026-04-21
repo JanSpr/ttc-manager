@@ -10,7 +10,7 @@ import {
 } from "../../styles/ui";
 
 type MembersListPanelProps = {
-  members: Member[];
+  memberCount: number;
   filteredMembers: Member[];
   searchValue: string;
   onSearchChange: (value: string) => void;
@@ -19,7 +19,7 @@ type MembersListPanelProps = {
   isLoading: boolean;
   loadError: string;
   isEditorOpen: boolean;
-  selectedMemberId: number | null;
+  editingMemberId: number | null;
   hoveredMemberId: number | null;
   onHoverMember: (memberId: number) => void;
   onLeaveMember: (memberId: number) => void;
@@ -27,7 +27,7 @@ type MembersListPanelProps = {
 };
 
 function MembersListPanel({
-  members,
+  memberCount,
   filteredMembers,
   searchValue,
   onSearchChange,
@@ -36,7 +36,7 @@ function MembersListPanel({
   isLoading,
   loadError,
   isEditorOpen,
-  selectedMemberId,
+  editingMemberId,
   hoveredMemberId,
   onHoverMember,
   onLeaveMember,
@@ -69,7 +69,7 @@ function MembersListPanel({
           </p>
         </div>
 
-        <div style={badgeStyle}>{members.length}</div>
+        <div style={badgeStyle}>{memberCount}</div>
       </div>
 
       <div style={{ marginBottom: "0.8rem", position: "relative" }}>
@@ -167,27 +167,19 @@ function MembersListPanel({
               overflowY: "auto",
             }}
           >
-            {filteredMembers.map((member, index) => {
-              const isEditingThisMember =
-                selectedMemberId !== null &&
-                member.id === selectedMemberId &&
-                isEditorOpen;
-
-              return (
-                <MemberListItem
-                  key={member.id}
-                  member={member}
-                  index={index}
-                  isLast={index === filteredMembers.length - 1}
-                  isEditorOpen={isEditorOpen}
-                  isEditingThisMember={isEditingThisMember}
-                  isHovered={hoveredMemberId === member.id}
-                  onMouseEnter={() => onHoverMember(member.id)}
-                  onMouseLeave={() => onLeaveMember(member.id)}
-                  onOpenEdit={() => onOpenEdit(member.id)}
-                />
-              );
-            })}
+            {filteredMembers.map((member, index) => (
+              <MemberListItem
+                key={member.id}
+                member={member}
+                isLast={index === filteredMembers.length - 1}
+                isEditorOpen={isEditorOpen}
+                isEditingThisMember={member.id === editingMemberId}
+                isHovered={hoveredMemberId === member.id}
+                onMouseEnter={() => onHoverMember(member.id)}
+                onMouseLeave={() => onLeaveMember(member.id)}
+                onOpenEdit={() => onOpenEdit(member.id)}
+              />
+            ))}
           </div>
         </div>
       )}

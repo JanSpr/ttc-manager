@@ -88,6 +88,9 @@ function ManagementMembersPage() {
       ? members.find((member) => member.id === selectedMemberId) ?? null
       : null;
 
+  const isEditorOpen = editorMode !== "closed";
+  const editingMemberId = editorMode === "edit" ? selectedMemberId : null;
+
   function openCreateMode() {
     setSelectedMemberId(null);
     setEditorMode("create");
@@ -178,8 +181,6 @@ function ManagementMembersPage() {
     }
   }
 
-  const isEditorOpen = editorMode !== "closed";
-
   return (
     <div style={pageContainerStyle}>
       <PageIntro
@@ -203,7 +204,7 @@ function ManagementMembersPage() {
         }}
       >
         <MembersListPanel
-          members={members}
+          memberCount={members.length}
           filteredMembers={filteredMembers}
           searchValue={searchValue}
           onSearchChange={setSearchValue}
@@ -212,7 +213,7 @@ function ManagementMembersPage() {
           isLoading={isLoading}
           loadError={loadError}
           isEditorOpen={isEditorOpen}
-          selectedMemberId={selectedMemberId}
+          editingMemberId={editingMemberId}
           hoveredMemberId={hoveredMemberId}
           onHoverMember={setHoveredMemberId}
           onLeaveMember={(memberId) =>
