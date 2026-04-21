@@ -1,53 +1,18 @@
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
+import { updateOwnEmail } from "../api/userApi";
 import { useAuth } from "../context/useAuth";
 import { useToast } from "../context/useToast";
-import { updateOwnEmail } from "../api/userApi";
-import {
-  pageContainerStyle,
-  contentCardStyle,
-  sectionTitleStyle,
-  sectionDescriptionStyle,
-  badgeStyle,
-  subtleLabelStyle,
-  colors,
-} from "../styles/ui";
 import UserAvatar from "../components/UserAvatar";
-
-function ProfileField({
-  label,
-  value,
-  preserveFullValue = false,
-}: {
-  label: string;
-  value: string;
-  preserveFullValue?: boolean;
-}) {
-  return (
-    <div
-      style={{
-        padding: "1rem 1.1rem",
-        border: `1px solid ${colors.border}`,
-        borderRadius: "14px",
-        backgroundColor: colors.surface,
-        minWidth: 0,
-      }}
-    >
-      <div style={subtleLabelStyle}>{label}</div>
-      <div
-        style={{
-          color: colors.text,
-          fontWeight: 600,
-          lineHeight: 1.4,
-          overflowWrap: preserveFullValue ? "anywhere" : "break-word",
-          wordBreak: "break-word",
-        }}
-      >
-        {value}
-      </div>
-    </div>
-  );
-}
+import PageIntro from "../components/layout/PageIntro";
+import Card from "../components/ui/Card";
+import DataField from "../components/ui/DataField";
+import {
+  badgeStyle,
+  colors,
+  secondaryButtonStyle,
+  textInputStyle,
+} from "../styles/ui";
 
 function UserProfilePage() {
   const { user, isAuthenticated, updateAuthenticatedUser } = useAuth();
@@ -107,7 +72,7 @@ function UserProfilePage() {
         error instanceof Error
           ? error.message
           : "Die E-Mail-Adresse konnte nicht gespeichert werden.",
-        "error"
+        "error",
       );
     } finally {
       setIsSavingEmail(false);
@@ -115,39 +80,15 @@ function UserProfilePage() {
   }
 
   return (
-    <div style={pageContainerStyle}>
-      <section
-        style={{
-          ...contentCardStyle,
-          marginTop: 0,
-          padding: "1.75rem",
-          background:
-            "linear-gradient(135deg, rgba(37, 99, 235, 0.08) 0%, rgba(124, 58, 237, 0.08) 100%), #ffffff",
-        }}
-      >
-        <div
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "8px",
-            padding: "0.35rem 0.7rem",
-            borderRadius: "999px",
-            backgroundColor: "#ffffff",
-            border: `1px solid ${colors.border}`,
-            color: colors.primary,
-            fontWeight: 700,
-            fontSize: "0.9rem",
-            marginBottom: "1rem",
-          }}
-        >
-          Mein Profil
-        </div>
+    <div>
+      <PageIntro
+        title="Benutzerprofil"
+        description="Übersicht deiner Benutzerdaten."
+        eyebrow="Mein Bereich"
+        accent
+      />
 
-        <h1 style={sectionTitleStyle}>Benutzerprofil</h1>
-        <p style={sectionDescriptionStyle}>Übersicht deiner Benutzerdaten.</p>
-      </section>
-
-      <section style={contentCardStyle}>
+      <Card>
         <div
           style={{
             display: "flex",
@@ -211,9 +152,9 @@ function UserProfilePage() {
             gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
           }}
         >
-          <ProfileField label="Vorname" value={currentUser.firstName || "-"} />
-          <ProfileField label="Nachname" value={currentUser.lastName || "-"} />
-          <ProfileField label="Username" value={currentUser.username || "-"} />
+          <DataField label="Vorname" value={currentUser.firstName || "-"} />
+          <DataField label="Nachname" value={currentUser.lastName || "-"} />
+          <DataField label="Username" value={currentUser.username || "-"} />
 
           <div
             style={{
@@ -222,7 +163,6 @@ function UserProfilePage() {
               borderRadius: "14px",
               backgroundColor: colors.surface,
               minWidth: 0,
-              position: "relative",
             }}
           >
             <div
@@ -232,31 +172,40 @@ function UserProfilePage() {
                 justifyContent: "space-between",
                 gap: "0.75rem",
                 marginBottom: "0.35rem",
+                flexWrap: "wrap",
               }}
             >
-              <div style={subtleLabelStyle}>E-Mail</div>
+              <div
+                style={{
+                  fontSize: "0.9rem",
+                  color: colors.textMuted,
+                  marginBottom: "0.2rem",
+                }}
+              >
+                E-Mail
+              </div>
 
               {!isEditingEmail ? (
                 <button
                   type="button"
                   onClick={handleStartEmailEdit}
-                  aria-label="E-Mail bearbeiten"
-                  title="E-Mail bearbeiten"
                   style={{
                     border: `1px solid ${colors.border}`,
-                    backgroundColor: colors.surfaceSoft,
+                    backgroundColor: "#ffffff",
                     color: colors.textMuted,
-                    borderRadius: "8px",
+                    borderRadius: "10px",
                     width: "32px",
                     height: "32px",
+                    cursor: "pointer",
+                    fontSize: "0.95rem",
+                    lineHeight: 1,
                     display: "inline-flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    cursor: "pointer",
                     flexShrink: 0,
-                    fontSize: "0.95rem",
-                    lineHeight: 1,
                   }}
+                  aria-label="E-Mail bearbeiten"
+                  title="E-Mail bearbeiten"
                 >
                   ✎
                 </button>
@@ -286,22 +235,15 @@ function UserProfilePage() {
                   type="email"
                   value={emailInput}
                   onChange={(event) => setEmailInput(event.target.value)}
+                  placeholder="E-Mail-Adresse eingeben"
                   disabled={isSavingEmail}
-                  autoFocus
-                  style={{
-                    width: "100%",
-                    padding: "0.8rem 0.95rem",
-                    borderRadius: "10px",
-                    border: `1px solid ${colors.border}`,
-                    backgroundColor: "#ffffff",
-                    color: colors.text,
-                  }}
+                  style={textInputStyle}
                 />
 
                 <div
                   style={{
                     display: "flex",
-                    gap: "0.65rem",
+                    gap: "0.6rem",
                     flexWrap: "wrap",
                   }}
                 >
@@ -310,17 +252,14 @@ function UserProfilePage() {
                     onClick={handleSaveEmail}
                     disabled={isSavingEmail}
                     style={{
-                      padding: "0.7rem 0.95rem",
-                      borderRadius: "10px",
-                      border: "none",
+                      ...secondaryButtonStyle,
                       backgroundColor: colors.primary,
                       color: "#ffffff",
-                      fontWeight: 700,
-                      cursor: isSavingEmail ? "default" : "pointer",
-                      opacity: isSavingEmail ? 0.7 : 1,
+                      border: `1px solid ${colors.primary}`,
+                      opacity: isSavingEmail ? 0.8 : 1,
                     }}
                   >
-                    {isSavingEmail ? "Speichere..." : "Speichern"}
+                    {isSavingEmail ? "Speichert..." : "Speichern"}
                   </button>
 
                   <button
@@ -328,14 +267,8 @@ function UserProfilePage() {
                     onClick={handleCancelEmailEdit}
                     disabled={isSavingEmail}
                     style={{
-                      padding: "0.7rem 0.95rem",
-                      borderRadius: "10px",
-                      border: `1px solid ${colors.borderStrong}`,
-                      backgroundColor: colors.surface,
-                      color: colors.text,
-                      fontWeight: 700,
-                      cursor: isSavingEmail ? "default" : "pointer",
-                      opacity: isSavingEmail ? 0.7 : 1,
+                      ...secondaryButtonStyle,
+                      opacity: isSavingEmail ? 0.8 : 1,
                     }}
                   >
                     Abbrechen
@@ -344,43 +277,8 @@ function UserProfilePage() {
               </div>
             )}
           </div>
-
-          <ProfileField
-            label="Member-Verknüpfung"
-            value={
-              currentUser.memberId !== null
-                ? String(currentUser.memberId)
-                : "Keine Verknüpfung"
-            }
-          />
         </div>
-
-        <div style={{ marginTop: "1.5rem" }}>
-          <div style={{ ...subtleLabelStyle, marginBottom: "0.5rem" }}>
-            Rollen
-          </div>
-
-          {currentUser.roles.length > 0 ? (
-            <div
-              style={{
-                display: "flex",
-                gap: "0.6rem",
-                flexWrap: "wrap",
-              }}
-            >
-              {currentUser.roles.map((role) => (
-                <span key={role} style={badgeStyle}>
-                  {role}
-                </span>
-              ))}
-            </div>
-          ) : (
-            <p style={{ margin: 0, color: colors.textMuted }}>
-              Keine Rollen vorhanden.
-            </p>
-          )}
-        </div>
-      </section>
+      </Card>
     </div>
   );
 }

@@ -4,19 +4,14 @@ import { fetchMemberById } from "../api/memberApi";
 import { fetchTeams } from "../api/teamApi";
 import type { Member } from "../types/member";
 import type { Team } from "../types/team";
-import {
-  pageContainerStyle,
-  contentCardStyle,
-  clickableCardStyle,
-  applyClickableCardHover,
-  resetClickableCardHover,
-  sectionTitleStyle,
-  subtleLabelStyle,
-  badgeStyle,
-  colors,
-} from "../styles/ui";
+import PageIntro from "../components/layout/PageIntro";
+import Card from "../components/ui/Card";
+import DataField from "../components/ui/DataField";
+import ClickableCard from "../components/ui/ClickableCard";
+import StatusMessage from "../components/ui/StatusMessage";
+import { cardTitleStyle, badgeStyle, colors } from "../styles/ui";
 
-type MemberDetailLocationState = {
+type LocationState = {
   fromTeamId?: number;
   fromTeamName?: string;
 };
@@ -24,7 +19,7 @@ type MemberDetailLocationState = {
 export default function MemberDetailPage() {
   const { id } = useParams();
   const location = useLocation();
-  const navigationState = (location.state as MemberDetailLocationState) || {};
+  const state = (location.state as LocationState | null) ?? null;
 
   const [member, setMember] = useState<Member | null>(null);
   const [memberTeams, setMemberTeams] = useState<Team[]>([]);
@@ -32,9 +27,9 @@ export default function MemberDetailPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function loadMemberDetail() {
+    async function loadMember() {
       if (!id) {
-        setError("Keine Member-ID in der URL gefunden.");
+        setError("Keine Mitglieder-ID in der URL gefunden.");
         setLoading(false);
         return;
       }
@@ -42,7 +37,7 @@ export default function MemberDetailPage() {
       const memberId = Number(id);
 
       if (Number.isNaN(memberId)) {
-        setError("Ungültige Member-ID.");
+        setError("Ungültige Mitglieder-ID.");
         setLoading(false);
         return;
       }
@@ -63,137 +58,139 @@ export default function MemberDetailPage() {
         setMember(memberData);
         setMemberTeams(resolvedTeams);
       } catch (err) {
-        console.error("Fehler beim Laden des Members:", err);
-        setError("Memberdetails konnten nicht geladen werden.");
+        console.error("Fehler beim Laden des Mitglieds:", err);
+        setError("Mitglied konnte nicht geladen werden.");
       } finally {
         setLoading(false);
       }
     }
 
-    loadMemberDetail();
+    void loadMember();
   }, [id]);
 
-  const backLink = navigationState.fromTeamId
-    ? `/teams/${navigationState.fromTeamId}`
-    : "/teams";
-
-  const backLabel = navigationState.fromTeamName
-    ? `← Zurück zu ${navigationState.fromTeamName}`
+  const backTarget = state?.fromTeamId ? `/teams/${state.fromTeamId}` : "/teams";
+  const backLabel = state?.fromTeamName
+    ? `← Zurück zu ${state.fromTeamName}`
     : "← Zurück zur Teamliste";
 
   return (
-    <div style={pageContainerStyle}>
+    <div>
       <div style={{ marginBottom: "1rem" }}>
-        <Link to={backLink} style={{ color: colors.primary }}>
+        <Link to={backTarget} style={{ color: colors.primary }}>
           {backLabel}
         </Link>
       </div>
 
-      {loading && <p style={{ marginTop: "1rem" }}>Member wird geladen...</p>}
-      {error && <p style={{ marginTop: "1rem", color: colors.danger }}>{error}</p>}
+      {loading && <StatusMessage>Mitglied wird geladen...</StatusMessage>}
+      {error && <StatusMessage variant="error">{error}</StatusMessage>}
 
       {!loading && !error && member && (
         <>
-          <div style={{ ...contentCardStyle, marginTop: 0 }}>
-            <h1 style={sectionTitleStyle}>{member.fullName}</h1>
+          <PageIntro
+            title={member.fullName}
+            description="Detailansicht eines Vereinsmitglieds."
+            eyebrow="Mitglied"
+          />
+
+          <Card>
+            <h2 style={cardTitleStyle}>Grunddaten</h2>
 
             <div
               style={{
                 display: "grid",
-                gap: "0.9rem",
-                gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+                gap: "1rem",
+                gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
               }}
             >
-              <div>
-                <div style={subtleLabelStyle}>Vorname</div>
-                <div style={{ fontWeight: 700 }}>{member.firstName}</div>
-              </div>
-
-              <div>
-                <div style={subtleLabelStyle}>Nachname</div>
-                <div style={{ fontWeight: 700 }}>{member.lastName}</div>
-              </div>
-
-              <div>
-                <div style={subtleLabelStyle}>Status</div>
-                <div style={{ fontWeight: 700 }}>
-                  {member.active ? "Aktiv" : "Inaktiv"}
-                </div>
-              </div>
-
-              <div>
-                <div style={subtleLabelStyle}>Verknüpfter User</div>
-                <div style={{ fontWeight: 700 }}>
-                  {member.userId
-                    ? `User-ID ${member.userId}`
-                    : "Kein Login verknüpft"}
-                </div>
-              </div>
+              <DataField label="Vorname" value={member.firstName || "-"} />
+              <DataField label="Nachname" value={member.lastName || "-"} />
+              <DataField label="Mitglieder-ID" value={String(member.id)} />
+              <DataField
+                label="Status"
+                value={member.active ? "Aktiv" : "Inaktiv"}
+              />
             </div>
-          </div>
+          </Card>
 
-          <div style={contentCardStyle}>
-            <h2 style={{ marginTop: 0, marginBottom: "0.75rem", fontSize: "1.2rem" }}>
-              Zugeordnete Teams
-            </h2>
+          <Card>
+            <h2 style={cardTitleStyle}>Verknüpfter Benutzer</h2>
+
+            {member.userId ? (
+              <div
+                style={{
+                  display: "grid",
+                  gap: "1rem",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+                }}
+              >
+                <DataField label="User-ID" value={String(member.userId)} />
+              </div>
+            ) : (
+              <StatusMessage variant="muted" marginTop="0">
+                Diesem Mitglied ist aktuell kein Benutzerkonto zugeordnet.
+              </StatusMessage>
+            )}
+          </Card>
+
+          <Card>
+            <h2 style={cardTitleStyle}>Teams</h2>
 
             {memberTeams.length === 0 ? (
-              <p style={{ margin: 0, color: colors.textMuted }}>Keine Teams zugeordnet.</p>
+              <StatusMessage variant="muted" marginTop="0">
+                Dieses Mitglied ist aktuell keinem Team zugeordnet.
+              </StatusMessage>
             ) : (
               <div
                 style={{
-                  marginTop: "0.75rem",
                   display: "grid",
-                  gap: "0.75rem",
+                  gap: "0.85rem",
                 }}
               >
                 {memberTeams.map((team) => (
                   <Link
                     key={team.id}
                     to={`/teams/${team.id}`}
-                    style={{
-                      ...clickableCardStyle,
-                      borderRadius: "16px",
-                    }}
-                    onMouseEnter={(e) =>
-                      applyClickableCardHover(e.currentTarget)
-                    }
-                    onMouseLeave={(e) =>
-                      resetClickableCardHover(e.currentTarget)
-                    }
+                    style={{ textDecoration: "none", color: "inherit" }}
                   >
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        gap: "1rem",
-                        alignItems: "flex-start",
-                        flexWrap: "wrap",
-                      }}
-                    >
-                      <div>
-                        <div
-                          style={{
-                            fontWeight: 700,
-                            marginBottom: "0.25rem",
-                            color: colors.text,
-                          }}
-                        >
-                          {team.name}
+                    <ClickableCard>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          gap: "1rem",
+                          alignItems: "flex-start",
+                          flexWrap: "wrap",
+                        }}
+                      >
+                        <div>
+                          <div
+                            style={{
+                              fontWeight: 700,
+                              color: colors.text,
+                              marginBottom: "0.3rem",
+                            }}
+                          >
+                            {team.name}
+                          </div>
+
+                          <div
+                            style={{
+                              color: colors.textMuted,
+                              fontSize: "0.95rem",
+                            }}
+                          >
+                            {team.description || "Keine Beschreibung vorhanden."}
+                          </div>
                         </div>
 
-                        <div style={{ color: colors.textMuted, marginBottom: "0.25rem" }}>
-                          {team.description || "Keine Beschreibung vorhanden."}
-                        </div>
+                        <div style={badgeStyle}>{team.memberCount} Mitglieder</div>
                       </div>
-
-                      <div style={badgeStyle}>{team.memberCount} Mitglieder</div>
-                    </div>
+                    </ClickableCard>
                   </Link>
                 ))}
               </div>
             )}
-          </div>
+          </Card>
         </>
       )}
     </div>

@@ -2,7 +2,8 @@ import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
 import { useToast } from "../context/useToast";
-import { colors } from "../styles/ui";
+import { colors, textInputStyle, primaryButtonStyle } from "../styles/ui";
+import FormField from "../components/ui/FormField";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -129,18 +130,7 @@ export default function LoginPage() {
               gap: "18px",
             }}
           >
-            <div style={{ display: "grid", gap: "8px" }}>
-              <label
-                htmlFor="identifier"
-                style={{
-                  fontSize: "0.92rem",
-                  fontWeight: 700,
-                  color: colors.text,
-                }}
-              >
-                E-Mail oder Username
-              </label>
-
+            <FormField label="E-Mail oder Username" htmlFor="identifier">
               <input
                 id="identifier"
                 type="text"
@@ -149,28 +139,11 @@ export default function LoginPage() {
                 onChange={(e) => setIdentifier(e.target.value)}
                 autoComplete="username"
                 disabled={isSubmitting}
-                style={{
-                  width: "100%",
-                  padding: "12px 14px",
-                  borderRadius: "12px",
-                  border: `1px solid ${colors.borderStrong}`,
-                  backgroundColor: "#ffffff",
-                }}
+                style={textInputStyle}
               />
-            </div>
+            </FormField>
 
-            <div style={{ display: "grid", gap: "8px" }}>
-              <label
-                htmlFor="password"
-                style={{
-                  fontSize: "0.92rem",
-                  fontWeight: 700,
-                  color: colors.text,
-                }}
-              >
-                Passwort
-              </label>
-
+            <FormField label="Passwort" htmlFor="password">
               <input
                 id="password"
                 type="password"
@@ -179,30 +152,16 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
                 disabled={isSubmitting}
-                style={{
-                  width: "100%",
-                  padding: "12px 14px",
-                  borderRadius: "12px",
-                  border: `1px solid ${colors.borderStrong}`,
-                  backgroundColor: "#ffffff",
-                }}
+                style={textInputStyle}
               />
-            </div>
+            </FormField>
 
             <button
               type="submit"
               disabled={isSubmitting}
               style={{
+                ...primaryButtonStyle,
                 marginTop: "4px",
-                border: "none",
-                borderRadius: "12px",
-                padding: "13px 16px",
-                background:
-                  "linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)",
-                color: "#ffffff",
-                fontSize: "0.98rem",
-                fontWeight: 800,
-                boxShadow: "0 12px 24px rgba(37, 99, 235, 0.18)",
                 cursor: isSubmitting ? "default" : "pointer",
                 opacity: isSubmitting ? 0.8 : 1,
               }}
@@ -210,78 +169,6 @@ export default function LoginPage() {
               {isSubmitting ? "Einloggen..." : "Einloggen"}
             </button>
           </form>
-
-          <div
-            style={{
-              marginTop: "26px",
-              paddingTop: "20px",
-              borderTop: `1px solid ${colors.border}`,
-              display: "flex",
-              justifyContent: "center",
-            }}
-          >
-            <div
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "10px",
-                padding: "10px 14px",
-                borderRadius: "999px",
-                backgroundColor: colors.surfaceSoft,
-                border: `1px solid ${colors.border}`,
-              }}
-            >
-              <div
-                style={{
-                  position: "relative",
-                  width: "30px",
-                  height: "30px",
-                }}
-              >
-                <div
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    borderRadius: "50%",
-                    border: `2px solid ${colors.primary}`,
-                  }}
-                />
-                <div
-                  style={{
-                    position: "absolute",
-                    top: "13px",
-                    left: "-4px",
-                    width: "38px",
-                    height: "2px",
-                    backgroundColor: colors.accent,
-                    transform: "rotate(-18deg)",
-                  }}
-                />
-              </div>
-
-              <div style={{ textAlign: "left" }}>
-                <div
-                  style={{
-                    fontSize: "13px",
-                    fontWeight: 800,
-                    color: colors.text,
-                    lineHeight: 1.1,
-                  }}
-                >
-                  TTC Manager
-                </div>
-                <div
-                  style={{
-                    fontSize: "12px",
-                    color: colors.textMuted,
-                    lineHeight: 1.1,
-                  }}
-                >
-                  erster Logo-Entwurf
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>

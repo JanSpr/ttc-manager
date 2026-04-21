@@ -2,17 +2,11 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { fetchTeamById } from "../api/teamApi";
 import type { Team, TeamMembershipSummary } from "../types/team";
-import {
-  pageContainerStyle,
-  contentCardStyle,
-  clickableCardStyle,
-  applyClickableCardHover,
-  resetClickableCardHover,
-  sectionTitleStyle,
-  sectionDescriptionStyle,
-  badgeStyle,
-  colors,
-} from "../styles/ui";
+import PageIntro from "../components/layout/PageIntro";
+import Card from "../components/ui/Card";
+import ClickableCard from "../components/ui/ClickableCard";
+import StatusMessage from "../components/ui/StatusMessage";
+import { cardTitleStyle, badgeStyle, colors } from "../styles/ui";
 
 function formatMembershipRole(membership: TeamMembershipSummary): string {
   const labels: string[] = [];
@@ -36,6 +30,7 @@ function formatLineupPosition(position: number | null): string {
   if (position == null) {
     return "–";
   }
+
   return String(position);
 }
 
@@ -76,129 +71,114 @@ export default function TeamDetailPage() {
       }
     }
 
-    loadTeamDetail();
+    void loadTeamDetail();
   }, [id]);
 
   return (
-    <div style={pageContainerStyle}>
+    <div>
       <div style={{ marginBottom: "1rem" }}>
         <Link to="/teams" style={{ color: colors.primary }}>
           ← Zurück zur Teamliste
         </Link>
       </div>
 
-      {loading && <p style={{ marginTop: "1rem" }}>Team wird geladen...</p>}
-      {error && <p style={{ marginTop: "1rem", color: colors.danger }}>{error}</p>}
+      {loading && <StatusMessage>Team wird geladen...</StatusMessage>}
+      {error && <StatusMessage variant="error">{error}</StatusMessage>}
 
       {!loading && !error && team && (
         <>
-          <div style={{ ...contentCardStyle, marginTop: 0 }}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                gap: "1rem",
-                alignItems: "flex-start",
-                flexWrap: "wrap",
-              }}
-            >
-              <div>
-                <h1 style={sectionTitleStyle}>{team.name}</h1>
-                <p style={sectionDescriptionStyle}>
-                  {team.description || "Keine Beschreibung vorhanden."}
-                </p>
-              </div>
+          <PageIntro
+            title={team.name}
+            description={team.description || "Keine Beschreibung vorhanden."}
+            eyebrow="Team"
+          />
 
-              <div style={badgeStyle}>{team.memberCount} Mitglieder</div>
-            </div>
-          </div>
-
-          <div style={contentCardStyle}>
-            <h2 style={{ marginTop: 0, marginBottom: "0.75rem", fontSize: "1.2rem" }}>
-              Teammitglieder
-            </h2>
+          <Card>
+            <h2 style={cardTitleStyle}>Teammitglieder</h2>
 
             {team.memberships.length === 0 ? (
-              <p style={{ color: colors.textMuted, margin: 0 }}>
+              <StatusMessage variant="muted" marginTop="0">
                 Diesem Team sind aktuell keine Mitglieder zugeordnet.
-              </p>
+              </StatusMessage>
             ) : (
               <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
                 {team.memberships.map((membership) => (
-                  <li
-                    key={membership.membershipId}
-                    style={{ marginBottom: "0.75rem" }}
-                  >
+                  <li key={membership.memberId} style={{ marginTop: "0.85rem" }}>
                     <Link
                       to={`/members/${membership.memberId}`}
                       state={{
                         fromTeamId: team.id,
                         fromTeamName: team.name,
                       }}
-                      style={{
-                        ...clickableCardStyle,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "1rem",
-                        borderRadius: "16px",
-                      }}
-                      onMouseEnter={(e) =>
-                        applyClickableCardHover(e.currentTarget)
-                      }
-                      onMouseLeave={(e) =>
-                        resetClickableCardHover(e.currentTarget)
-                      }
+                      style={{ textDecoration: "none", color: "inherit" }}
                     >
-                      <div
-                        style={{
-                          minWidth: "2.6rem",
-                          height: "2.6rem",
-                          borderRadius: "999px",
-                          backgroundColor: colors.primarySoft,
-                          color: colors.primary,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontSize: "1rem",
-                          fontWeight: 800,
-                          flexShrink: 0,
-                        }}
-                      >
-                        {formatLineupPosition(membership.lineupPosition)}
-                      </div>
-
-                      <div style={{ flex: 1 }}>
+                      <ClickableCard style={{ borderRadius: "16px" }}>
                         <div
                           style={{
-                            fontWeight: 700,
-                            marginBottom: "0.25rem",
-                            color: colors.text,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "1rem",
                           }}
                         >
-                          {membership.memberFullName}
-                        </div>
+                          <div
+                            style={{
+                              width: "40px",
+                              height: "40px",
+                              borderRadius: "999px",
+                              backgroundColor: colors.primarySoft,
+                              color: colors.primary,
+                              fontWeight: 800,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              flexShrink: 0,
+                            }}
+                            title="Aufstellung"
+                          >
+                            {formatLineupPosition(membership.lineupPosition)}
+                          </div>
 
-                        <div
-                          style={{
-                            color: colors.textMuted,
-                            marginBottom: "0.25rem",
-                          }}
-                        >
-                          {formatMembershipRole(membership)}
-                        </div>
+                          <div style={{ flex: 1 }}>
+                            <div
+                              style={{
+                                fontWeight: 700,
+                                marginBottom: "0.25rem",
+                                color: colors.text,
+                              }}
+                            >
+                              {membership.memberFullName}
+                            </div>
 
-                        <div style={{ fontSize: "0.95rem", color: colors.textMuted }}>
-                          {membership.userId
-                            ? `Mit Login verknüpft (User-ID: ${membership.userId})`
-                            : "Kein Login verknüpft"}
+                            <div
+                              style={{
+                                color: colors.textMuted,
+                                marginBottom: "0.25rem",
+                              }}
+                            >
+                              {formatMembershipRole(membership)}
+                            </div>
+
+                            <div
+                              style={{
+                                fontSize: "0.95rem",
+                                color: colors.textMuted,
+                              }}
+                            >
+                              {membership.userId
+                                ? `Mit Login verknüpft (User-ID: ${membership.userId})`
+                                : "Kein Login verknüpft"}
+                            </div>
+                          </div>
+
+                          <div style={badgeStyle}>Profil</div>
                         </div>
-                      </div>
+                      </ClickableCard>
                     </Link>
                   </li>
                 ))}
               </ul>
             )}
-          </div>
+          </Card>
         </>
       )}
     </div>

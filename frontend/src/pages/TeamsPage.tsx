@@ -2,16 +2,10 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { fetchTeams } from "../api/teamApi";
 import type { Team } from "../types/team";
-import {
-  pageContainerStyle,
-  clickableCardStyle,
-  applyClickableCardHover,
-  resetClickableCardHover,
-  sectionTitleStyle,
-  sectionDescriptionStyle,
-  badgeStyle,
-  colors,
-} from "../styles/ui";
+import PageIntro from "../components/layout/PageIntro";
+import ClickableCard from "../components/ui/ClickableCard";
+import StatusMessage from "../components/ui/StatusMessage";
+import { badgeStyle, colors } from "../styles/ui";
 
 export default function TeamsPage() {
   const [teams, setTeams] = useState<Team[]>([]);
@@ -34,60 +28,69 @@ export default function TeamsPage() {
       }
     }
 
-    loadTeams();
+    void loadTeams();
   }, []);
 
   return (
-    <div style={pageContainerStyle}>
-      <div style={{ marginBottom: "1.5rem" }}>
-        <h1 style={sectionTitleStyle}>Teams</h1>
-        <p style={sectionDescriptionStyle}>
-          Hier findest du alle angelegten Mannschaften und kannst direkt in die
-          jeweilige Detailansicht wechseln.
-        </p>
-      </div>
+    <div>
+      <PageIntro
+        title="Teams"
+        description="Hier findest du alle angelegten Mannschaften und kannst direkt in die jeweilige Detailansicht wechseln."
+        accent
+      />
 
-      {loading && <p>Teams werden geladen...</p>}
-      {error && <p style={{ color: colors.danger }}>{error}</p>}
+      {loading && <StatusMessage>Teams werden geladen...</StatusMessage>}
+      {error && <StatusMessage variant="error">{error}</StatusMessage>}
 
       {!loading && !error && teams.length === 0 && (
-        <p>Es wurden noch keine Teams gefunden.</p>
+        <StatusMessage variant="muted">
+          Es wurden noch keine Teams gefunden.
+        </StatusMessage>
       )}
 
       {!loading && !error && teams.length > 0 && (
-        <div style={{ display: "grid", gap: "1rem" }}>
+        <div
+          style={{
+            display: "grid",
+            gap: "1rem",
+            marginTop: "1.5rem",
+          }}
+        >
           {teams.map((team) => (
             <Link
               key={team.id}
               to={`/teams/${team.id}`}
-              style={{
-                ...clickableCardStyle,
-                borderRadius: "16px",
-              }}
-              onMouseEnter={(e) => applyClickableCardHover(e.currentTarget)}
-              onMouseLeave={(e) => resetClickableCardHover(e.currentTarget)}
+              style={{ textDecoration: "none", color: "inherit" }}
             >
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: "1rem",
-                  alignItems: "flex-start",
-                  flexWrap: "wrap",
-                }}
-              >
-                <div>
-                  <h2 style={{ margin: "0 0 0.5rem 0", fontSize: "1.2rem" }}>
-                    {team.name}
-                  </h2>
+              <ClickableCard>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: "1rem",
+                    alignItems: "flex-start",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <div>
+                    <h2 style={{ margin: "0 0 0.5rem 0", fontSize: "1.2rem" }}>
+                      {team.name}
+                    </h2>
 
-                  <p style={{ margin: "0 0 0.35rem 0", color: colors.textMuted }}>
-                    {team.description || "Keine Beschreibung vorhanden."}
-                  </p>
+                    <p
+                      style={{
+                        margin: "0 0 0.35rem 0",
+                        color: colors.textMuted,
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      {team.description || "Keine Beschreibung vorhanden."}
+                    </p>
+                  </div>
+
+                  <div style={badgeStyle}>{team.memberCount} Mitglieder</div>
                 </div>
-
-                <div style={badgeStyle}>{team.memberCount} Mitglieder</div>
-              </div>
+              </ClickableCard>
             </Link>
           ))}
         </div>

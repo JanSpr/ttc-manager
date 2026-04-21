@@ -60,6 +60,14 @@ export const sectionDescriptionStyle: CSSProperties = {
   fontSize: "1rem",
 };
 
+export const cardTitleStyle: CSSProperties = {
+  marginTop: 0,
+  marginBottom: "0.75rem",
+  fontSize: "1.1rem",
+  color: colors.text,
+  fontWeight: 700,
+};
+
 export const badgeStyle: CSSProperties = {
   display: "inline-flex",
   alignItems: "center",
@@ -77,6 +85,38 @@ export const subtleLabelStyle: CSSProperties = {
   fontSize: "0.9rem",
   color: colors.textMuted,
   marginBottom: "0.2rem",
+};
+
+export const textInputStyle: CSSProperties = {
+  width: "100%",
+  padding: "12px 14px",
+  borderRadius: "12px",
+  border: `1px solid ${colors.borderStrong}`,
+  backgroundColor: "#ffffff",
+  color: colors.text,
+  boxSizing: "border-box",
+};
+
+export const primaryButtonStyle: CSSProperties = {
+  border: "none",
+  borderRadius: "12px",
+  padding: "13px 16px",
+  background: "linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)",
+  color: "#ffffff",
+  fontSize: "0.98rem",
+  fontWeight: 800,
+  boxShadow: "0 12px 24px rgba(37, 99, 235, 0.18)",
+  cursor: "pointer",
+};
+
+export const secondaryButtonStyle: CSSProperties = {
+  padding: "0.7rem 0.95rem",
+  borderRadius: "10px",
+  border: `1px solid ${colors.borderStrong}`,
+  backgroundColor: colors.surface,
+  color: colors.text,
+  fontWeight: 700,
+  cursor: "pointer",
 };
 
 export function applyClickableCardHover(element: HTMLElement) {
