@@ -23,12 +23,11 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
 
 /**
- * Zentrale Spring-Security-Konfiguration.
+ * Central Spring Security configuration.
  *
- * Ziel für den aktuellen MVP: - Session-basierte Authentifizierung -
- * Login/Logout über eigene REST-Endpunkte - React-Frontend über CORS erlaubt -
- * ausgewählte Lese-Endpunkte aktuell öffentlich - schreibende Fach-Endpunkte
- * weiterhin nur für eingeloggte Benutzer
+ * Current approach: - session-based authentication - custom REST login/logout
+ * endpoints - public read endpoints for current MVP - restricted write
+ * endpoints for administrative data changes
  */
 @Configuration
 @EnableMethodSecurity
@@ -44,7 +43,7 @@ public class SecurityConfig {
 	}
 
 	/**
-	 * Passwort-Encoder für sichere Passwort-Speicherung.
+	 * Password encoder for secure password hashing.
 	 */
 	@Bean
 	public PasswordEncoder passwordEncoder() {
@@ -52,7 +51,7 @@ public class SecurityConfig {
 	}
 
 	/**
-	 * AuthenticationProvider auf Basis unseres UserDetailsService.
+	 * Authentication provider based on our custom user details service.
 	 */
 	@Bean
 	public DaoAuthenticationProvider authenticationProvider(PasswordEncoder passwordEncoder) {
@@ -62,8 +61,7 @@ public class SecurityConfig {
 	}
 
 	/**
-	 * AuthenticationManager wird von Spring bereitgestellt und nutzt unseren
-	 * Provider.
+	 * Authentication manager provided by Spring.
 	 */
 	@Bean
 	public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
@@ -71,7 +69,7 @@ public class SecurityConfig {
 	}
 
 	/**
-	 * Zentrale HTTP-Security-Konfiguration.
+	 * Main HTTP security configuration.
 	 */
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -82,16 +80,20 @@ public class SecurityConfig {
 				.authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
 						/*
-						 * Öffentliche Endpunkte für Auth und erste Tests.
+						 * Public authentication endpoints.
 						 */
 						.requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
 						.requestMatchers(HttpMethod.POST, "/api/auth/logout").permitAll()
 						.requestMatchers(HttpMethod.GET, "/api/auth/me").permitAll()
 						.requestMatchers(HttpMethod.GET, "/api/test").permitAll()
+
+						/*
+						 * User registration stays open for now, matching your current project state.
+						 */
 						.requestMatchers(HttpMethod.POST, "/api/users").permitAll()
 
 						/*
-						 * Öffentliche Lese-Endpunkte für den aktuellen MVP.
+						 * Public read endpoints for the current MVP.
 						 */
 						.requestMatchers(HttpMethod.GET, "/api/teams").permitAll()
 						.requestMatchers(HttpMethod.GET, "/api/teams/**").permitAll()
@@ -99,7 +101,28 @@ public class SecurityConfig {
 						.requestMatchers(HttpMethod.GET, "/api/members/**").permitAll()
 
 						/*
-						 * Alles andere bleibt geschützt.
+						 * Administrative write access for members.
+						 */
+						.requestMatchers(HttpMethod.POST, "/api/members").hasAnyRole("ADMIN", "BOARD")
+						.requestMatchers(HttpMethod.PUT, "/api/members/**").hasAnyRole("ADMIN", "BOARD")
+						.requestMatchers(HttpMethod.DELETE, "/api/members/**").hasAnyRole("ADMIN", "BOARD")
+
+						/*
+						 * Administrative write access for teams.
+						 */
+						.requestMatchers(HttpMethod.POST, "/api/teams").hasAnyRole("ADMIN", "BOARD")
+						.requestMatchers(HttpMethod.PUT, "/api/teams/**").hasAnyRole("ADMIN", "BOARD")
+						.requestMatchers(HttpMethod.DELETE, "/api/teams/**").hasAnyRole("ADMIN", "BOARD")
+
+						/*
+						 * Team membership changes should also be administrative.
+						 */
+						.requestMatchers(HttpMethod.POST, "/api/team-memberships").hasAnyRole("ADMIN", "BOARD")
+						.requestMatchers(HttpMethod.PUT, "/api/team-memberships/**").hasAnyRole("ADMIN", "BOARD")
+						.requestMatchers(HttpMethod.DELETE, "/api/team-memberships/**").hasAnyRole("ADMIN", "BOARD")
+
+						/*
+						 * Everything else requires authentication.
 						 */
 						.anyRequest().authenticated());
 
@@ -107,11 +130,7 @@ public class SecurityConfig {
 	}
 
 	/**
-	 * Globale CORS-Konfiguration für das React-Frontend.
-	 *
-	 * Wichtig: - bei Cookies / Session muss allowCredentials(true) gesetzt sein -
-	 * gleichzeitig darf nicht mit "*" gearbeitet werden, sondern mit einer
-	 * konkreten Origin
+	 * Global CORS configuration for the React frontend.
 	 */
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {
