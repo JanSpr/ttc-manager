@@ -42,8 +42,14 @@ public class Member {
 	private boolean active = true;
 
 	/**
-	 * Optionaler Bezug zum User (Login-Konto). Ein Member kann, muss aber keinen
-	 * User besitzen.
+	 * Typ des Mitglieds (Erwachsener / Jugendlicher).
+	 */
+	@Enumerated(EnumType.STRING)
+	@Column(name = "type", nullable = false)
+	private MemberType type = MemberType.ADULT;
+
+	/**
+	 * Optionaler Bezug zum User (Login-Konto).
 	 */
 	@OneToOne
 	@JoinColumn(name = "user_id", unique = true)
@@ -62,6 +68,7 @@ public class Member {
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.active = true;
+		this.type = MemberType.ADULT;
 	}
 
 	public Long getId() {
@@ -78,6 +85,14 @@ public class Member {
 
 	public boolean isActive() {
 		return active;
+	}
+
+	public MemberType getType() {
+		return type;
+	}
+
+	public void setType(MemberType type) {
+		this.type = type;
 	}
 
 	public User getUser() {

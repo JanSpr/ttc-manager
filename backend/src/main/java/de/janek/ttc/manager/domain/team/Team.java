@@ -31,6 +31,13 @@ public class Team {
 	private String description;
 
 	/**
+	 * Typ der Mannschaft (Erwachsene / Jugend).
+	 */
+	@Enumerated(EnumType.STRING)
+	@Column(name = "type", nullable = false)
+	private TeamType type = TeamType.ADULT;
+
+	/**
 	 * Neue Team-Zuordnungen.
 	 */
 	@OneToMany(mappedBy = "team", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -42,6 +49,7 @@ public class Team {
 	public Team(String name, String description) {
 		this.name = name;
 		this.description = description;
+		this.type = TeamType.ADULT;
 	}
 
 	public Long getId() {
@@ -70,6 +78,14 @@ public class Team {
 
 	public void setDescription(String description) {
 		this.description = description;
+	}
+
+	public TeamType getType() {
+		return type;
+	}
+
+	public void setType(TeamType type) {
+		this.type = type;
 	}
 
 	/**

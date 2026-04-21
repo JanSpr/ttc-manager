@@ -1,9 +1,8 @@
 package de.janek.ttc.manager.domain.team;
 
+import de.janek.ttc.manager.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import de.janek.ttc.manager.exception.ResourceNotFoundException;
 
 import java.util.Comparator;
 import java.util.List;
@@ -41,6 +40,7 @@ public class TeamService {
 		Team team = new Team();
 		team.setName(request.getName());
 		team.setDescription(request.getDescription());
+		team.setType(request.getType() != null ? request.getType() : TeamType.ADULT);
 
 		Team savedTeam = teamRepository.save(team);
 		return toResponse(savedTeam);
@@ -53,6 +53,7 @@ public class TeamService {
 
 		existingTeam.setName(request.getName());
 		existingTeam.setDescription(request.getDescription());
+		existingTeam.setType(request.getType() != null ? request.getType() : TeamType.ADULT);
 
 		Team savedTeam = teamRepository.save(existingTeam);
 		return toResponse(savedTeam);
@@ -88,7 +89,8 @@ public class TeamService {
 						membership.isViceCaptain()))
 				.toList();
 
-		return new TeamResponse(team.getId(), team.getName(), team.getDescription(), memberships.size(), memberships);
+		return new TeamResponse(team.getId(), team.getName(), team.getDescription(), team.getType(), memberships.size(),
+				memberships);
 	}
 
 	private Comparator<TeamMembership> teamMembershipComparator() {

@@ -1,18 +1,21 @@
-export type TeamMembershipSummary = {
-  membershipId: number;
+export type TeamType = "ADULT" | "YOUTH";
+
+export interface Team {
+  id: number;
+  name: string;
+  description?: string;
+  type: TeamType; // 👈 NEU
+  memberCount: number;
+  memberships: TeamMembershipSummary[];
+}
+
+export interface TeamMembershipSummary {
+  id: number;
   memberId: number;
-  memberFullName: string;
-  userId: number | null;
-  lineupPosition: number | null;
+  memberName: string;
+  userId?: number;
+  lineupPosition?: number;
   player: boolean;
   captain: boolean;
   viceCaptain: boolean;
-};
-
-export type Team = {
-  id: number;
-  name: string;
-  description: string | null;
-  memberCount: number;
-  memberships: TeamMembershipSummary[];
-};
+}

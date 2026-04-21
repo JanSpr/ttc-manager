@@ -4,7 +4,6 @@ import de.janek.ttc.manager.domain.team.TeamMembership;
 import de.janek.ttc.manager.domain.user.User;
 import de.janek.ttc.manager.domain.user.UserRepository;
 import de.janek.ttc.manager.exception.ResourceNotFoundException;
-
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,6 +44,7 @@ public class MemberService {
 		member.setFirstName(request.getFirstName());
 		member.setLastName(request.getLastName());
 		member.setActive(request.getActive());
+		member.setType(request.getType());
 		member.setUser(resolveUser(request.getUserId()));
 
 		Member savedMember = memberRepository.save(member);
@@ -59,6 +59,7 @@ public class MemberService {
 		existingMember.setFirstName(request.getFirstName());
 		existingMember.setLastName(request.getLastName());
 		existingMember.setActive(request.getActive());
+		existingMember.setType(request.getType());
 		existingMember.setUser(resolveUser(request.getUserId()));
 
 		Member savedMember = memberRepository.save(existingMember);
@@ -114,6 +115,6 @@ public class MemberService {
 				.collect(Collectors.toSet());
 
 		return new MemberResponse(member.getId(), member.getFirstName(), member.getLastName(), member.getFullName(),
-				member.isActive(), userId, teamIds);
+				member.isActive(), member.getType(), userId, teamIds);
 	}
 }

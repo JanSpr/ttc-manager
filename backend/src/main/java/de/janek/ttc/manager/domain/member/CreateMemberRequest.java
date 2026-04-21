@@ -20,6 +20,9 @@ public class CreateMemberRequest {
 	@NotNull(message = "Es muss angegeben werden, ob das Mitglied aktiv ist.")
 	private Boolean active;
 
+	@NotNull(message = "Der Member-Typ ist erforderlich.")
+	private MemberType type;
+
 	/**
 	 * Optional verknüpfter User. Nicht jedes Member braucht sofort ein Login-Konto.
 	 */
@@ -50,6 +53,14 @@ public class CreateMemberRequest {
 
 	public void setActive(Boolean active) {
 		this.active = active;
+	}
+
+	public MemberType getType() {
+		return type;
+	}
+
+	public void setType(MemberType type) {
+		this.type = type;
 	}
 
 	public Long getUserId() {
