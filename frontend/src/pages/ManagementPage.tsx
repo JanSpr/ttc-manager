@@ -1,5 +1,7 @@
+import { Link } from "react-router-dom";
 import PageIntro from "../components/layout/PageIntro";
 import Card from "../components/ui/Card";
+import ClickableCard from "../components/ui/ClickableCard";
 import {
   badgeStyle,
   cardTitleStyle,
@@ -64,50 +66,55 @@ function ManagementPage() {
           marginTop: "1.5rem",
         }}
       >
-        <Card>
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "0.9rem",
-            }}
-          >
+        <Link
+          to="/management/members"
+          style={{ textDecoration: "none", color: "inherit" }}
+        >
+          <ClickableCard style={{ height: "100%" }}>
             <div
               style={{
-                width: "48px",
-                height: "48px",
-                borderRadius: "14px",
-                background:
-                  "linear-gradient(135deg, rgba(37, 99, 235, 0.12) 0%, rgba(124, 58, 237, 0.12) 100%)",
                 display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "1.25rem",
+                flexDirection: "column",
+                gap: "0.9rem",
               }}
             >
-              👤
-            </div>
-
-            <div>
-              <h2 style={{ ...cardTitleStyle, marginBottom: "0.45rem" }}>
-                Mitglieder verwalten
-              </h2>
-
-              <p
+              <div
                 style={{
-                  margin: 0,
-                  color: colors.textMuted,
-                  lineHeight: 1.6,
+                  width: "48px",
+                  height: "48px",
+                  borderRadius: "14px",
+                  background:
+                    "linear-gradient(135deg, rgba(37, 99, 235, 0.12) 0%, rgba(124, 58, 237, 0.12) 100%)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "1.25rem",
                 }}
               >
-                Mitglieder anlegen, bearbeiten und später komfortabel
-                Mannschaften zuordnen.
-              </p>
-            </div>
-          </div>
-        </Card>
+                👤
+              </div>
 
-        <Card>
+              <div>
+                <h2 style={{ ...cardTitleStyle, marginBottom: "0.45rem" }}>
+                  Mitglieder verwalten
+                </h2>
+
+                <p
+                  style={{
+                    margin: 0,
+                    color: colors.textMuted,
+                    lineHeight: 1.6,
+                  }}
+                >
+                  Mitglieder anlegen, bearbeiten und später komfortabel
+                  Mannschaften zuordnen.
+                </p>
+              </div>
+            </div>
+          </ClickableCard>
+        </Link>
+
+        <ClickableCard style={{ height: "100%", opacity: 0.8 }}>
           <div
             style={{
               display: "flex",
@@ -143,12 +150,11 @@ function ManagementPage() {
                   lineHeight: 1.6,
                 }}
               >
-                Mannschaften anlegen, bearbeiten und später ihre Struktur sowie
-                Aufstellung besser pflegen.
+                Dieser Bereich folgt als Nächstes nach der Mitgliederverwaltung.
               </p>
             </div>
           </div>
-        </Card>
+        </ClickableCard>
       </div>
 
       <Card>
@@ -160,9 +166,8 @@ function ManagementPage() {
             lineHeight: 1.6,
           }}
         >
-          Im nächsten Schritt bauen wir zuerst die Mitgliederverwaltung mit
-          Liste, Anlegen und Bearbeiten. Danach folgt die gleiche Struktur für
-          Mannschaften.
+          Zuerst bauen wir die Mitgliederverwaltung stabil aus. Danach folgt die
+          gleiche Struktur für Mannschaften.
         </p>
       </Card>
     </div>
