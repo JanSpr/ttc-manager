@@ -1,0 +1,198 @@
+import MemberListItem from "./MemberListItem";
+import Card from "../ui/Card";
+import StatusMessage from "../ui/StatusMessage";
+import type { Member } from "../../types/member";
+import {
+  badgeStyle,
+  cardTitleStyle,
+  colors,
+  secondaryButtonStyle,
+} from "../../styles/ui";
+
+type MembersListPanelProps = {
+  members: Member[];
+  filteredMembers: Member[];
+  searchValue: string;
+  onSearchChange: (value: string) => void;
+  onClearSearch: () => void;
+  onCreateMember: () => void;
+  isLoading: boolean;
+  loadError: string;
+  isEditorOpen: boolean;
+  selectedMemberId: number | null;
+  hoveredMemberId: number | null;
+  onHoverMember: (memberId: number) => void;
+  onLeaveMember: (memberId: number) => void;
+  onOpenEdit: (memberId: number) => void;
+};
+
+function MembersListPanel({
+  members,
+  filteredMembers,
+  searchValue,
+  onSearchChange,
+  onClearSearch,
+  onCreateMember,
+  isLoading,
+  loadError,
+  isEditorOpen,
+  selectedMemberId,
+  hoveredMemberId,
+  onHoverMember,
+  onLeaveMember,
+  onOpenEdit,
+}: MembersListPanelProps) {
+  return (
+    <Card style={{ marginTop: 0 }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: "0.75rem",
+          flexWrap: "wrap",
+          marginBottom: "0.9rem",
+        }}
+      >
+        <div>
+          <h2 style={{ ...cardTitleStyle, marginBottom: "0.2rem" }}>
+            Mitglieder
+          </h2>
+          <p
+            style={{
+              margin: 0,
+              color: colors.textMuted,
+              fontSize: "0.92rem",
+            }}
+          >
+            Kompakte Liste mit Auswahl und Suche
+          </p>
+        </div>
+
+        <div style={badgeStyle}>{members.length}</div>
+      </div>
+
+      <div style={{ marginBottom: "0.8rem", position: "relative" }}>
+        <input
+          type="text"
+          value={searchValue}
+          onChange={(event) => onSearchChange(event.target.value)}
+          placeholder="Mitglied suchen..."
+          style={{
+            width: "100%",
+            padding: "11px 36px 11px 13px",
+            borderRadius: "12px",
+            border: `1px solid ${colors.borderStrong}`,
+            backgroundColor: "#ffffff",
+            color: colors.text,
+            boxSizing: "border-box",
+          }}
+        />
+
+        {searchValue ? (
+          <button
+            type="button"
+            onClick={onClearSearch}
+            aria-label="Suche zurücksetzen"
+            title="Suche zurücksetzen"
+            style={{
+              position: "absolute",
+              right: "10px",
+              top: "50%",
+              transform: "translateY(-50%)",
+              width: "24px",
+              height: "24px",
+              borderRadius: "999px",
+              border: "none",
+              background: "transparent",
+              color: colors.textMuted,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "16px",
+              lineHeight: 1,
+            }}
+          >
+            ×
+          </button>
+        ) : null}
+      </div>
+
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          gap: "0.55rem",
+          flexWrap: "wrap",
+          marginBottom: "0.9rem",
+        }}
+      >
+        <button
+          type="button"
+          onClick={onCreateMember}
+          style={{
+            ...secondaryButtonStyle,
+            padding: "0.58rem 0.85rem",
+            minHeight: "38px",
+            borderRadius: "10px",
+          }}
+        >
+          Neues Mitglied
+        </button>
+      </div>
+
+      {isLoading ? (
+        <StatusMessage marginTop="0">Lade Mitglieder...</StatusMessage>
+      ) : loadError ? (
+        <StatusMessage variant="error" marginTop="0">
+          {loadError}
+        </StatusMessage>
+      ) : filteredMembers.length === 0 ? (
+        <StatusMessage variant="muted" marginTop="0">
+          Keine Mitglieder gefunden.
+        </StatusMessage>
+      ) : (
+        <div
+          style={{
+            border: `1px solid ${colors.border}`,
+            borderRadius: "14px",
+            overflow: "hidden",
+            backgroundColor: colors.surfaceSoft,
+          }}
+        >
+          <div
+            style={{
+              maxHeight: "540px",
+              overflowY: "auto",
+            }}
+          >
+            {filteredMembers.map((member, index) => {
+              const isEditingThisMember =
+                selectedMemberId !== null &&
+                member.id === selectedMemberId &&
+                isEditorOpen;
+
+              return (
+                <MemberListItem
+                  key={member.id}
+                  member={member}
+                  index={index}
+                  isLast={index === filteredMembers.length - 1}
+                  isEditorOpen={isEditorOpen}
+                  isEditingThisMember={isEditingThisMember}
+                  isHovered={hoveredMemberId === member.id}
+                  onMouseEnter={() => onHoverMember(member.id)}
+                  onMouseLeave={() => onLeaveMember(member.id)}
+                  onOpenEdit={() => onOpenEdit(member.id)}
+                />
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </Card>
+  );
+}
+
+export default MembersListPanel;
