@@ -1,9 +1,8 @@
-import { useContext } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthProvider";
-import { AuthContext } from "./context/AuthContext";
 import ToastProvider from "./context/ToastProvider";
 import { useToast } from "./context/useToast";
+import { useAuth } from "./context/useAuth";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Header from "./components/Header";
 
@@ -15,15 +14,9 @@ import LoginPage from "./pages/LoginPage";
 import UserProfilePage from "./pages/UserProfilePage";
 
 function AppContent() {
-  const auth = useContext(AuthContext);
+  const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
   const { showToast } = useToast();
-
-  if (!auth) {
-    throw new Error("AuthContext ist nicht verfügbar.");
-  }
-
-  const { user, isAuthenticated, logout } = auth;
 
   async function handleLogout() {
     try {
