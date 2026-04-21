@@ -101,7 +101,6 @@ function Header({ user, onLogout }: HeaderProps) {
           boxShadow: "0 14px 34px rgba(15, 23, 42, 0.08)",
         }}
       >
-        {/* Linke Seite */}
         <div
           style={{
             display: "flex",
@@ -110,7 +109,6 @@ function Header({ user, onLogout }: HeaderProps) {
             flexWrap: "wrap",
           }}
         >
-          {/* Logo */}
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <div
               style={{
@@ -153,19 +151,17 @@ function Header({ user, onLogout }: HeaderProps) {
             </div>
           </div>
 
-          {/* Navigation */}
           <nav style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
             <NavLink to="/" style={navLinkStyle} end>
-              Home
+              Start
             </NavLink>
 
             <NavLink to="/teams" style={navLinkStyle}>
-              Teams
+              Mannschaften
             </NavLink>
           </nav>
         </div>
 
-        {/* Rechte Seite (User Menü) */}
         <div
           ref={menuRef}
           style={{
@@ -257,7 +253,6 @@ function Header({ user, onLogout }: HeaderProps) {
                   overflow: "hidden",
                 }}
               >
-                {/* User Info */}
                 <div
                   style={{
                     display: "flex",
@@ -291,13 +286,12 @@ function Header({ user, onLogout }: HeaderProps) {
                   </div>
                 </div>
 
-                {/* Aktionen */}
                 <button
                   type="button"
                   onClick={handleNavigateToProfile}
                   style={menuItemStyle}
                 >
-                  Profil
+                  Mein Profil
                 </button>
 
                 <button
@@ -305,7 +299,7 @@ function Header({ user, onLogout }: HeaderProps) {
                   onClick={handleLogoutClick}
                   style={menuItemStyle}
                 >
-                  Logout
+                  Abmelden
                 </button>
               </div>
             </div>

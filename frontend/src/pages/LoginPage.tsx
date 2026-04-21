@@ -18,7 +18,7 @@ export default function LoginPage() {
     e.preventDefault();
 
     if (!identifier.trim() || !password.trim()) {
-      showToast("Bitte E-Mail/Username und Passwort eingeben.", "error");
+      showToast("Bitte E-Mail oder Benutzername und Passwort eingeben.", "error");
       return;
     }
 
@@ -37,7 +37,7 @@ export default function LoginPage() {
       showToast(
         error instanceof Error
           ? error.message
-          : "Login fehlgeschlagen. Bitte überprüfe E-Mail/Username und Passwort.",
+          : "Anmeldung fehlgeschlagen. Bitte überprüfe E-Mail oder Benutzername und Passwort.",
         "error"
       );
     } finally {
@@ -118,7 +118,7 @@ export default function LoginPage() {
               marginInline: "auto",
             }}
           >
-            Melde dich an, um deine Teams, Spieler und Vereinsdaten zu verwalten.
+            Melde dich an, um deine Mannschaften, Spieler und Vereinsdaten zu verwalten.
           </p>
         </div>
 
@@ -130,7 +130,7 @@ export default function LoginPage() {
               gap: "18px",
             }}
           >
-            <FormField label="E-Mail oder Username" htmlFor="identifier">
+            <FormField label="E-Mail oder Benutzername" htmlFor="identifier">
               <input
                 id="identifier"
                 type="text"
@@ -166,7 +166,7 @@ export default function LoginPage() {
                 opacity: isSubmitting ? 0.8 : 1,
               }}
             >
-              {isSubmitting ? "Einloggen..." : "Einloggen"}
+              {isSubmitting ? "Anmeldung..." : "Anmelden"}
             </button>
           </form>
         </div>

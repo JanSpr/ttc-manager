@@ -21,8 +21,8 @@ export default function TeamsPage() {
         const data = await fetchTeams();
         setTeams(data);
       } catch (err) {
-        console.error("Fehler beim Laden der Teams:", err);
-        setError("Teams konnten nicht geladen werden.");
+        console.error("Fehler beim Laden der Mannschaften:", err);
+        setError("Mannschaften konnten nicht geladen werden.");
       } finally {
         setLoading(false);
       }
@@ -34,17 +34,17 @@ export default function TeamsPage() {
   return (
     <div>
       <PageIntro
-        title="Teams"
+        title="Mannschaften"
         description="Hier findest du alle angelegten Mannschaften und kannst direkt in die jeweilige Detailansicht wechseln."
         accent
       />
 
-      {loading && <StatusMessage>Teams werden geladen...</StatusMessage>}
+      {loading && <StatusMessage>Mannschaften werden geladen...</StatusMessage>}
       {error && <StatusMessage variant="error">{error}</StatusMessage>}
 
       {!loading && !error && teams.length === 0 && (
         <StatusMessage variant="muted">
-          Es wurden noch keine Teams gefunden.
+          Es wurden noch keine Mannschaften gefunden.
         </StatusMessage>
       )}
 

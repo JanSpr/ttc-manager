@@ -44,7 +44,7 @@ export default function TeamDetailPage() {
   useEffect(() => {
     async function loadTeamDetail() {
       if (!id) {
-        setError("Keine Team-ID in der URL gefunden.");
+        setError("Keine Mannschafts-ID in der URL gefunden.");
         setLoading(false);
         return;
       }
@@ -52,7 +52,7 @@ export default function TeamDetailPage() {
       const teamId = Number(id);
 
       if (Number.isNaN(teamId)) {
-        setError("Ungültige Team-ID.");
+        setError("Ungültige Mannschafts-ID.");
         setLoading(false);
         return;
       }
@@ -64,8 +64,8 @@ export default function TeamDetailPage() {
         const teamData = await fetchTeamById(teamId);
         setTeam(teamData);
       } catch (err) {
-        console.error("Fehler beim Laden der Team-Details:", err);
-        setError("Teamdetails konnten nicht geladen werden.");
+        console.error("Fehler beim Laden der Mannschafts-Details:", err);
+        setError("Mannschaftsdetails konnten nicht geladen werden.");
       } finally {
         setLoading(false);
       }
@@ -78,11 +78,11 @@ export default function TeamDetailPage() {
     <div>
       <div style={{ marginBottom: "1rem" }}>
         <Link to="/teams" style={{ color: colors.primary }}>
-          ← Zurück zur Teamliste
+          ← Zurück zur Mannschaftsübersicht
         </Link>
       </div>
 
-      {loading && <StatusMessage>Team wird geladen...</StatusMessage>}
+      {loading && <StatusMessage>Mannschaft wird geladen...</StatusMessage>}
       {error && <StatusMessage variant="error">{error}</StatusMessage>}
 
       {!loading && !error && team && (
@@ -90,15 +90,15 @@ export default function TeamDetailPage() {
           <PageIntro
             title={team.name}
             description={team.description || "Keine Beschreibung vorhanden."}
-            eyebrow="Team"
+            eyebrow="Mannschaft"
           />
 
           <Card>
-            <h2 style={cardTitleStyle}>Teammitglieder</h2>
+            <h2 style={cardTitleStyle}>Mannschaftsmitglieder</h2>
 
             {team.memberships.length === 0 ? (
               <StatusMessage variant="muted" marginTop="0">
-                Diesem Team sind aktuell keine Mitglieder zugeordnet.
+                Dieser Mannschaft sind aktuell keine Mitglieder zugeordnet.
               </StatusMessage>
             ) : (
               <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
@@ -165,7 +165,7 @@ export default function TeamDetailPage() {
                               }}
                             >
                               {membership.userId
-                                ? `Mit Login verknüpft (User-ID: ${membership.userId})`
+                                ? `Mit Login verknüpft (Benutzer-ID: ${membership.userId})`
                                 : "Kein Login verknüpft"}
                             </div>
                           </div>

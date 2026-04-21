@@ -71,7 +71,7 @@ export default function MemberDetailPage() {
   const backTarget = state?.fromTeamId ? `/teams/${state.fromTeamId}` : "/teams";
   const backLabel = state?.fromTeamName
     ? `← Zurück zu ${state.fromTeamName}`
-    : "← Zurück zur Teamliste";
+    : "← Zurück zur Mannschaftsübersicht";
 
   return (
     <div>
@@ -123,7 +123,7 @@ export default function MemberDetailPage() {
                   gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
                 }}
               >
-                <DataField label="User-ID" value={String(member.userId)} />
+                <DataField label="Benutzer-ID" value={String(member.userId)} />
               </div>
             ) : (
               <StatusMessage variant="muted" marginTop="0">
@@ -133,11 +133,11 @@ export default function MemberDetailPage() {
           </Card>
 
           <Card>
-            <h2 style={cardTitleStyle}>Teams</h2>
+            <h2 style={cardTitleStyle}>Mannschaften</h2>
 
             {memberTeams.length === 0 ? (
               <StatusMessage variant="muted" marginTop="0">
-                Dieses Mitglied ist aktuell keinem Team zugeordnet.
+                Dieses Mitglied ist aktuell keiner Mannschaft zugeordnet.
               </StatusMessage>
             ) : (
               <div

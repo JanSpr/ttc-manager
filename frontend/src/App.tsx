@@ -21,11 +21,11 @@ function AppContent() {
   async function handleLogout() {
     try {
       await logout();
-      showToast("Erfolgreich ausgeloggt.", "success");
+      showToast("Erfolgreich abgemeldet.", "success");
       navigate("/login");
     } catch (error) {
-      console.error("Logout fehlgeschlagen", error);
-      showToast("Logout fehlgeschlagen.", "error");
+      console.error("Abmeldung fehlgeschlagen", error);
+      showToast("Abmeldung fehlgeschlagen.", "error");
     }
   }
 

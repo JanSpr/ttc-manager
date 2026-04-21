@@ -154,7 +154,7 @@ function UserProfilePage() {
         >
           <DataField label="Vorname" value={currentUser.firstName || "-"} />
           <DataField label="Nachname" value={currentUser.lastName || "-"} />
-          <DataField label="Username" value={currentUser.username || "-"} />
+          <DataField label="Benutzername" value={currentUser.username || "-"} />
 
           <div
             style={{
