@@ -19,6 +19,10 @@ function Header({ user, onLogout }: HeaderProps) {
     [user.firstName, user.lastName].filter(Boolean).join(" ").trim() ||
     user.email;
 
+  const isManagementVisible = user.roles.some(
+    (role) => role === "ADMIN" || role === "BOARD"
+  );
+
   useEffect(() => {
     if (!menuOpen) return;
 
@@ -159,6 +163,12 @@ function Header({ user, onLogout }: HeaderProps) {
             <NavLink to="/teams" style={navLinkStyle}>
               Mannschaften
             </NavLink>
+
+            {isManagementVisible ? (
+              <NavLink to="/management" style={navLinkStyle}>
+                Verwaltung
+              </NavLink>
+            ) : null}
           </nav>
         </div>
 

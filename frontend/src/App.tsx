@@ -12,6 +12,7 @@ import TeamDetailPage from "./pages/TeamDetailPage";
 import MemberDetailPage from "./pages/MemberDetailPage";
 import LoginPage from "./pages/LoginPage";
 import UserProfilePage from "./pages/UserProfilePage";
+import ManagementPage from "./pages/ManagementPage";
 
 function AppContent() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -92,6 +93,15 @@ function AppContent() {
             element={
               <ProtectedRoute>
                 <UserProfilePage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/management"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN", "BOARD"]}>
+                <ManagementPage />
               </ProtectedRoute>
             }
           />
