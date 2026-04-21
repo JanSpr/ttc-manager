@@ -14,6 +14,7 @@ import { cardTitleStyle, badgeStyle, colors } from "../styles/ui";
 type LocationState = {
   fromTeamId?: number;
   fromTeamName?: string;
+  fromManagement?: boolean;
 };
 
 export default function MemberDetailPage() {
@@ -68,10 +69,21 @@ export default function MemberDetailPage() {
     void loadMember();
   }, [id]);
 
-  const backTarget = state?.fromTeamId ? `/teams/${state.fromTeamId}` : "/teams";
-  const backLabel = state?.fromTeamName
-    ? `← Zurück zu ${state.fromTeamName}`
-    : "← Zurück zur Mannschaftsübersicht";
+  let backTarget = "/teams";
+  let backLabel = "← Zurück zur Mannschaftsübersicht";
+
+  if (state?.fromManagement) {
+    backTarget = "/management/members";
+    backLabel = "← Zurück zur Mitgliederverwaltung";
+  } else if (state?.fromTeamId) {
+    backTarget = `/teams/${state.fromTeamId}`;
+    backLabel = state.fromTeamName
+      ? `← Zurück zu ${state.fromTeamName}`
+      : "← Zurück zur Mannschaft";
+  }
+
+  const memberTypeLabel =
+    member?.type === "ADULT" ? "Erwachsene" : "Jugendliche";
 
   return (
     <div>
@@ -104,16 +116,13 @@ export default function MemberDetailPage() {
             >
               <DataField label="Vorname" value={member.firstName || "-"} />
               <DataField label="Nachname" value={member.lastName || "-"} />
-              <DataField label="Mitglieder-ID" value={String(member.id)} />
-              <DataField
-                label="Status"
-                value={member.active ? "Aktiv" : "Inaktiv"}
-              />
+              <DataField label="Mitglieds-ID" value={String(member.id)} />
+              <DataField label="Kategorie" value={memberTypeLabel} />
             </div>
           </Card>
 
           <Card>
-            <h2 style={cardTitleStyle}>Verknüpfter Benutzer</h2>
+            <h2 style={cardTitleStyle}>Verknüpftes Benutzerkonto</h2>
 
             {member.userId ? (
               <div
@@ -183,7 +192,11 @@ export default function MemberDetailPage() {
                           </div>
                         </div>
 
-                        <div style={badgeStyle}>{team.memberCount} Mitglieder</div>
+                        <div style={badgeStyle}>
+                          {team.memberCount === 1
+                            ? "1 Mitglied"
+                            : `${team.memberCount} Mitglieder`}
+                        </div>
                       </div>
                     </ClickableCard>
                   </Link>

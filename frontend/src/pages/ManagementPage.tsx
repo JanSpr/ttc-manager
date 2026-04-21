@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import PageIntro from "../components/layout/PageIntro";
-import Card from "../components/ui/Card";
 import ClickableCard from "../components/ui/ClickableCard";
 import {
   badgeStyle,
@@ -14,56 +13,18 @@ function ManagementPage() {
     <div style={pageContainerStyle}>
       <PageIntro
         title="Verwaltung"
-        description="Hier pflegst du die Stammdaten für Mitglieder und Mannschaften. Dieser Bereich ist nur für berechtigte Benutzer sichtbar."
+        description="Wähle hier aus, welchen Bereich du bearbeiten möchtest."
         eyebrow="Intern"
         accent
+        style={{ padding: "1.1rem 1.3rem" }}
       />
-
-      <Card>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "space-between",
-            gap: "16px",
-            flexWrap: "wrap",
-          }}
-        >
-          <div style={{ flex: "1 1 320px" }}>
-            <h2 style={{ ...cardTitleStyle, marginBottom: "0.5rem" }}>
-              Zweck dieses Bereichs
-            </h2>
-
-            <p
-              style={{
-                margin: 0,
-                color: colors.textMuted,
-                lineHeight: 1.7,
-              }}
-            >
-              Diese Verwaltungsoberfläche soll dir das Anlegen und Pflegen von
-              Test- und Stammdaten erleichtern, damit du dafür nicht ständig
-              direkt in der Datenbank arbeiten musst.
-            </p>
-          </div>
-
-          <div
-            style={{
-              ...badgeStyle,
-              alignSelf: "flex-start",
-            }}
-          >
-            ADMIN / BOARD
-          </div>
-        </div>
-      </Card>
 
       <div
         style={{
           display: "grid",
           gap: "1rem",
           gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-          marginTop: "1.5rem",
+          marginTop: "1rem",
         }}
       >
         <Link
@@ -80,21 +41,25 @@ function ManagementPage() {
             >
               <div
                 style={{
-                  width: "48px",
-                  height: "48px",
+                  width: "44px",
+                  height: "44px",
                   borderRadius: "14px",
                   background:
                     "linear-gradient(135deg, rgba(37, 99, 235, 0.12) 0%, rgba(124, 58, 237, 0.12) 100%)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  fontSize: "1.25rem",
+                  fontSize: "1.15rem",
                 }}
               >
                 👤
               </div>
 
               <div>
+                <div style={{ ...badgeStyle, marginBottom: "0.7rem" }}>
+                  Bereits verfügbar
+                </div>
+
                 <h2 style={{ ...cardTitleStyle, marginBottom: "0.45rem" }}>
                   Mitglieder verwalten
                 </h2>
@@ -106,8 +71,7 @@ function ManagementPage() {
                     lineHeight: 1.6,
                   }}
                 >
-                  Mitglieder anlegen, bearbeiten und später komfortabel
-                  Mannschaften zuordnen.
+                  Mitglieder kompakt auswählen, anlegen, bearbeiten und löschen.
                 </p>
               </div>
             </div>
@@ -124,21 +88,32 @@ function ManagementPage() {
           >
             <div
               style={{
-                width: "48px",
-                height: "48px",
+                width: "44px",
+                height: "44px",
                 borderRadius: "14px",
                 background:
                   "linear-gradient(135deg, rgba(37, 99, 235, 0.12) 0%, rgba(124, 58, 237, 0.12) 100%)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: "1.25rem",
+                fontSize: "1.15rem",
               }}
             >
               🏓
             </div>
 
             <div>
+              <div
+                style={{
+                  ...badgeStyle,
+                  marginBottom: "0.7rem",
+                  backgroundColor: "#f3f4f6",
+                  color: colors.textMuted,
+                }}
+              >
+                Als Nächstes
+              </div>
+
               <h2 style={{ ...cardTitleStyle, marginBottom: "0.45rem" }}>
                 Mannschaften verwalten
               </h2>
@@ -150,26 +125,12 @@ function ManagementPage() {
                   lineHeight: 1.6,
                 }}
               >
-                Dieser Bereich folgt als Nächstes nach der Mitgliederverwaltung.
+                Dieser Bereich folgt im nächsten Schritt mit derselben Struktur.
               </p>
             </div>
           </div>
         </ClickableCard>
       </div>
-
-      <Card>
-        <h2 style={cardTitleStyle}>Als Nächstes</h2>
-        <p
-          style={{
-            margin: 0,
-            color: colors.textMuted,
-            lineHeight: 1.6,
-          }}
-        >
-          Zuerst bauen wir die Mitgliederverwaltung stabil aus. Danach folgt die
-          gleiche Struktur für Mannschaften.
-        </p>
-      </Card>
     </div>
   );
 }

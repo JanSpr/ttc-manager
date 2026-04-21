@@ -19,12 +19,12 @@ type MemberFormProps = {
   isSubmitting: boolean;
   onSubmit: (request: MemberUpsertRequest) => Promise<void>;
   onCancelEdit?: () => void;
+  onDelete?: () => Promise<void>;
 };
 
 type FormValues = {
   firstName: string;
   lastName: string;
-  active: boolean;
   type: MemberType;
   userIdInput: string;
 };
@@ -34,7 +34,6 @@ function createFormValues(member?: Member | null): FormValues {
     return {
       firstName: "",
       lastName: "",
-      active: true,
       type: "ADULT",
       userIdInput: "",
     };
@@ -43,7 +42,6 @@ function createFormValues(member?: Member | null): FormValues {
   return {
     firstName: member.firstName,
     lastName: member.lastName,
-    active: member.active,
     type: member.type,
     userIdInput: member.userId != null ? String(member.userId) : "",
   };
@@ -54,6 +52,7 @@ function MemberForm({
   isSubmitting,
   onSubmit,
   onCancelEdit,
+  onDelete,
 }: MemberFormProps) {
   const [values, setValues] = useState<FormValues>(() => createFormValues(member));
   const [errorMessage, setErrorMessage] = useState("");
@@ -100,9 +99,9 @@ function MemberForm({
     return {
       firstName,
       lastName,
-      active: values.active,
       type: values.type,
       userId,
+      active: member?.active ?? true,
     };
   }
 
@@ -121,23 +120,38 @@ function MemberForm({
     }
   }
 
-  function handleReset() {
-    setValues(createFormValues(member));
-    setErrorMessage("");
-  }
-
   return (
-    <form key={member?.id ?? "new"} onSubmit={handleSubmit} style={formStyle}>
+    <form onSubmit={handleSubmit} style={formStyle}>
       <div style={headerStyle}>
         <div>
           <h2 style={titleStyle}>{title}</h2>
           <p style={descriptionStyle}>
             {isEditMode
-              ? "Bearbeite die Stammdaten des ausgewählten Mitglieds."
+              ? "Du bearbeitest gerade das ausgewählte Mitglied."
               : "Lege ein neues Mitglied für den Verein an."}
           </p>
         </div>
       </div>
+
+      {isEditMode && member ? (
+        <div style={selectedInfoStyle}>
+          <div style={selectedAvatarStyle}>
+            {`${member.firstName.charAt(0)}${member.lastName.charAt(0)}`
+              .toUpperCase()
+              .trim() || "?"}
+          </div>
+
+          <div style={{ minWidth: 0 }}>
+            <div style={selectedNameStyle}>{member.fullName}</div>
+            <div style={selectedMetaStyle}>
+              ID: {member.id}
+              {member.userId != null ? ` · User-ID: ${member.userId}` : ""}
+              {" · "}
+              {member.type === "ADULT" ? "Erwachsene" : "Jugendliche"}
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <div style={gridStyle}>
         <FormField label="Vorname" htmlFor="member-first-name">
@@ -164,7 +178,7 @@ function MemberForm({
           />
         </FormField>
 
-        <FormField label="Typ" htmlFor="member-type">
+        <FormField label="Kategorie" htmlFor="member-type">
           <select
             id="member-type"
             value={values.type}
@@ -174,8 +188,8 @@ function MemberForm({
             style={textInputStyle}
             disabled={isSubmitting}
           >
-            <option value="ADULT">Erwachsener</option>
-            <option value="YOUTH">Jugend</option>
+            <option value="ADULT">Erwachsene</option>
+            <option value="YOUTH">Jugendliche</option>
           </select>
         </FormField>
 
@@ -194,18 +208,6 @@ function MemberForm({
         </FormField>
       </div>
 
-      <div style={checkboxRowStyle}>
-        <label style={checkboxLabelStyle}>
-          <input
-            type="checkbox"
-            checked={values.active}
-            onChange={(event) => updateField("active", event.target.checked)}
-            disabled={isSubmitting}
-          />
-          <span>Mitglied ist aktiv</span>
-        </label>
-      </div>
-
       <p style={hintStyle}>
         Die optionale User-ID verknüpft dieses Mitglied mit einem vorhandenen
         Benutzerkonto.
@@ -217,58 +219,91 @@ function MemberForm({
         </StatusMessage>
       ) : null}
 
-      <div style={actionsStyle}>
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          style={{
-            ...primaryButtonStyle,
-            opacity: isSubmitting ? 0.7 : 1,
-            cursor: isSubmitting ? "default" : "pointer",
-          }}
-        >
-          {isSubmitting
-            ? "Speichern..."
-            : isEditMode
-              ? "Änderungen speichern"
-              : "Mitglied anlegen"}
-        </button>
+      {isEditMode ? (
+        <div style={actionsWrapperStyle}>
+          <div style={centeredActionsStyle}>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              style={{
+                ...primaryButtonStyle,
+                ...compactPrimaryButtonStyle,
+                opacity: isSubmitting ? 0.7 : 1,
+                cursor: isSubmitting ? "default" : "pointer",
+              }}
+            >
+              {isSubmitting ? "Speichern..." : "Änderungen speichern"}
+            </button>
 
-        <button
-          type="button"
-          onClick={handleReset}
-          disabled={isSubmitting}
-          style={{
-            ...secondaryButtonStyle,
-            opacity: isSubmitting ? 0.7 : 1,
-            cursor: isSubmitting ? "default" : "pointer",
-          }}
-        >
-          Zurücksetzen
-        </button>
+            <button
+              type="button"
+              onClick={onCancelEdit}
+              disabled={isSubmitting}
+              style={{
+                ...secondaryButtonStyle,
+                ...compactSecondaryButtonStyle,
+                opacity: isSubmitting ? 0.7 : 1,
+                cursor: isSubmitting ? "default" : "pointer",
+              }}
+            >
+              Abbrechen
+            </button>
+          </div>
 
-        {isEditMode && onCancelEdit ? (
-          <button
-            type="button"
-            onClick={onCancelEdit}
-            disabled={isSubmitting}
-            style={{
-              ...secondaryButtonStyle,
-              opacity: isSubmitting ? 0.7 : 1,
-              cursor: isSubmitting ? "default" : "pointer",
-            }}
-          >
-            Bearbeiten beenden
-          </button>
-        ) : null}
-      </div>
+          <div style={dangerRowStyle}>
+            <button
+              type="button"
+              onClick={() => void onDelete?.()}
+              disabled={isSubmitting}
+              style={{
+                ...dangerButtonStyle,
+                opacity: isSubmitting ? 0.7 : 1,
+                cursor: isSubmitting ? "default" : "pointer",
+              }}
+            >
+              Mitglied löschen
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div style={actionsWrapperStyle}>
+          <div style={centeredActionsStyle}>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              style={{
+                ...primaryButtonStyle,
+                ...compactPrimaryButtonStyle,
+                opacity: isSubmitting ? 0.7 : 1,
+                cursor: isSubmitting ? "default" : "pointer",
+              }}
+            >
+              {isSubmitting ? "Speichern..." : "Mitglied anlegen"}
+            </button>
+
+            <button
+              type="button"
+              onClick={onCancelEdit}
+              disabled={isSubmitting}
+              style={{
+                ...secondaryButtonStyle,
+                ...compactSecondaryButtonStyle,
+                opacity: isSubmitting ? 0.7 : 1,
+                cursor: isSubmitting ? "default" : "pointer",
+              }}
+            >
+              Abbrechen
+            </button>
+          </div>
+        </div>
+      )}
     </form>
   );
 }
 
 const formStyle: CSSProperties = {
   display: "grid",
-  gap: "1.25rem",
+  gap: "1.1rem",
 };
 
 const headerStyle: CSSProperties = {
@@ -281,15 +316,53 @@ const headerStyle: CSSProperties = {
 
 const titleStyle: CSSProperties = {
   margin: 0,
-  fontSize: "1.15rem",
+  fontSize: "1.05rem",
   fontWeight: 800,
   color: colors.text,
 };
 
 const descriptionStyle: CSSProperties = {
-  margin: "0.4rem 0 0 0",
+  margin: "0.35rem 0 0 0",
   color: colors.textMuted,
-  lineHeight: 1.6,
+  lineHeight: 1.5,
+  fontSize: "0.95rem",
+};
+
+const selectedInfoStyle: CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: "0.85rem",
+  padding: "0.9rem",
+  borderRadius: "14px",
+  border: `1px solid ${colors.border}`,
+  backgroundColor: colors.surfaceSoft,
+};
+
+const selectedAvatarStyle: CSSProperties = {
+  width: "42px",
+  height: "42px",
+  borderRadius: "999px",
+  border: `1px solid ${colors.borderStrong}`,
+  background: "linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%)",
+  color: colors.primary,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontWeight: 800,
+  fontSize: "0.95rem",
+  flexShrink: 0,
+};
+
+const selectedNameStyle: CSSProperties = {
+  color: colors.text,
+  fontWeight: 700,
+};
+
+const selectedMetaStyle: CSSProperties = {
+  marginTop: "0.2rem",
+  color: colors.textMuted,
+  fontSize: "0.88rem",
+  lineHeight: 1.5,
 };
 
 const gridStyle: CSSProperties = {
@@ -298,30 +371,50 @@ const gridStyle: CSSProperties = {
   gap: "1rem",
 };
 
-const checkboxRowStyle: CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-};
-
-const checkboxLabelStyle: CSSProperties = {
-  display: "inline-flex",
-  alignItems: "center",
-  gap: "0.65rem",
-  color: colors.text,
-  fontWeight: 600,
-};
-
 const hintStyle: CSSProperties = {
   margin: 0,
   color: colors.textMuted,
-  fontSize: "0.95rem",
-  lineHeight: 1.6,
+  fontSize: "0.92rem",
+  lineHeight: 1.55,
 };
 
-const actionsStyle: CSSProperties = {
+const actionsWrapperStyle: CSSProperties = {
+  display: "grid",
+  gap: "0.9rem",
+};
+
+const centeredActionsStyle: CSSProperties = {
   display: "flex",
-  gap: "0.75rem",
+  justifyContent: "center",
+  gap: "0.65rem",
   flexWrap: "wrap",
+};
+
+const dangerRowStyle: CSSProperties = {
+  display: "flex",
+  justifyContent: "center",
+};
+
+const compactPrimaryButtonStyle: CSSProperties = {
+  minHeight: "40px",
+  padding: "0.62rem 0.95rem",
+  borderRadius: "10px",
+};
+
+const compactSecondaryButtonStyle: CSSProperties = {
+  minHeight: "40px",
+  padding: "0.62rem 0.95rem",
+  borderRadius: "10px",
+};
+
+const dangerButtonStyle: CSSProperties = {
+  minHeight: "40px",
+  padding: "0.62rem 0.95rem",
+  borderRadius: "10px",
+  border: "1px solid #fecaca",
+  backgroundColor: colors.dangerSoft,
+  color: colors.danger,
+  fontWeight: 700,
 };
 
 export default MemberForm;
