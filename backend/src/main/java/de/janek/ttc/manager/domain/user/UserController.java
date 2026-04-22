@@ -11,8 +11,7 @@ import java.util.List;
  * REST-Controller für Benutzer.
  *
  * Aktueller Zwischenstand: - keine direkte Team-Zuordnung mehr über
- * User-Endpunkte - TeamMemberships werden später über eigene Endpunkte
- * verwaltet
+ * User-Endpunkte - TeamMemberships werden über eigene Endpunkte verwaltet
  */
 @RestController
 @RequestMapping("/api/users")
@@ -48,7 +47,7 @@ public class UserController {
 	/**
 	 * Erstellt einen neuen Benutzer.
 	 *
-	 * @param request Request-Daten für den Benutzer
+	 * @param request Request-Daten für den neuen Benutzer
 	 * @return erstellter Benutzer als Response-DTO
 	 */
 	@PostMapping
@@ -60,12 +59,15 @@ public class UserController {
 	/**
 	 * Aktualisiert einen bestehenden Benutzer.
 	 *
+	 * Beim Update ist das Passwort optional. Wenn kein Passwort mitgeschickt wird,
+	 * bleibt das bestehende Passwort unverändert.
+	 *
 	 * @param id      Benutzer-ID
 	 * @param request neue Benutzerdaten
 	 * @return aktualisierter Benutzer als Response-DTO
 	 */
 	@PutMapping("/{id}")
-	public UserResponse updateUser(@PathVariable Long id, @Valid @RequestBody CreateUserRequest request) {
+	public UserResponse updateUser(@PathVariable Long id, @Valid @RequestBody UpdateUserRequest request) {
 		return userService.update(id, request);
 	}
 

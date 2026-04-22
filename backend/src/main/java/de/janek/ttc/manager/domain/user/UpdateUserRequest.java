@@ -9,13 +9,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Request-DTO zum Erstellen eines Benutzers.
+ * Request-DTO zum Aktualisieren eines Benutzers.
  *
- * Fachliche Regeln: - bei der Erstellung ist ein Passwort verpflichtend - das
- * Passwort kommt im Klartext aus dem Request - das Hashing erfolgt erst im
- * Service
+ * Fachliche Regeln: - Vorname, Nachname, E-Mail, Aktiv-Status und Rollen werden
+ * regulär aktualisiert - das Passwort ist optional - wenn kein Passwort
+ * mitgegeben wird, bleibt das bestehende Passwort unverändert
  */
-public class CreateUserRequest {
+public class UpdateUserRequest {
 
 	@NotBlank(message = "Der Vorname darf nicht leer sein.")
 	@Size(max = 100, message = "Der Vorname darf maximal 100 Zeichen lang sein.")
@@ -30,7 +30,6 @@ public class CreateUserRequest {
 	@Size(max = 255, message = "Die E-Mail-Adresse darf maximal 255 Zeichen lang sein.")
 	private String email;
 
-	@NotBlank(message = "Das Passwort darf nicht leer sein.")
 	@Size(max = 255, message = "Das Passwort darf maximal 255 Zeichen lang sein.")
 	private String password;
 
@@ -44,7 +43,7 @@ public class CreateUserRequest {
 	 */
 	private Set<GlobalRole> roles = new HashSet<>();
 
-	public CreateUserRequest() {
+	public UpdateUserRequest() {
 	}
 
 	public String getFirstName() {

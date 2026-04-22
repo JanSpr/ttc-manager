@@ -94,7 +94,7 @@ public class UserService {
 		return toResponse(savedUser);
 	}
 
-	public UserResponse update(Long id, CreateUserRequest request) {
+	public UserResponse update(Long id, UpdateUserRequest request) {
 		User existingUser = getUserEntityById(id);
 
 		validateUniqueEmail(request.getEmail(), id);
@@ -102,9 +102,12 @@ public class UserService {
 		existingUser.setFirstName(request.getFirstName().trim());
 		existingUser.setLastName(request.getLastName().trim());
 		existingUser.setEmail(normalizeEmail(request.getEmail()));
-		existingUser.setPasswordHash(passwordEncoder.encode(request.getPassword()));
 		existingUser.setActive(request.getActive());
 		existingUser.setRoles(copyRoles(request.getRoles()));
+
+		if (hasText(request.getPassword())) {
+			existingUser.setPasswordHash(passwordEncoder.encode(request.getPassword().trim()));
+		}
 
 		/*
 		 * Username bleibt bei Updates bewusst stabil. Er wird nur bei der Erstellung
@@ -168,6 +171,10 @@ public class UserService {
 
 	private Set<GlobalRole> copyRoles(Set<GlobalRole> roles) {
 		return roles != null ? new HashSet<>(roles) : new HashSet<>();
+	}
+
+	private boolean hasText(String value) {
+		return value != null && !value.trim().isEmpty();
 	}
 
 	private UserResponse toResponse(User user) {
