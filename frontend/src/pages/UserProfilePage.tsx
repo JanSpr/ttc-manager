@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useState, type CSSProperties, type ReactNode } from "react";
 import { Navigate } from "react-router-dom";
 import { updateOwnUser } from "../api/userApi";
 import { useAuth } from "../context/useAuth";
@@ -10,6 +10,7 @@ import DataField from "../components/ui/DataField";
 import {
   badgeStyle,
   colors,
+  primaryButtonStyle,
   secondaryButtonStyle,
   textInputStyle,
 } from "../styles/ui";
@@ -54,6 +55,27 @@ function EditIcon({ size = 16 }: { size?: number }) {
       >
         <path d="M4 20h4l10-10-4-4L4 16v4z" />
         <path d="M12 6l4 4" />
+      </svg>
+    </IconWrapper>
+  );
+}
+
+function SaveIcon({ size = 16 }: { size?: number }) {
+  return (
+    <IconWrapper size={size}>
+      <svg
+        viewBox="0 0 24 24"
+        width={size}
+        height={size}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.9"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M5 3h11l3 3v15H5z" />
+        <path d="M8 3v6h8V3" />
+        <path d="M9 17h6" />
       </svg>
     </IconWrapper>
   );
@@ -347,41 +369,40 @@ function UserProfilePage() {
                   />
                 </div>
 
-                <div
-                  style={{
-                    gridColumn: "1 / -1",
-                    display: "flex",
-                    gap: "0.75rem",
-                    flexWrap: "wrap",
-                    marginTop: "0.25rem",
-                  }}
-                >
-                  <button
-                    type="button"
-                    onClick={handleSaveProfile}
-                    disabled={isSavingProfile}
-                    style={{
-                      ...secondaryButtonStyle,
-                      backgroundColor: colors.primary,
-                      color: "#ffffff",
-                      border: `1px solid ${colors.primary}`,
-                      opacity: isSavingProfile ? 0.8 : 1,
-                    }}
-                  >
-                    {isSavingProfile ? "Speichert..." : "Speichern"}
-                  </button>
+                <div style={actionsWrapperStyle}>
+                  <div style={centeredActionsStyle}>
+                    <button
+                      type="button"
+                      onClick={handleSaveProfile}
+                      disabled={isSavingProfile}
+                      style={{
+                        ...primaryButtonStyle,
+                        ...compactPrimaryButtonStyle,
+                        opacity: isSavingProfile ? 0.7 : 1,
+                        cursor: isSavingProfile ? "default" : "pointer",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "0.55rem",
+                      }}
+                    >
+                      <SaveIcon />
+                      <span>{isSavingProfile ? "Speichern..." : "Änderungen speichern"}</span>
+                    </button>
 
-                  <button
-                    type="button"
-                    onClick={handleCancelProfileEdit}
-                    disabled={isSavingProfile}
-                    style={{
-                      ...secondaryButtonStyle,
-                      opacity: isSavingProfile ? 0.8 : 1,
-                    }}
-                  >
-                    Abbrechen
-                  </button>
+                    <button
+                      type="button"
+                      onClick={handleCancelProfileEdit}
+                      disabled={isSavingProfile}
+                      style={{
+                        ...secondaryButtonStyle,
+                        ...compactSecondaryButtonStyle,
+                        opacity: isSavingProfile ? 0.7 : 1,
+                        cursor: isSavingProfile ? "default" : "pointer",
+                      }}
+                    >
+                      Abbrechen
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -391,5 +412,30 @@ function UserProfilePage() {
     </div>
   );
 }
+
+const actionsWrapperStyle: CSSProperties = {
+  gridColumn: "1 / -1",
+  display: "grid",
+  gap: "0.9rem",
+};
+
+const centeredActionsStyle: CSSProperties = {
+  display: "flex",
+  justifyContent: "center",
+  gap: "0.65rem",
+  flexWrap: "wrap",
+};
+
+const compactPrimaryButtonStyle: CSSProperties = {
+  minHeight: "40px",
+  padding: "0.62rem 0.95rem",
+  borderRadius: "10px",
+};
+
+const compactSecondaryButtonStyle: CSSProperties = {
+  minHeight: "40px",
+  padding: "0.62rem 0.95rem",
+  borderRadius: "10px",
+};
 
 export default UserProfilePage;
