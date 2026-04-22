@@ -34,7 +34,32 @@ type TeamsEditorPanelProps = {
     request: TeamMembershipUpsertRequest
   ) => Promise<void>;
   onDeleteMembership: (membershipId: number) => Promise<void>;
+  onSaveLineup: (memberships: TeamMembership[]) => Promise<void>;
 };
+
+function sortMemberships(memberships: TeamMembership[]): TeamMembership[] {
+  return [...memberships].sort((left, right) => {
+    const leftPosition = left.lineupPosition ?? Number.MAX_SAFE_INTEGER;
+    const rightPosition = right.lineupPosition ?? Number.MAX_SAFE_INTEGER;
+
+    if (leftPosition !== rightPosition) {
+      return leftPosition - rightPosition;
+    }
+
+    return left.memberFullName.localeCompare(right.memberFullName, "de", {
+      sensitivity: "base",
+    });
+  });
+}
+
+function createMembershipSignature(memberships: TeamMembership[]): string {
+  return memberships
+    .map(
+      (membership) =>
+        `${membership.id}:${membership.lineupPosition ?? ""}:${membership.memberId}`
+    )
+    .join("|");
+}
 
 function formatMembershipRole(
   membership: Pick<
@@ -90,18 +115,7 @@ function getTeamShortCode(team: Pick<Team, "name" | "type">): string {
 
 function EditIcon({ size = 15 }: { size?: number }) {
   return (
-    <span
-      aria-hidden="true"
-      style={{
-        display: "inline-flex",
-        width: size,
-        height: size,
-        alignItems: "center",
-        justifyContent: "center",
-        color: "currentColor",
-        flexShrink: 0,
-      }}
-    >
+    <span aria-hidden="true" style={iconWrapperStyle(size)}>
       <svg
         viewBox="0 0 24 24"
         width={size}
@@ -121,18 +135,7 @@ function EditIcon({ size = 15 }: { size?: number }) {
 
 function MembersIcon({ size = 15 }: { size?: number }) {
   return (
-    <span
-      aria-hidden="true"
-      style={{
-        display: "inline-flex",
-        width: size,
-        height: size,
-        alignItems: "center",
-        justifyContent: "center",
-        color: "currentColor",
-        flexShrink: 0,
-      }}
-    >
+    <span aria-hidden="true" style={iconWrapperStyle(size)}>
       <svg
         viewBox="0 0 24 24"
         width={size}
@@ -154,18 +157,7 @@ function MembersIcon({ size = 15 }: { size?: number }) {
 
 function PlusIcon({ size = 15 }: { size?: number }) {
   return (
-    <span
-      aria-hidden="true"
-      style={{
-        display: "inline-flex",
-        width: size,
-        height: size,
-        alignItems: "center",
-        justifyContent: "center",
-        color: "currentColor",
-        flexShrink: 0,
-      }}
-    >
+    <span aria-hidden="true" style={iconWrapperStyle(size)}>
       <svg
         viewBox="0 0 24 24"
         width={size}
@@ -183,6 +175,33 @@ function PlusIcon({ size = 15 }: { size?: number }) {
   );
 }
 
+function DragHandleIcon({ size = 16 }: { size?: number }) {
+  return (
+    <span aria-hidden="true" style={iconWrapperStyle(size)}>
+      <svg viewBox="0 0 24 24" width={size} height={size} fill="currentColor">
+        <circle cx="9" cy="6.5" r="1.2" />
+        <circle cx="15" cy="6.5" r="1.2" />
+        <circle cx="9" cy="12" r="1.2" />
+        <circle cx="15" cy="12" r="1.2" />
+        <circle cx="9" cy="17.5" r="1.2" />
+        <circle cx="15" cy="17.5" r="1.2" />
+      </svg>
+    </span>
+  );
+}
+
+function iconWrapperStyle(size: number) {
+  return {
+    display: "inline-flex",
+    width: size,
+    height: size,
+    alignItems: "center",
+    justifyContent: "center",
+    color: "currentColor",
+    flexShrink: 0,
+  } as const;
+}
+
 function TeamsEditorPanel({
   editorMode,
   team,
@@ -196,18 +215,45 @@ function TeamsEditorPanel({
   onDelete,
   onCreateMembership,
   onDeleteMembership,
+  onSaveLineup,
 }: TeamsEditorPanelProps) {
   const [selectedMemberId, setSelectedMemberId] = useState("");
-  const [lineupPosition, setLineupPosition] = useState("1");
+  const [memberSearchValue, setMemberSearchValue] = useState("");
   const [membershipError, setMembershipError] = useState("");
+  const [draggedMembershipId, setDraggedMembershipId] = useState<number | null>(
+    null
+  );
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isMembersOpen, setIsMembersOpen] = useState(false);
+  const [lineupDraft, setLineupDraft] = useState<{
+    baseSignature: string;
+    memberships: TeamMembership[];
+  } | null>(null);
 
   const isEditMode = editorMode === "edit" && team;
 
-  const assignedMemberIds = useMemo(
-    () => new Set(memberships.map((membership) => membership.memberId)),
+  const sortedBaseMemberships = useMemo(
+    () => sortMemberships(memberships),
     [memberships]
+  );
+
+  const membershipsSignature = useMemo(
+    () => createMembershipSignature(sortedBaseMemberships),
+    [sortedBaseMemberships]
+  );
+
+  const activeDraft =
+    lineupDraft != null && lineupDraft.baseSignature === membershipsSignature
+      ? lineupDraft
+      : null;
+
+  const hasLineupChanges = activeDraft != null;
+  const sortedMemberships = activeDraft?.memberships ?? sortedBaseMemberships;
+
+  const assignedMemberIds = useMemo(
+    () => new Set(sortedMemberships.map((membership) => membership.memberId)),
+    [sortedMemberships]
   );
 
   const availableMembers = useMemo(
@@ -222,42 +268,35 @@ function TeamsEditorPanel({
     [allMembers, assignedMemberIds]
   );
 
-  const sortedMemberships = useMemo(
+  const filteredAvailableMembers = useMemo(() => {
+    const normalizedSearch = memberSearchValue.trim().toLocaleLowerCase("de");
+
+    if (!normalizedSearch) {
+      return availableMembers;
+    }
+
+    return availableMembers.filter((member) =>
+      member.fullName.toLocaleLowerCase("de").includes(normalizedSearch)
+    );
+  }, [availableMembers, memberSearchValue]);
+
+  const selectedMember = useMemo(
     () =>
-      [...memberships].sort((left, right) => {
-        const leftPosition = left.lineupPosition ?? Number.MAX_SAFE_INTEGER;
-        const rightPosition = right.lineupPosition ?? Number.MAX_SAFE_INTEGER;
-
-        if (leftPosition !== rightPosition) {
-          return leftPosition - rightPosition;
-        }
-
-        return left.memberFullName.localeCompare(right.memberFullName, "de", {
-          sensitivity: "base",
-        });
-      }),
-    [memberships]
+      availableMembers.find(
+        (member) => String(member.id) === selectedMemberId
+      ) ?? null,
+    [availableMembers, selectedMemberId]
   );
 
   async function handleAddMembership() {
-    if (!isEditMode) {
+    if (!isEditMode || hasLineupChanges) {
       return;
     }
 
     const memberId = Number(selectedMemberId);
-    const parsedLineupPosition = Number(lineupPosition);
 
     if (!selectedMemberId || Number.isNaN(memberId)) {
       setMembershipError("Bitte wähle zuerst ein Mitglied aus.");
-      return;
-    }
-
-    if (
-      Number.isNaN(parsedLineupPosition) ||
-      !Number.isInteger(parsedLineupPosition) ||
-      parsedLineupPosition < 1
-    ) {
-      setMembershipError("Bitte gib eine gültige Aufstellungsposition ab 1 ein.");
       return;
     }
 
@@ -265,15 +304,118 @@ function TeamsEditorPanel({
 
     await onCreateMembership({
       memberId,
-      lineupPosition: parsedLineupPosition,
+      lineupPosition: sortedBaseMemberships.length + 1,
       player: true,
       captain: false,
       viceCaptain: false,
     });
 
     setSelectedMemberId("");
-    setLineupPosition(String(sortedMemberships.length + 1));
-    setIsMembersOpen(true);
+    setMemberSearchValue("");
+  }
+
+  function handleResetLineupDraft() {
+    setDraggedMembershipId(null);
+    setDragOverIndex(null);
+    setLineupDraft(null);
+    setMembershipError("");
+  }
+
+  async function handleSaveLineupDraft() {
+    if (!activeDraft) {
+      return;
+    }
+
+    setDraggedMembershipId(null);
+    setDragOverIndex(null);
+    setMembershipError("");
+
+    await onSaveLineup(activeDraft.memberships);
+    setLineupDraft(null);
+  }
+
+  function handleMembershipDrop(targetIndex: number) {
+    if (
+      draggedMembershipId == null ||
+      targetIndex < 0 ||
+      targetIndex > sortedMemberships.length
+    ) {
+      setDraggedMembershipId(null);
+      setDragOverIndex(null);
+      return;
+    }
+
+    const baseMemberships = hasLineupChanges
+      ? [...sortedMemberships]
+      : sortedBaseMemberships.map((membership) => ({ ...membership }));
+
+    const sourceIndex = baseMemberships.findIndex(
+      (membership) => membership.id === draggedMembershipId
+    );
+
+    if (sourceIndex < 0) {
+      setDraggedMembershipId(null);
+      setDragOverIndex(null);
+      return;
+    }
+
+    const [movedMembership] = baseMemberships.splice(sourceIndex, 1);
+    const adjustedTargetIndex =
+      sourceIndex < targetIndex ? targetIndex - 1 : targetIndex;
+
+    baseMemberships.splice(adjustedTargetIndex, 0, movedMembership);
+
+    const normalizedMemberships = baseMemberships.map((membership, index) => ({
+      ...membership,
+      lineupPosition: index + 1,
+    }));
+
+    setLineupDraft({
+      baseSignature: membershipsSignature,
+      memberships: normalizedMemberships,
+    });
+    setDraggedMembershipId(null);
+    setDragOverIndex(null);
+    setMembershipError("");
+  }
+
+  function renderDropZone(index: number) {
+    const isDragging = draggedMembershipId != null;
+    const isActive = dragOverIndex === index;
+    const isEdge = index === 0 || index === sortedMemberships.length;
+
+    return (
+      <div
+        key={`drop-zone-${index}`}
+        onDragOver={(event) => {
+          event.preventDefault();
+
+          if (dragOverIndex !== index) {
+            setDragOverIndex(index);
+          }
+        }}
+        onDragEnter={(event) => {
+          event.preventDefault();
+
+          if (dragOverIndex !== index) {
+            setDragOverIndex(index);
+          }
+        }}
+        onDrop={() => handleMembershipDrop(index)}
+        style={{
+          ...dropZoneWrapperStyle,
+          height: isDragging ? (isActive ? "28px" : isEdge ? "18px" : "8px") : "0px",
+          opacity: isDragging ? 1 : 0,
+        }}
+      >
+        <div
+          style={{
+            ...dropZoneIndicatorStyle,
+            opacity: isActive ? 1 : 0,
+          }}
+        />
+      </div>
+    );
   }
 
   return (
@@ -311,8 +453,10 @@ function TeamsEditorPanel({
               style={sectionActionButtonStyle}
               aria-expanded={isDetailsOpen}
             >
-              <EditIcon />
-              <span>{isDetailsOpen ? "Schließen" : "Bearbeiten"}</span>
+              <span style={buttonIconTextRowStyle}>
+                <EditIcon />
+                <span>{isDetailsOpen ? "Schließen" : "Bearbeiten"}</span>
+              </span>
             </button>
           </div>
 
@@ -331,8 +475,7 @@ function TeamsEditorPanel({
             </div>
           ) : (
             <div style={sectionCollapsedHintStyle}>
-              Öffne diesen Bereich, um Name, Kategorie und Beschreibung zu
-              bearbeiten.
+              Name, Kategorie und Beschreibung der Mannschaft bearbeiten.
             </div>
           )}
         </section>
@@ -352,8 +495,10 @@ function TeamsEditorPanel({
                 style={sectionActionButtonStyle}
                 aria-expanded={isMembersOpen}
               >
-                <MembersIcon />
-                <span>{isMembersOpen ? "Schließen" : "Verwalten"}</span>
+                <span style={buttonIconTextRowStyle}>
+                  <MembersIcon />
+                  <span>{isMembersOpen ? "Schließen" : "Verwalten"}</span>
+                </span>
               </button>
             </div>
 
@@ -366,77 +511,141 @@ function TeamsEditorPanel({
                 ) : null}
 
                 <div style={memberAddAreaStyle}>
-                  <div style={addGridStyle}>
-                    <FormField label="Mitglied" htmlFor="team-membership-member">
-                      <select
-                        id="team-membership-member"
-                        value={selectedMemberId}
-                        onChange={(event) => setSelectedMemberId(event.target.value)}
-                        style={textInputStyle}
-                        disabled={
-                          isMembershipSubmitting || availableMembers.length === 0
-                        }
-                      >
-                        <option value="">Bitte auswählen</option>
+                  <FormField
+                    label="Mitglied auswählen"
+                    htmlFor="team-membership-member-search"
+                  >
+                    <div style={comboboxWrapperStyle}>
+                      <div style={searchInputWrapperStyle}>
+                        <input
+                          id="team-membership-member-search"
+                          type="text"
+                          value={memberSearchValue}
+                          onChange={(event) => {
+                            setMemberSearchValue(event.target.value);
+                            setSelectedMemberId("");
+                          }}
+                          style={searchInputStyle}
+                          placeholder="Mitglied suchen..."
+                          disabled={
+                            isMembershipSubmitting ||
+                            availableMembers.length === 0 ||
+                            hasLineupChanges
+                          }
+                        />
 
-                        {availableMembers.map((member) => (
-                          <option key={member.id} value={member.id}>
-                            {member.fullName}
-                          </option>
-                        ))}
-                      </select>
-                    </FormField>
+                        {memberSearchValue ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setMemberSearchValue("");
+                              setSelectedMemberId("");
+                              setMembershipError("");
+                            }}
+                            style={clearButtonStyle}
+                            aria-label="Suche löschen"
+                            disabled={
+                              isMembershipSubmitting ||
+                              availableMembers.length === 0 ||
+                              hasLineupChanges
+                            }
+                          >
+                            ✕
+                          </button>
+                        ) : null}
+                      </div>
 
-                    <FormField
-                      label="Aufstellung"
-                      htmlFor="team-membership-lineup-position"
-                    >
-                      <input
-                        id="team-membership-lineup-position"
-                        type="number"
-                        min={1}
-                        step={1}
-                        value={lineupPosition}
-                        onChange={(event) => setLineupPosition(event.target.value)}
-                        style={textInputStyle}
-                        disabled={
-                          isMembershipSubmitting || availableMembers.length === 0
-                        }
-                      />
-                    </FormField>
-                  </div>
+                      {selectedMember ? (
+                        <div style={selectedMemberInfoStyle}>
+                          Ausgewählt: {selectedMember.fullName}
+                        </div>
+                      ) : null}
+
+                      {memberSearchValue.trim() &&
+                      filteredAvailableMembers.length > 0 ? (
+                        <div style={comboboxResultsStyle}>
+                          {filteredAvailableMembers.slice(0, 8).map((member) => {
+                            const isSelected =
+                              String(member.id) === selectedMemberId;
+
+                            return (
+                              <button
+                                key={member.id}
+                                type="button"
+                                onClick={() => {
+                                  setSelectedMemberId(String(member.id));
+                                  setMemberSearchValue(member.fullName);
+                                  setMembershipError("");
+                                }}
+                                style={{
+                                  ...comboboxResultItemStyle,
+                                  backgroundColor: isSelected
+                                    ? colors.primarySoft
+                                    : colors.surface,
+                                  color: isSelected ? colors.primary : colors.text,
+                                }}
+                                disabled={
+                                  isMembershipSubmitting || hasLineupChanges
+                                }
+                              >
+                                {member.fullName}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      ) : null}
+                    </div>
+                  </FormField>
+
+                  {memberSearchValue.trim() && filteredAvailableMembers.length === 0 ? (
+                    <StatusMessage variant="muted" marginTop="0">
+                      Keine verfügbaren Mitglieder zur Suche gefunden.
+                    </StatusMessage>
+                  ) : null}
 
                   <div style={addActionRowStyle}>
                     <button
                       type="button"
                       onClick={() => void handleAddMembership()}
                       disabled={
-                        isMembershipSubmitting || availableMembers.length === 0
+                        isMembershipSubmitting ||
+                        availableMembers.length === 0 ||
+                        hasLineupChanges
                       }
                       style={{
                         ...primaryButtonStyle,
                         ...compactButtonStyle,
                         opacity:
-                          isMembershipSubmitting || availableMembers.length === 0
+                          isMembershipSubmitting ||
+                          availableMembers.length === 0 ||
+                          hasLineupChanges
                             ? 0.7
                             : 1,
                         cursor:
-                          isMembershipSubmitting || availableMembers.length === 0
+                          isMembershipSubmitting ||
+                          availableMembers.length === 0 ||
+                          hasLineupChanges
                             ? "default"
                             : "pointer",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "0.5rem",
                       }}
                     >
-                      <PlusIcon />
-                      <span>
-                        {isMembershipSubmitting
-                          ? "Wird hinzugefügt..."
-                          : "Mitglied hinzufügen"}
+                      <span style={buttonIconTextRowStyle}>
+                        <PlusIcon />
+                        <span>
+                          {isMembershipSubmitting
+                            ? "Wird hinzugefügt..."
+                            : "Mitglied hinzufügen"}
+                        </span>
                       </span>
                     </button>
                   </div>
+
+                  {hasLineupChanges ? (
+                    <StatusMessage variant="muted" marginTop="0">
+                      Bitte die geänderte Aufstellung erst speichern oder
+                      zurücksetzen.
+                    </StatusMessage>
+                  ) : null}
 
                   {availableMembers.length === 0 ? (
                     <StatusMessage variant="muted" marginTop="0">
@@ -457,68 +666,148 @@ function TeamsEditorPanel({
                     Dieser Mannschaft sind aktuell keine Mitglieder zugeordnet.
                   </StatusMessage>
                 ) : (
-                  <div style={membershipListStyle}>
-                    {sortedMemberships.map((membership, index) => (
-                      <div
-                        key={membership.id}
-                        style={{
-                          ...membershipRowStyle,
-                          borderBottom:
-                            index < sortedMemberships.length - 1
-                              ? `1px solid ${colors.border}`
-                              : "none",
-                        }}
-                      >
-                        <div style={membershipPositionStyle}>
-                          {formatLineupPosition(membership.lineupPosition)}
-                        </div>
+                  <>
+                    <div style={reorderHintStyle}>
+                      Spieler per Ziehen neu anordnen.
+                    </div>
 
-                        <div style={{ minWidth: 0, flex: 1 }}>
-                          <div style={membershipNameStyle}>
-                            {membership.memberFullName}
-                          </div>
-                          <div style={membershipMetaStyle}>
-                            {formatMembershipRole(membership)}
-                          </div>
-                        </div>
+                    <div style={membershipListStyle}>
+                      {renderDropZone(0)}
 
-                        <div style={membershipActionsStyle}>
+                      {sortedMemberships.map((membership, index) => {
+                        const isDragged = draggedMembershipId === membership.id;
+
+                        return (
+                          <div key={membership.id}>
+                            <div
+                              draggable={!isMembershipSubmitting}
+                              onDragStart={() => {
+                                setMembershipError("");
+                                setDraggedMembershipId(membership.id);
+                              }}
+                              onDragEnd={() => {
+                                setDraggedMembershipId(null);
+                                setDragOverIndex(null);
+                              }}
+                              style={{
+                                ...membershipRowStyle,
+                                opacity: isDragged ? 0.55 : 1,
+                                borderBottom:
+                                  index < sortedMemberships.length - 1
+                                    ? `1px solid ${colors.border}`
+                                    : "none",
+                              }}
+                            >
+                              <div
+                                style={dragHandleStyle}
+                                title="Ziehen zum Umsortieren"
+                                aria-hidden="true"
+                              >
+                                <DragHandleIcon />
+                              </div>
+
+                              <div style={membershipPositionStyle}>
+                                {formatLineupPosition(membership.lineupPosition)}
+                              </div>
+
+                              <div style={{ minWidth: 0, flex: 1 }}>
+                                <div style={membershipNameStyle}>
+                                  {membership.memberFullName}
+                                </div>
+                                <div style={membershipMetaStyle}>
+                                  {formatMembershipRole(membership)}
+                                </div>
+                              </div>
+
+                              <div style={membershipActionsStyle}>
+                                <button
+                                  type="button"
+                                  onClick={() => void onDeleteMembership(membership.id)}
+                                  disabled={isMembershipSubmitting || hasLineupChanges}
+                                  title={
+                                    hasLineupChanges
+                                      ? "Erst Aufstellung speichern oder zurücksetzen"
+                                      : "Mitglied entfernen"
+                                  }
+                                  aria-label={`${
+                                    membership.memberFullName
+                                  } aus der Mannschaft entfernen`}
+                                  style={{
+                                    ...iconDeleteButtonStyle,
+                                    opacity:
+                                      isMembershipSubmitting || hasLineupChanges
+                                        ? 0.45
+                                        : 1,
+                                    cursor:
+                                      isMembershipSubmitting || hasLineupChanges
+                                        ? "not-allowed"
+                                        : "pointer",
+                                    color:
+                                      isMembershipSubmitting || hasLineupChanges
+                                        ? colors.textMuted
+                                        : colors.danger,
+                                    borderColor:
+                                      isMembershipSubmitting || hasLineupChanges
+                                        ? colors.border
+                                        : "#fecaca",
+                                    backgroundColor:
+                                      isMembershipSubmitting || hasLineupChanges
+                                        ? colors.surfaceSoft
+                                        : colors.dangerSoft,
+                                  }}
+                                >
+                                  ✕
+                                </button>
+                              </div>
+                            </div>
+
+                            {renderDropZone(index + 1)}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {hasLineupChanges ? (
+                      <div style={lineupDraftNoticeStyle}>
+                        <span>Die Aufstellung wurde geändert.</span>
+
+                        <div style={lineupDraftActionsStyle}>
                           <button
                             type="button"
-                            onClick={() => void onDeleteMembership(membership.id)}
+                            onClick={handleResetLineupDraft}
                             disabled={isMembershipSubmitting}
-                            title="Mitglied entfernen"
-                            aria-label={`${
-                              membership.memberFullName
-                            } aus der Mannschaft entfernen`}
                             style={{
                               ...secondaryButtonStyle,
-                              ...iconActionButtonStyle,
+                              ...compactSecondaryActionButtonStyle,
                               opacity: isMembershipSubmitting ? 0.7 : 1,
                               cursor: isMembershipSubmitting ? "default" : "pointer",
                             }}
                           >
-                            <span
-                              aria-hidden="true"
-                              style={{
-                                fontSize: "1rem",
-                                lineHeight: 1,
-                                display: "inline-flex",
-                              }}
-                            >
-                              ✕
-                            </span>
+                            Zurücksetzen
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => void handleSaveLineupDraft()}
+                            disabled={isMembershipSubmitting}
+                            style={{
+                              ...primaryButtonStyle,
+                              ...compactButtonStyle,
+                              opacity: isMembershipSubmitting ? 0.7 : 1,
+                              cursor: isMembershipSubmitting ? "default" : "pointer",
+                            }}
+                          >
+                            Aufstellung speichern
                           </button>
                         </div>
                       </div>
-                    ))}
-                  </div>
+                    ) : null}
+                  </>
                 )}
               </div>
             ) : (
               <div style={sectionCollapsedHintStyle}>
-                Öffne diesen Bereich, um Mitglieder hinzuzufügen, zu entfernen
-                und später die Aufstellung zu verwalten.
+                Mitglieder verwalten und Aufstellung bearbeiten.
               </div>
             )}
           </section>
@@ -527,44 +816,6 @@ function TeamsEditorPanel({
     </Card>
   );
 }
-
-const teamSummaryCardStyle = {
-  display: "flex",
-  alignItems: "center",
-  gap: "0.85rem",
-  padding: "0.9rem 1rem",
-  borderRadius: "14px",
-  border: `1px solid ${colors.border}`,
-  backgroundColor: colors.surfaceSoft,
-};
-
-const teamSummaryIconStyle = {
-  width: "42px",
-  height: "42px",
-  borderRadius: "12px",
-  border: `1px solid ${colors.borderStrong}`,
-  background: "linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%)",
-  color: colors.primary,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  fontWeight: 800,
-  fontSize: "0.95rem",
-  flexShrink: 0,
-};
-
-const teamSummaryNameStyle = {
-  color: colors.text,
-  fontWeight: 700,
-  lineHeight: 1.35,
-};
-
-const teamSummaryMetaStyle = {
-  marginTop: "0.2rem",
-  color: colors.textMuted,
-  fontSize: "0.88rem",
-  lineHeight: 1.5,
-};
 
 const sectionCardStyle = {
   display: "grid",
@@ -602,9 +853,6 @@ const sectionActionButtonStyle = {
   backgroundColor: colors.surfaceSoft,
   color: colors.text,
   fontWeight: 700,
-  display: "inline-flex",
-  alignItems: "center",
-  gap: "0.5rem",
   cursor: "pointer",
   flexShrink: 0,
 };
@@ -624,15 +872,109 @@ const sectionCollapsedHintStyle = {
   lineHeight: 1.5,
 };
 
+const teamSummaryCardStyle = {
+  display: "flex",
+  alignItems: "center",
+  gap: "0.85rem",
+  padding: "0.9rem 1rem",
+  borderRadius: "14px",
+  border: `1px solid ${colors.border}`,
+  backgroundColor: colors.surfaceSoft,
+};
+
+const teamSummaryIconStyle = {
+  width: "42px",
+  height: "42px",
+  borderRadius: "12px",
+  border: `1px solid ${colors.border}`,
+  background: "linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%)",
+  color: colors.primary,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontWeight: 800,
+  fontSize: "0.95rem",
+  flexShrink: 0,
+};
+
+const teamSummaryNameStyle = {
+  color: colors.text,
+  fontWeight: 700,
+  lineHeight: 1.35,
+};
+
+const teamSummaryMetaStyle = {
+  marginTop: "0.2rem",
+  color: colors.textMuted,
+  fontSize: "0.88rem",
+  lineHeight: 1.5,
+};
+
 const memberAddAreaStyle = {
   display: "grid",
   gap: "0.9rem",
 };
 
-const addGridStyle = {
+const comboboxWrapperStyle = {
   display: "grid",
-  gridTemplateColumns: "minmax(0, 1fr) 140px",
-  gap: "0.9rem",
+  gap: "0.5rem",
+};
+
+const searchInputWrapperStyle = {
+  position: "relative" as const,
+  display: "flex",
+  alignItems: "center",
+};
+
+const searchInputStyle = {
+  ...textInputStyle,
+  paddingRight: "2.3rem",
+};
+
+const clearButtonStyle = {
+  position: "absolute" as const,
+  right: "0.55rem",
+  width: "24px",
+  height: "24px",
+  border: "none",
+  borderRadius: "6px",
+  background: "transparent",
+  color: colors.textMuted,
+  cursor: "pointer",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontSize: "0.9rem",
+};
+
+const comboboxResultsStyle = {
+  display: "grid",
+  border: `1px solid ${colors.border}`,
+  borderRadius: "12px",
+  overflow: "hidden",
+  backgroundColor: colors.surface,
+  maxHeight: "220px",
+  overflowY: "auto" as const,
+};
+
+const comboboxResultItemStyle = {
+  border: "none",
+  borderBottom: `1px solid ${colors.border}`,
+  background: colors.surface,
+  color: colors.text,
+  padding: "0.75rem 0.9rem",
+  textAlign: "left" as const,
+  cursor: "pointer",
+  fontSize: "0.95rem",
+};
+
+const selectedMemberInfoStyle = {
+  padding: "0.65rem 0.8rem",
+  borderRadius: "10px",
+  backgroundColor: colors.surfaceSoft,
+  color: colors.textMuted,
+  fontSize: "0.9rem",
+  lineHeight: 1.4,
 };
 
 const addActionRowStyle = {
@@ -644,6 +986,28 @@ const compactButtonStyle = {
   minHeight: "40px",
   padding: "0.62rem 0.95rem",
   borderRadius: "10px",
+};
+
+const compactSecondaryActionButtonStyle = {
+  minHeight: "38px",
+  padding: "0.55rem 0.8rem",
+  borderRadius: "10px",
+};
+
+const buttonIconTextRowStyle = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: "0.5rem",
+};
+
+const reorderHintStyle = {
+  padding: "0.7rem 0.9rem",
+  borderRadius: "12px",
+  border: `1px dashed ${colors.border}`,
+  backgroundColor: colors.surfaceSoft,
+  color: colors.textMuted,
+  fontSize: "0.9rem",
+  lineHeight: 1.45,
 };
 
 const membershipListStyle = {
@@ -694,18 +1058,67 @@ const membershipActionsStyle = {
   flexShrink: 0,
 };
 
-const iconActionButtonStyle = {
-  minWidth: "38px",
-  width: "38px",
-  height: "38px",
+const iconDeleteButtonStyle = {
+  minWidth: "32px",
+  width: "32px",
+  height: "32px",
   padding: "0",
   borderRadius: "10px",
-  color: colors.danger,
-  borderColor: "#fecaca",
+  border: "1px solid #fecaca",
   backgroundColor: colors.dangerSoft,
+  color: colors.danger,
   display: "inline-flex",
   alignItems: "center",
   justifyContent: "center",
+  fontWeight: 700,
+};
+
+const lineupDraftNoticeStyle = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: "1rem",
+  flexWrap: "wrap" as const,
+  padding: "0.9rem 1rem",
+  borderRadius: "14px",
+  border: `1px dashed ${colors.border}`,
+  backgroundColor: colors.surfaceSoft,
+  color: colors.textMuted,
+};
+
+const lineupDraftActionsStyle = {
+  display: "flex",
+  alignItems: "center",
+  gap: "0.65rem",
+  flexWrap: "wrap" as const,
+};
+
+const dropZoneWrapperStyle = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "0 0.85rem",
+  transition: "height 0.15s ease, opacity 0.15s ease",
+};
+
+const dropZoneIndicatorStyle = {
+  width: "100%",
+  height: "2px",
+  borderRadius: "999px",
+  backgroundColor: "#9ca3af",
+  transition: "opacity 0.12s ease",
+};
+
+const dragHandleStyle = {
+  width: "28px",
+  height: "28px",
+  borderRadius: "8px",
+  color: colors.textMuted,
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  flexShrink: 0,
+  cursor: "grab",
 };
 
 export default TeamsEditorPanel;

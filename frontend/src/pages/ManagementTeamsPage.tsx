@@ -13,6 +13,7 @@ import {
   fetchTeamMemberships,
   fetchTeams,
   updateTeam,
+  updateTeamMembership,
 } from "../api/teamApi";
 import type { Member } from "../types/member";
 import type {
@@ -24,6 +25,21 @@ import type {
 import { pageContainerStyle } from "../styles/ui";
 
 type EditorMode = "closed" | "create" | "edit";
+
+function sortMemberships(memberships: TeamMembership[]): TeamMembership[] {
+  return [...memberships].sort((left, right) => {
+    const leftPosition = left.lineupPosition ?? Number.MAX_SAFE_INTEGER;
+    const rightPosition = right.lineupPosition ?? Number.MAX_SAFE_INTEGER;
+
+    if (leftPosition !== rightPosition) {
+      return leftPosition - rightPosition;
+    }
+
+    return left.memberFullName.localeCompare(right.memberFullName, "de", {
+      sensitivity: "base",
+    });
+  });
+}
 
 function ManagementTeamsPage() {
   const { showToast } = useToast();
@@ -100,7 +116,7 @@ function ManagementTeamsPage() {
           return;
         }
 
-        setMemberships(loadedMemberships);
+        setMemberships(sortMemberships(loadedMemberships));
       } catch (error) {
         console.error("TeamMemberships konnten nicht geladen werden.", error);
 
@@ -265,7 +281,33 @@ function ManagementTeamsPage() {
     setTeams((current) =>
       current.map((team) => (team.id === updatedTeam.id ? updatedTeam : team))
     );
-    setMemberships(updatedMemberships);
+    setMemberships(sortMemberships(updatedMemberships));
+  }
+
+  async function normalizeMembershipLineup(teamId: number) {
+    const currentMemberships = sortMemberships(
+      await fetchTeamMemberships(teamId)
+    );
+
+    const updates = currentMemberships
+      .map((membership, index) => ({
+        membership,
+        nextLineupPosition: index + 1,
+      }))
+      .filter(
+        ({ membership, nextLineupPosition }) =>
+          membership.lineupPosition !== nextLineupPosition
+      );
+
+    for (const { membership, nextLineupPosition } of updates) {
+      await updateTeamMembership(teamId, membership.id, {
+        memberId: membership.memberId,
+        lineupPosition: nextLineupPosition,
+        player: membership.player,
+        captain: membership.captain,
+        viceCaptain: membership.viceCaptain,
+      });
+    }
   }
 
   async function handleCreateMembership(
@@ -279,6 +321,7 @@ function ManagementTeamsPage() {
 
     try {
       await createTeamMembership(selectedTeam.id, request);
+      await normalizeMembershipLineup(selectedTeam.id);
       await refreshTeamAndMemberships(selectedTeam.id);
       showToast("Mitglied erfolgreich zur Mannschaft hinzugefügt.", "success");
     } catch (error) {
@@ -289,6 +332,48 @@ function ManagementTeamsPage() {
           : "Mitglied konnte nicht hinzugefügt werden.",
         "error"
       );
+    } finally {
+      setIsMembershipSubmitting(false);
+    }
+  }
+
+  async function handleSaveLineup(updatedMemberships: TeamMembership[]) {
+    if (!selectedTeam) {
+      return;
+    }
+
+    setIsMembershipSubmitting(true);
+
+    try {
+      const updates = updatedMemberships.filter((membership, index) => {
+        const persistedMembership = memberships.find(
+          (entry) => entry.id === membership.id
+        );
+
+        return (persistedMembership?.lineupPosition ?? null) !== index + 1;
+      });
+
+      for (const membership of updates) {
+        await updateTeamMembership(selectedTeam.id, membership.id, {
+          memberId: membership.memberId,
+          lineupPosition: membership.lineupPosition ?? 0,
+          player: membership.player,
+          captain: membership.captain,
+          viceCaptain: membership.viceCaptain,
+        });
+      }
+
+      await refreshTeamAndMemberships(selectedTeam.id);
+      showToast("Aufstellung gespeichert.", "success");
+    } catch (error) {
+      console.error("Aufstellung konnte nicht gespeichert werden.", error);
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "Aufstellung konnte nicht gespeichert werden.",
+        "error"
+      );
+      throw error;
     } finally {
       setIsMembershipSubmitting(false);
     }
@@ -311,14 +396,27 @@ function ManagementTeamsPage() {
       return;
     }
 
+    const previousMemberships = memberships;
+
+    setMemberships((current) =>
+      current
+        .filter((membershipEntry) => membershipEntry.id !== membershipId)
+        .map((membershipEntry, index) => ({
+          ...membershipEntry,
+          lineupPosition: index + 1,
+        }))
+    );
+
     setIsMembershipSubmitting(true);
 
     try {
       await deleteTeamMembership(selectedTeam.id, membershipId);
+      await normalizeMembershipLineup(selectedTeam.id);
       await refreshTeamAndMemberships(selectedTeam.id);
       showToast("Mitglied erfolgreich aus der Mannschaft entfernt.", "success");
     } catch (error) {
       console.error("Mitglied konnte nicht entfernt werden.", error);
+      setMemberships(previousMemberships);
       showToast(
         error instanceof Error
           ? error.message
@@ -385,6 +483,7 @@ function ManagementTeamsPage() {
             onDelete={editorMode === "edit" ? handleDelete : undefined}
             onCreateMembership={handleCreateMembership}
             onDeleteMembership={handleDeleteMembership}
+            onSaveLineup={handleSaveLineup}
           />
         ) : null}
       </div>
