@@ -17,11 +17,19 @@ export interface TeamMembership {
   teamName: string;
   memberId: number;
   memberFullName: string;
-  lineupPosition?: number | null;
+  lineupPosition: number | null;
   player: boolean;
   captain: boolean;
   viceCaptain: boolean;
 }
+
+export type TeamMembershipUpsertRequest = {
+  memberId: number;
+  lineupPosition: number;
+  player: boolean;
+  captain: boolean;
+  viceCaptain: boolean;
+};
 
 export interface Team {
   id: number;
@@ -36,12 +44,4 @@ export type TeamUpsertRequest = {
   name: string;
   description: string;
   type: TeamType;
-};
-
-export type TeamMembershipUpsertRequest = {
-  memberId: number;
-  lineupPosition: number;
-  player: boolean;
-  captain: boolean;
-  viceCaptain: boolean;
 };
