@@ -7,19 +7,10 @@ import jakarta.validation.constraints.Size;
 /**
  * Request-DTO für Self-Service-Änderungen des aktuell eingeloggten Benutzers.
  *
- * Regeln: - Benutzer darf eigene Stammdaten ändern (Name, E-Mail) - Passwort
- * ist optional - Rollen und Aktiv-Status sind NICHT enthalten (nur Admin darf
- * das)
+ * Regeln: - Benutzer darf seine eigene E-Mail-Adresse ändern - Passwort ist
+ * optional - Vorname, Nachname, Rollen und Aktiv-Status sind NICHT enthalten
  */
 public class UpdateOwnUserRequest {
-
-	@NotBlank(message = "Der Vorname darf nicht leer sein.")
-	@Size(max = 100, message = "Der Vorname darf maximal 100 Zeichen lang sein.")
-	private String firstName;
-
-	@NotBlank(message = "Der Nachname darf nicht leer sein.")
-	@Size(max = 100, message = "Der Nachname darf maximal 100 Zeichen lang sein.")
-	private String lastName;
 
 	@NotBlank(message = "Die E-Mail-Adresse darf nicht leer sein.")
 	@Email(message = "Die E-Mail-Adresse ist ungültig.")
@@ -30,22 +21,6 @@ public class UpdateOwnUserRequest {
 	private String password;
 
 	public UpdateOwnUserRequest() {
-	}
-
-	public String getFirstName() {
-		return firstName;
-	}
-
-	public void setFirstName(String firstName) {
-		this.firstName = firstName;
-	}
-
-	public String getLastName() {
-		return lastName;
-	}
-
-	public void setLastName(String lastName) {
-		this.lastName = lastName;
 	}
 
 	public String getEmail() {

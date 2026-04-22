@@ -127,13 +127,13 @@ public class UserService {
 	}
 
 	/**
-	 * Aktualisiert die eigenen Profildaten des aktuell eingeloggten Benutzers.
+	 * Aktualisiert die eigenen Kontodaten des aktuell eingeloggten Benutzers.
 	 *
-	 * Regeln: - Vorname, Nachname und E-Mail dürfen geändert werden - Passwort ist
-	 * optional - Rollen, Aktiv-Status und Username bleiben unverändert
+	 * Regeln: - nur E-Mail und optional Passwort dürfen geändert werden - Vorname,
+	 * Nachname, Username, Rollen und Aktiv-Status bleiben unverändert
 	 *
 	 * @param loginIdentifier Username oder E-Mail aus dem Security-Kontext
-	 * @param request         neue Profildaten des Benutzers
+	 * @param request         neue Kontodaten des Benutzers
 	 * @return aktualisierter Benutzer als Response-DTO
 	 */
 	public UserResponse updateOwnUser(String loginIdentifier, UpdateOwnUserRequest request) {
@@ -141,8 +141,6 @@ public class UserService {
 
 		validateUniqueEmail(request.getEmail(), existingUser.getId());
 
-		existingUser.setFirstName(request.getFirstName().trim());
-		existingUser.setLastName(request.getLastName().trim());
 		existingUser.setEmail(normalizeEmail(request.getEmail()));
 
 		if (hasText(request.getPassword())) {
