@@ -127,20 +127,27 @@ public class UserService {
 	}
 
 	/**
-	 * Aktualisiert ausschließlich die E-Mail-Adresse des aktuell eingeloggten
-	 * Benutzers.
+	 * Aktualisiert die eigenen Profildaten des aktuell eingeloggten Benutzers.
 	 *
-	 * @param loginIdentifier Username oder E-Mail aus dem aktuellen
-	 *                        Security-Kontext
-	 * @param request         Request mit neuer E-Mail-Adresse
+	 * Regeln: - Vorname, Nachname und E-Mail dürfen geändert werden - Passwort ist
+	 * optional - Rollen, Aktiv-Status und Username bleiben unverändert
+	 *
+	 * @param loginIdentifier Username oder E-Mail aus dem Security-Kontext
+	 * @param request         neue Profildaten des Benutzers
 	 * @return aktualisierter Benutzer als Response-DTO
 	 */
-	public UserResponse updateOwnEmail(String loginIdentifier, UpdateOwnEmailRequest request) {
+	public UserResponse updateOwnUser(String loginIdentifier, UpdateOwnUserRequest request) {
 		User existingUser = getUserEntityByLoginIdentifier(loginIdentifier);
 
 		validateUniqueEmail(request.getEmail(), existingUser.getId());
 
+		existingUser.setFirstName(request.getFirstName().trim());
+		existingUser.setLastName(request.getLastName().trim());
 		existingUser.setEmail(normalizeEmail(request.getEmail()));
+
+		if (hasText(request.getPassword())) {
+			existingUser.setPasswordHash(passwordEncoder.encode(request.getPassword().trim()));
+		}
 
 		User savedUser = userRepository.save(existingUser);
 		return toResponse(savedUser);

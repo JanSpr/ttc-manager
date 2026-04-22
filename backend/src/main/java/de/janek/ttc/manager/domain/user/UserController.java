@@ -84,19 +84,15 @@ public class UserController {
 	}
 
 	/**
-	 * Aktualisiert die eigene E-Mail-Adresse des aktuell eingeloggten Benutzers.
-	 *
-	 * Der Benutzer wird nicht über eine ID aus dem Frontend bestimmt, sondern über
-	 * die aktuelle Authentication / Session.
+	 * Aktualisiert die eigenen Profildaten des aktuell eingeloggten Benutzers.
 	 *
 	 * @param authentication aktuelle Spring-Security-Authentication
-	 * @param request        neue E-Mail-Adresse
-	 * @return aktualisierter Benutzer als Response-DTO
+	 * @param request        neue Profildaten
+	 * @return aktualisierter Benutzer
 	 */
-	@PutMapping("/me/email")
-	public UserResponse updateOwnEmail(Authentication authentication,
-			@Valid @RequestBody UpdateOwnEmailRequest request) {
-		return userService.updateOwnEmail(authentication.getName(), request);
+	@PutMapping("/me")
+	public UserResponse updateOwnUser(Authentication authentication, @Valid @RequestBody UpdateOwnUserRequest request) {
+		return userService.updateOwnUser(authentication.getName(), request);
 	}
 
 	/**

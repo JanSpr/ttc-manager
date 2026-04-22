@@ -96,7 +96,7 @@ public class SecurityConfig {
 						 * Self-Service für eingeloggte Benutzer.
 						 */
 						.requestMatchers(HttpMethod.GET, "/api/users/me").authenticated()
-						.requestMatchers(HttpMethod.PUT, "/api/users/me/email").authenticated()
+						.requestMatchers(HttpMethod.PUT, "/api/users/me").authenticated()
 
 						/*
 						 * Benutzerverwaltung außerhalb des Self-Service ist administrativ.
