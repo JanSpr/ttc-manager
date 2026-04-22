@@ -3,13 +3,24 @@ import PageIntro from "../components/layout/PageIntro";
 import TeamsListPanel from "../components/management/TeamsListPanel";
 import TeamsEditorPanel from "../components/management/TeamsEditorPanel";
 import { useToast } from "../context/useToast";
+import { fetchMembers } from "../api/memberApi";
 import {
   createTeam,
+  createTeamMembership,
   deleteTeam,
+  deleteTeamMembership,
+  fetchTeamById,
+  fetchTeamMemberships,
   fetchTeams,
   updateTeam,
 } from "../api/teamApi";
-import type { Team, TeamUpsertRequest } from "../types/team";
+import type { Member } from "../types/member";
+import type {
+  Team,
+  TeamMembership,
+  TeamMembershipUpsertRequest,
+  TeamUpsertRequest,
+} from "../types/team";
 import { pageContainerStyle } from "../styles/ui";
 
 type EditorMode = "closed" | "create" | "edit";
@@ -18,28 +29,39 @@ function ManagementTeamsPage() {
   const { showToast } = useToast();
 
   const [teams, setTeams] = useState<Team[]>([]);
+  const [allMembers, setAllMembers] = useState<Member[]>([]);
+  const [memberships, setMemberships] = useState<TeamMembership[]>([]);
   const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
   const [editorMode, setEditorMode] = useState<EditorMode>("closed");
   const [searchValue, setSearchValue] = useState("");
   const [hoveredTeamId, setHoveredTeamId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isMembershipSubmitting, setIsMembershipSubmitting] = useState(false);
   const [loadError, setLoadError] = useState("");
+  const [membershipLoadError, setMembershipLoadError] = useState("");
 
   useEffect(() => {
     let isMounted = true;
 
-    async function loadInitialTeams() {
+    async function loadInitialData() {
       try {
-        const loadedTeams = await fetchTeams();
+        const [loadedTeams, loadedMembers] = await Promise.all([
+          fetchTeams(),
+          fetchMembers(),
+        ]);
 
         if (!isMounted) {
           return;
         }
 
         setTeams(loadedTeams);
+        setAllMembers(loadedMembers);
       } catch (error) {
-        console.error("Mannschaften konnten nicht geladen werden.", error);
+        console.error(
+          "Mannschaften oder Mitglieder konnten nicht geladen werden.",
+          error
+        );
 
         if (!isMounted) {
           return;
@@ -53,12 +75,52 @@ function ManagementTeamsPage() {
       }
     }
 
-    void loadInitialTeams();
+    void loadInitialData();
 
     return () => {
       isMounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadMembershipsForSelectedTeam() {
+      if (editorMode !== "edit" || selectedTeamId == null) {
+        setMemberships([]);
+        setMembershipLoadError("");
+        return;
+      }
+
+      try {
+        setMembershipLoadError("");
+        const loadedMemberships = await fetchTeamMemberships(selectedTeamId);
+
+        if (!isMounted) {
+          return;
+        }
+
+        setMemberships(loadedMemberships);
+      } catch (error) {
+        console.error("TeamMemberships konnten nicht geladen werden.", error);
+
+        if (!isMounted) {
+          return;
+        }
+
+        setMemberships([]);
+        setMembershipLoadError(
+          "Die Mannschaftsmitglieder konnten nicht geladen werden."
+        );
+      }
+    }
+
+    void loadMembershipsForSelectedTeam();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [editorMode, selectedTeamId]);
 
   const filteredTeams = useMemo(() => {
     const normalizedSearch = searchValue.trim().toLocaleLowerCase("de");
@@ -98,16 +160,22 @@ function ManagementTeamsPage() {
 
   function openCreateMode() {
     setSelectedTeamId(null);
+    setMemberships([]);
+    setMembershipLoadError("");
     setEditorMode("create");
   }
 
   function openEditMode(teamId: number) {
     setSelectedTeamId(teamId);
+    setMemberships([]);
+    setMembershipLoadError("");
     setEditorMode("edit");
   }
 
   function closeEditor() {
     setSelectedTeamId(null);
+    setMemberships([]);
+    setMembershipLoadError("");
     setEditorMode("closed");
   }
 
@@ -131,6 +199,8 @@ function ManagementTeamsPage() {
 
       setTeams((current) => [...current, createdTeam]);
       setSelectedTeamId(createdTeam.id);
+      setMemberships([]);
+      setMembershipLoadError("");
       setEditorMode("edit");
       showToast("Mannschaft erfolgreich angelegt.", "success");
     } catch (error) {
@@ -168,6 +238,8 @@ function ManagementTeamsPage() {
         current.filter((team) => team.id !== selectedTeam.id)
       );
       setSelectedTeamId(null);
+      setMemberships([]);
+      setMembershipLoadError("");
       setEditorMode("closed");
 
       showToast("Mannschaft erfolgreich gelöscht.", "success");
@@ -181,6 +253,80 @@ function ManagementTeamsPage() {
       );
     } finally {
       setIsSubmitting(false);
+    }
+  }
+
+  async function refreshTeamAndMemberships(teamId: number) {
+    const [updatedTeam, updatedMemberships] = await Promise.all([
+      fetchTeamById(teamId),
+      fetchTeamMemberships(teamId),
+    ]);
+
+    setTeams((current) =>
+      current.map((team) => (team.id === updatedTeam.id ? updatedTeam : team))
+    );
+    setMemberships(updatedMemberships);
+  }
+
+  async function handleCreateMembership(
+    request: TeamMembershipUpsertRequest
+  ) {
+    if (!selectedTeam) {
+      return;
+    }
+
+    setIsMembershipSubmitting(true);
+
+    try {
+      await createTeamMembership(selectedTeam.id, request);
+      await refreshTeamAndMemberships(selectedTeam.id);
+      showToast("Mitglied erfolgreich zur Mannschaft hinzugefügt.", "success");
+    } catch (error) {
+      console.error("Mitglied konnte nicht hinzugefügt werden.", error);
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "Mitglied konnte nicht hinzugefügt werden.",
+        "error"
+      );
+    } finally {
+      setIsMembershipSubmitting(false);
+    }
+  }
+
+  async function handleDeleteMembership(membershipId: number) {
+    if (!selectedTeam) {
+      return;
+    }
+
+    const membership = memberships.find((entry) => entry.id === membershipId);
+
+    const confirmed = window.confirm(
+      membership
+        ? `Möchtest du ${membership.memberFullName} wirklich aus "${selectedTeam.name}" entfernen?`
+        : "Möchtest du dieses Mitglied wirklich aus der Mannschaft entfernen?"
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setIsMembershipSubmitting(true);
+
+    try {
+      await deleteTeamMembership(selectedTeam.id, membershipId);
+      await refreshTeamAndMemberships(selectedTeam.id);
+      showToast("Mitglied erfolgreich aus der Mannschaft entfernt.", "success");
+    } catch (error) {
+      console.error("Mitglied konnte nicht entfernt werden.", error);
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "Mitglied konnte nicht entfernt werden.",
+        "error"
+      );
+    } finally {
+      setIsMembershipSubmitting(false);
     }
   }
 
@@ -229,10 +375,16 @@ function ManagementTeamsPage() {
           <TeamsEditorPanel
             editorMode={editorMode}
             team={selectedTeam}
+            allMembers={allMembers}
+            memberships={memberships}
+            membershipLoadError={membershipLoadError}
             isSubmitting={isSubmitting}
+            isMembershipSubmitting={isMembershipSubmitting}
             onSubmit={handleSubmit}
             onCancelEdit={closeEditor}
             onDelete={editorMode === "edit" ? handleDelete : undefined}
+            onCreateMembership={handleCreateMembership}
+            onDeleteMembership={handleDeleteMembership}
           />
         ) : null}
       </div>
