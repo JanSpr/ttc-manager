@@ -113,8 +113,6 @@ function UserProfilePage() {
       setIsSavingProfile(true);
 
       const updatedUser = await updateOwnUser({
-        firstName: currentUser.firstName ?? "",
-        lastName: currentUser.lastName ?? "",
         email: normalizedEmail,
         ...(passwordChanged ? { password: normalizedPassword } : {}),
       });

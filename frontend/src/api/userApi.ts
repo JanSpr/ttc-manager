@@ -2,8 +2,6 @@ import { apiGet, apiPut } from "./api";
 import type { User } from "../types/user";
 
 export type UpdateOwnUserRequest = {
-  firstName: string;
-  lastName: string;
   email: string;
   password?: string;
 };
