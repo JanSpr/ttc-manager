@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Navigate } from "react-router-dom";
-import { updateOwnEmail } from "../api/userApi";
+import { updateOwnUser } from "../api/userApi";
 import { useAuth } from "../context/useAuth";
 import { useToast } from "../context/useToast";
 import UserAvatar from "../components/UserAvatar";
@@ -14,13 +14,59 @@ import {
   textInputStyle,
 } from "../styles/ui";
 
+function IconWrapper({
+  children,
+  size = 16,
+}: {
+  children: ReactNode;
+  size?: number;
+}) {
+  return (
+    <span
+      aria-hidden="true"
+      style={{
+        display: "inline-flex",
+        width: size,
+        height: size,
+        alignItems: "center",
+        justifyContent: "center",
+        color: "currentColor",
+        flexShrink: 0,
+      }}
+    >
+      {children}
+    </span>
+  );
+}
+
+function EditIcon({ size = 16 }: { size?: number }) {
+  return (
+    <IconWrapper size={size}>
+      <svg
+        viewBox="0 0 24 24"
+        width={size}
+        height={size}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.9"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M4 20h4l10-10-4-4L4 16v4z" />
+        <path d="M12 6l4 4" />
+      </svg>
+    </IconWrapper>
+  );
+}
+
 function UserProfilePage() {
   const { user, isAuthenticated, updateAuthenticatedUser } = useAuth();
   const { showToast } = useToast();
 
-  const [isEditingEmail, setIsEditingEmail] = useState(false);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [emailInput, setEmailInput] = useState("");
-  const [isSavingEmail, setIsSavingEmail] = useState(false);
+  const [passwordInput, setPasswordInput] = useState("");
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
 
   if (!isAuthenticated || !user) {
     return <Navigate to="/login" replace />;
@@ -34,48 +80,67 @@ function UserProfilePage() {
       .join(" ")
       .trim() || currentUser.username;
 
-  function handleStartEmailEdit() {
+  function handleStartProfileEdit() {
     setEmailInput(currentUser.email ?? "");
-    setIsEditingEmail(true);
+    setPasswordInput("");
+    setIsEditingProfile(true);
   }
 
-  function handleCancelEmailEdit() {
+  function handleCancelProfileEdit() {
     setEmailInput(currentUser.email ?? "");
-    setIsEditingEmail(false);
+    setPasswordInput("");
+    setIsEditingProfile(false);
   }
 
-  async function handleSaveEmail() {
+  async function handleSaveProfile() {
     const normalizedEmail = emailInput.trim();
+    const normalizedPassword = passwordInput.trim();
 
     if (!normalizedEmail) {
       showToast("Bitte gib eine E-Mail-Adresse ein.", "error");
       return;
     }
 
-    if (normalizedEmail === currentUser.email) {
-      setIsEditingEmail(false);
+    const emailChanged = normalizedEmail !== (currentUser.email ?? "");
+    const passwordChanged = normalizedPassword.length > 0;
+
+    if (!emailChanged && !passwordChanged) {
+      setIsEditingProfile(false);
       return;
     }
 
     try {
-      setIsSavingEmail(true);
+      setIsSavingProfile(true);
 
-      const updatedUser = await updateOwnEmail({ email: normalizedEmail });
+      const updatedUser = await updateOwnUser({
+        firstName: currentUser.firstName ?? "",
+        lastName: currentUser.lastName ?? "",
+        email: normalizedEmail,
+        ...(passwordChanged ? { password: normalizedPassword } : {}),
+      });
 
       updateAuthenticatedUser(updatedUser);
-      setEmailInput(updatedUser.email);
-      setIsEditingEmail(false);
-      showToast("E-Mail-Adresse erfolgreich aktualisiert.", "success");
+      setEmailInput(updatedUser.email ?? "");
+      setPasswordInput("");
+      setIsEditingProfile(false);
+
+      if (emailChanged && passwordChanged) {
+        showToast("E-Mail-Adresse und Passwort erfolgreich aktualisiert.", "success");
+      } else if (emailChanged) {
+        showToast("E-Mail-Adresse erfolgreich aktualisiert.", "success");
+      } else {
+        showToast("Passwort erfolgreich aktualisiert.", "success");
+      }
     } catch (error) {
       console.error(error);
       showToast(
         error instanceof Error
           ? error.message
-          : "Die E-Mail-Adresse konnte nicht gespeichert werden.",
+          : "Die Profiländerungen konnten nicht gespeichert werden.",
         "error",
       );
     } finally {
-      setIsSavingEmail(false);
+      setIsSavingProfile(false);
     }
   }
 
@@ -92,7 +157,7 @@ function UserProfilePage() {
         <div
           style={{
             display: "flex",
-            alignItems: "center",
+            alignItems: "flex-start",
             justifyContent: "space-between",
             gap: "1rem",
             flexWrap: "wrap",
@@ -134,14 +199,23 @@ function UserProfilePage() {
 
           <div
             style={{
-              ...badgeStyle,
-              backgroundColor: currentUser.active
-                ? colors.primarySoft
-                : colors.dangerSoft,
-              color: currentUser.active ? colors.primary : colors.danger,
+              display: "flex",
+              alignItems: "center",
+              gap: "0.75rem",
+              flexWrap: "wrap",
             }}
           >
-            {currentUser.active ? "Aktiv" : "Inaktiv"}
+            <div
+              style={{
+                ...badgeStyle,
+                backgroundColor: currentUser.active
+                  ? colors.primarySoft
+                  : colors.dangerSoft,
+                color: currentUser.active ? colors.primary : colors.danger,
+              }}
+            >
+              {currentUser.active ? "Aktiv" : "Inaktiv"}
+            </div>
           </div>
         </div>
 
@@ -163,6 +237,7 @@ function UserProfilePage() {
               borderRadius: "14px",
               backgroundColor: colors.surface,
               minWidth: 0,
+              gridColumn: "1 / -1",
             }}
           >
             <div
@@ -182,93 +257,129 @@ function UserProfilePage() {
                   marginBottom: "0.2rem",
                 }}
               >
-                E-Mail
+                Kontodaten
               </div>
 
-              {!isEditingEmail ? (
+              {!isEditingProfile ? (
                 <button
                   type="button"
-                  onClick={handleStartEmailEdit}
+                  onClick={handleStartProfileEdit}
                   style={{
-                    border: `1px solid ${colors.border}`,
-                    backgroundColor: "#ffffff",
-                    color: colors.textMuted,
-                    borderRadius: "10px",
-                    width: "32px",
-                    height: "32px",
-                    cursor: "pointer",
-                    fontSize: "0.95rem",
-                    lineHeight: 1,
+                    ...secondaryButtonStyle,
                     display: "inline-flex",
                     alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
+                    gap: "0.45rem",
+                    minHeight: "36px",
+                    padding: "0.45rem 0.8rem",
                   }}
-                  aria-label="E-Mail bearbeiten"
-                  title="E-Mail bearbeiten"
+                  aria-label="Kontodaten bearbeiten"
+                  title="Kontodaten bearbeiten"
                 >
-                  ✎
+                  <EditIcon size={15} />
+                  <span>Bearbeiten</span>
                 </button>
               ) : null}
             </div>
 
-            {!isEditingEmail ? (
+            {!isEditingProfile ? (
               <div
                 style={{
-                  color: colors.text,
-                  fontWeight: 600,
-                  lineHeight: 1.4,
-                  overflowWrap: "anywhere",
-                  wordBreak: "break-word",
+                  display: "grid",
+                  gap: "1rem",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
                 }}
               >
-                {currentUser.email || "-"}
+                <DataField label="E-Mail" value={currentUser.email || "-"} />
+                <DataField
+                  label="Passwort"
+                  value="••••••••"
+                  helpText="Aus Sicherheitsgründen wird das Passwort nicht angezeigt."
+                />
               </div>
             ) : (
               <div
                 style={{
                   display: "grid",
-                  gap: "0.75rem",
+                  gap: "1rem",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
                 }}
               >
-                <input
-                  type="email"
-                  value={emailInput}
-                  onChange={(event) => setEmailInput(event.target.value)}
-                  placeholder="E-Mail-Adresse eingeben"
-                  disabled={isSavingEmail}
-                  style={textInputStyle}
-                />
+                <div style={{ gridColumn: "1 / -1" }}>
+                  <label
+                    htmlFor="profile-email"
+                    style={{
+                      display: "block",
+                      fontSize: "0.9rem",
+                      color: colors.textMuted,
+                      marginBottom: "0.45rem",
+                    }}
+                  >
+                    E-Mail
+                  </label>
+                  <input
+                    id="profile-email"
+                    type="email"
+                    value={emailInput}
+                    onChange={(event) => setEmailInput(event.target.value)}
+                    disabled={isSavingProfile}
+                    style={textInputStyle}
+                  />
+                </div>
+
+                <div style={{ gridColumn: "1 / -1" }}>
+                  <label
+                    htmlFor="profile-password"
+                    style={{
+                      display: "block",
+                      fontSize: "0.9rem",
+                      color: colors.textMuted,
+                      marginBottom: "0.45rem",
+                    }}
+                  >
+                    Neues Passwort (optional)
+                  </label>
+                  <input
+                    id="profile-password"
+                    type="password"
+                    value={passwordInput}
+                    onChange={(event) => setPasswordInput(event.target.value)}
+                    placeholder="Nur ausfüllen, wenn du dein Passwort ändern möchtest"
+                    disabled={isSavingProfile}
+                    style={textInputStyle}
+                  />
+                </div>
 
                 <div
                   style={{
+                    gridColumn: "1 / -1",
                     display: "flex",
-                    gap: "0.6rem",
+                    gap: "0.75rem",
                     flexWrap: "wrap",
+                    marginTop: "0.25rem",
                   }}
                 >
                   <button
                     type="button"
-                    onClick={handleSaveEmail}
-                    disabled={isSavingEmail}
+                    onClick={handleSaveProfile}
+                    disabled={isSavingProfile}
                     style={{
                       ...secondaryButtonStyle,
                       backgroundColor: colors.primary,
                       color: "#ffffff",
                       border: `1px solid ${colors.primary}`,
-                      opacity: isSavingEmail ? 0.8 : 1,
+                      opacity: isSavingProfile ? 0.8 : 1,
                     }}
                   >
-                    {isSavingEmail ? "Speichert..." : "Speichern"}
+                    {isSavingProfile ? "Speichert..." : "Speichern"}
                   </button>
 
                   <button
                     type="button"
-                    onClick={handleCancelEmailEdit}
-                    disabled={isSavingEmail}
+                    onClick={handleCancelProfileEdit}
+                    disabled={isSavingProfile}
                     style={{
                       ...secondaryButtonStyle,
-                      opacity: isSavingEmail ? 0.8 : 1,
+                      opacity: isSavingProfile ? 0.8 : 1,
                     }}
                   >
                     Abbrechen

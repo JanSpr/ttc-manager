@@ -1,19 +1,12 @@
-import type { CSSProperties } from "react";
-import { colors, subtleLabelStyle } from "../../styles/ui";
+import { colors } from "../../styles/ui";
 
-type DataFieldProps = {
+export type DataFieldProps = {
   label: string;
   value: string;
-  preserveFullValue?: boolean;
-  style?: CSSProperties;
+  helpText?: string;
 };
 
-export default function DataField({
-  label,
-  value,
-  preserveFullValue = false,
-  style,
-}: DataFieldProps) {
+function DataField({ label, value, helpText }: DataFieldProps) {
   return (
     <div
       style={{
@@ -22,22 +15,41 @@ export default function DataField({
         borderRadius: "14px",
         backgroundColor: colors.surface,
         minWidth: 0,
-        ...style,
       }}
     >
-      <div style={subtleLabelStyle}>{label}</div>
+      <div
+        style={{
+          fontSize: "0.9rem",
+          color: colors.textMuted,
+          marginBottom: "0.35rem",
+        }}
+      >
+        {label}
+      </div>
 
       <div
         style={{
+          fontSize: "1rem",
           color: colors.text,
-          fontWeight: 600,
-          lineHeight: 1.4,
-          overflowWrap: preserveFullValue ? "anywhere" : "break-word",
           wordBreak: "break-word",
         }}
       >
         {value}
       </div>
+
+      {helpText ? (
+        <div
+          style={{
+            marginTop: "0.4rem",
+            fontSize: "0.8rem",
+            color: colors.textMuted,
+          }}
+        >
+          {helpText}
+        </div>
+      ) : null}
     </div>
   );
 }
+
+export default DataField;
