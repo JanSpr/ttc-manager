@@ -23,11 +23,11 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
 
 /**
- * Central Spring Security configuration.
+ * Zentrale Spring-Security-Konfiguration.
  *
- * Current approach: - session-based authentication - custom REST login/logout
- * endpoints - public read endpoints for current MVP - restricted write
- * endpoints for administrative data changes
+ * Aktueller Ansatz: - session-basierte Authentifizierung - eigene
+ * REST-Endpunkte für Login/Logout - öffentliche Read-Endpunkte für den
+ * aktuellen MVP - eingeschränkte Write-Endpunkte für administrative Änderungen
  */
 @Configuration
 @EnableMethodSecurity
@@ -43,7 +43,7 @@ public class SecurityConfig {
 	}
 
 	/**
-	 * Password encoder for secure password hashing.
+	 * PasswordEncoder für sicheres Hashing von Passwörtern.
 	 */
 	@Bean
 	public PasswordEncoder passwordEncoder() {
@@ -51,7 +51,7 @@ public class SecurityConfig {
 	}
 
 	/**
-	 * Authentication provider based on our custom user details service.
+	 * AuthenticationProvider auf Basis unseres CustomUserDetailsService.
 	 */
 	@Bean
 	public DaoAuthenticationProvider authenticationProvider(PasswordEncoder passwordEncoder) {
@@ -61,7 +61,7 @@ public class SecurityConfig {
 	}
 
 	/**
-	 * Authentication manager provided by Spring.
+	 * AuthenticationManager von Spring.
 	 */
 	@Bean
 	public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
@@ -69,7 +69,7 @@ public class SecurityConfig {
 	}
 
 	/**
-	 * Main HTTP security configuration.
+	 * Hauptkonfiguration der HTTP-Security.
 	 */
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -80,7 +80,7 @@ public class SecurityConfig {
 				.authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
 						/*
-						 * Public authentication endpoints.
+						 * Öffentliche Auth-Endpunkte.
 						 */
 						.requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
 						.requestMatchers(HttpMethod.POST, "/api/auth/logout").permitAll()
@@ -88,41 +88,55 @@ public class SecurityConfig {
 						.requestMatchers(HttpMethod.GET, "/api/test").permitAll()
 
 						/*
-						 * User registration stays open for now, matching your current project state.
+						 * Öffentliche Registrierung bleibt vorerst offen.
 						 */
 						.requestMatchers(HttpMethod.POST, "/api/users").permitAll()
 
 						/*
-						 * Public read endpoints for the current MVP.
+						 * Der aktuell eingeloggte Benutzer darf seine eigene E-Mail ändern.
+						 */
+						.requestMatchers(HttpMethod.PUT, "/api/users/me/email").authenticated()
+
+						/*
+						 * Benutzerverwaltung außerhalb des Self-Service ist administrativ.
+						 */
+						.requestMatchers(HttpMethod.GET, "/api/users").hasAnyRole("ADMIN", "BOARD")
+						.requestMatchers(HttpMethod.GET, "/api/users/**").hasAnyRole("ADMIN", "BOARD")
+						.requestMatchers(HttpMethod.PUT, "/api/users/**").hasAnyRole("ADMIN", "BOARD")
+						.requestMatchers(HttpMethod.DELETE, "/api/users/**").hasAnyRole("ADMIN", "BOARD")
+
+						/*
+						 * Öffentliche Read-Endpunkte für den aktuellen MVP.
 						 */
 						.requestMatchers(HttpMethod.GET, "/api/teams").permitAll()
-						.requestMatchers(HttpMethod.GET, "/api/teams/**").permitAll()
+						.requestMatchers(HttpMethod.GET, "/api/teams/*").permitAll()
+						.requestMatchers(HttpMethod.GET, "/api/teams/*/memberships").permitAll()
 						.requestMatchers(HttpMethod.GET, "/api/members").permitAll()
 						.requestMatchers(HttpMethod.GET, "/api/members/**").permitAll()
 
 						/*
-						 * Administrative write access for members.
+						 * Administrative Write-Zugriffe für Members.
 						 */
 						.requestMatchers(HttpMethod.POST, "/api/members").hasAnyRole("ADMIN", "BOARD")
 						.requestMatchers(HttpMethod.PUT, "/api/members/**").hasAnyRole("ADMIN", "BOARD")
 						.requestMatchers(HttpMethod.DELETE, "/api/members/**").hasAnyRole("ADMIN", "BOARD")
 
 						/*
-						 * Administrative write access for teams.
+						 * Administrative Write-Zugriffe für Teams.
 						 */
 						.requestMatchers(HttpMethod.POST, "/api/teams").hasAnyRole("ADMIN", "BOARD")
-						.requestMatchers(HttpMethod.PUT, "/api/teams/**").hasAnyRole("ADMIN", "BOARD")
-						.requestMatchers(HttpMethod.DELETE, "/api/teams/**").hasAnyRole("ADMIN", "BOARD")
+						.requestMatchers(HttpMethod.PUT, "/api/teams/*").hasAnyRole("ADMIN", "BOARD")
+						.requestMatchers(HttpMethod.DELETE, "/api/teams/*").hasAnyRole("ADMIN", "BOARD")
 
 						/*
-						 * Team membership changes should also be administrative.
+						 * TeamMembership-Änderungen sind ebenfalls administrativ.
 						 */
-						.requestMatchers(HttpMethod.POST, "/api/team-memberships").hasAnyRole("ADMIN", "BOARD")
-						.requestMatchers(HttpMethod.PUT, "/api/team-memberships/**").hasAnyRole("ADMIN", "BOARD")
-						.requestMatchers(HttpMethod.DELETE, "/api/team-memberships/**").hasAnyRole("ADMIN", "BOARD")
+						.requestMatchers(HttpMethod.POST, "/api/teams/*/memberships").hasAnyRole("ADMIN", "BOARD")
+						.requestMatchers(HttpMethod.PUT, "/api/teams/*/memberships/*").hasAnyRole("ADMIN", "BOARD")
+						.requestMatchers(HttpMethod.DELETE, "/api/teams/*/memberships/*").hasAnyRole("ADMIN", "BOARD")
 
 						/*
-						 * Everything else requires authentication.
+						 * Alles andere benötigt Authentifizierung.
 						 */
 						.anyRequest().authenticated());
 
@@ -130,7 +144,7 @@ public class SecurityConfig {
 	}
 
 	/**
-	 * Global CORS configuration for the React frontend.
+	 * Globale CORS-Konfiguration für das React-Frontend.
 	 */
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {

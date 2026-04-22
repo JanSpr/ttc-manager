@@ -6,11 +6,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.*;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
@@ -21,7 +23,7 @@ import org.springframework.web.server.ResponseStatusException;
  * REST-Endpunkte für Login, Logout und aktuellen Benutzer.
  *
  * Session-basierter Ablauf: - POST /api/auth/login authentifiziert Benutzer und
- * speichert SecurityContext in der Session - GET /api/auth/me liefert den
+ * speichert den SecurityContext in der Session - GET /api/auth/me liefert den
  * aktuell eingeloggten Benutzer - POST /api/auth/logout beendet die Session
  */
 @RestController
@@ -67,7 +69,8 @@ public class AuthController {
 	 */
 	@GetMapping("/me")
 	public AuthResponse me(Authentication authentication) {
-		if (authentication == null || !authentication.isAuthenticated()) {
+		if (authentication == null || !authentication.isAuthenticated()
+				|| authentication instanceof AnonymousAuthenticationToken) {
 			return AuthResponse.unauthenticated();
 		}
 
@@ -82,7 +85,7 @@ public class AuthController {
 	@ResponseStatus(HttpStatus.OK)
 	public AuthResponse logout(HttpServletRequest request, HttpServletResponse response,
 			Authentication authentication) {
-		if (authentication != null) {
+		if (authentication != null && !(authentication instanceof AnonymousAuthenticationToken)) {
 			new SecurityContextLogoutHandler().logout(request, response, authentication);
 		}
 
