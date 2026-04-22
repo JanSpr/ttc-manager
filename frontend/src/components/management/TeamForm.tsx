@@ -16,6 +16,8 @@ type TeamFormProps = {
   onSubmit: (request: TeamUpsertRequest) => Promise<void>;
   onCancelEdit?: () => void;
   onDelete?: () => Promise<void>;
+  showHeader?: boolean;
+  showSelectedInfo?: boolean;
 };
 
 type FormValues = {
@@ -140,6 +142,8 @@ function TeamForm({
   onSubmit,
   onCancelEdit,
   onDelete,
+  showHeader = true,
+  showSelectedInfo = true,
 }: TeamFormProps) {
   const [values, setValues] = useState<FormValues>(() => createFormValues(team));
   const [errorMessage, setErrorMessage] = useState("");
@@ -189,18 +193,20 @@ function TeamForm({
 
   return (
     <form onSubmit={handleSubmit} style={formStyle}>
-      <div style={headerStyle}>
-        <div>
-          <h2 style={titleStyle}>{title}</h2>
-          <p style={descriptionStyle}>
-            {isEditMode
-              ? "Passe hier Name, Kategorie und Beschreibung der Mannschaft an."
-              : "Lege hier eine neue Mannschaft für den Spielbetrieb oder die Planung an."}
-          </p>
+      {showHeader ? (
+        <div style={headerStyle}>
+          <div>
+            <h2 style={titleStyle}>{title}</h2>
+            <p style={descriptionStyle}>
+              {isEditMode
+                ? "Passe hier Name, Kategorie und Beschreibung der Mannschaft an."
+                : "Lege hier eine neue Mannschaft für den Spielbetrieb oder die Planung an."}
+            </p>
+          </div>
         </div>
-      </div>
+      ) : null}
 
-      {isEditMode && team ? (
+      {isEditMode && team && showSelectedInfo ? (
         <div style={selectedInfoStyle}>
           <div style={selectedIconStyle}>{getTeamShortCode(team)}</div>
 
