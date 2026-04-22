@@ -86,7 +86,7 @@ public class UserService {
 		user.setLastName(normalizedLastName);
 		user.setUsername(generatedUsername);
 		user.setEmail(normalizedEmail);
-		user.setPasswordHash(passwordEncoder.encode(request.getPasswordHash()));
+		user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
 		user.setActive(request.getActive());
 		user.setRoles(copyRoles(request.getRoles()));
 
@@ -102,7 +102,7 @@ public class UserService {
 		existingUser.setFirstName(request.getFirstName().trim());
 		existingUser.setLastName(request.getLastName().trim());
 		existingUser.setEmail(normalizeEmail(request.getEmail()));
-		existingUser.setPasswordHash(passwordEncoder.encode(request.getPasswordHash()));
+		existingUser.setPasswordHash(passwordEncoder.encode(request.getPassword()));
 		existingUser.setActive(request.getActive());
 		existingUser.setRoles(copyRoles(request.getRoles()));
 

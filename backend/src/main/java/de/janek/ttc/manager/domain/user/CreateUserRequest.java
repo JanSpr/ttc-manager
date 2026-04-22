@@ -13,6 +13,10 @@ import java.util.Set;
  *
  * Aktueller Stand: - Namen bleiben vorerst noch im User - globale Rollen statt
  * alter UserRole - kein direkter Team-Bezug mehr
+ *
+ * Wichtige fachliche Klarstellung: - dieses DTO enthält das Passwort im
+ * Klartext aus dem Request - das Hashing passiert erst im Service - deshalb
+ * heißt das Feld bewusst "password" und nicht "passwordHash"
  */
 public class CreateUserRequest {
 
@@ -31,7 +35,7 @@ public class CreateUserRequest {
 
 	@NotBlank(message = "Das Passwort darf nicht leer sein.")
 	@Size(max = 255, message = "Das Passwort darf maximal 255 Zeichen lang sein.")
-	private String passwordHash;
+	private String password;
 
 	@NotNull(message = "Es muss angegeben werden, ob der Benutzer aktiv ist.")
 	private Boolean active;
@@ -70,12 +74,12 @@ public class CreateUserRequest {
 		this.email = email;
 	}
 
-	public String getPasswordHash() {
-		return passwordHash;
+	public String getPassword() {
+		return password;
 	}
 
-	public void setPasswordHash(String passwordHash) {
-		this.passwordHash = passwordHash;
+	public void setPassword(String password) {
+		this.password = password;
 	}
 
 	public Boolean getActive() {
