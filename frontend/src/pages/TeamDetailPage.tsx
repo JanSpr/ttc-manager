@@ -26,7 +26,7 @@ function formatMembershipRole(membership: TeamMembershipSummary): string {
   return labels.length > 0 ? labels.join(" · ") : "Keine Teamfunktion";
 }
 
-function formatLineupPosition(position: number | null): string {
+function formatLineupPosition(position: number | null | undefined): string {
   if (position == null) {
     return "–";
   }
@@ -103,7 +103,10 @@ export default function TeamDetailPage() {
             ) : (
               <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
                 {team.memberships.map((membership) => (
-                  <li key={membership.memberId} style={{ marginTop: "0.85rem" }}>
+                  <li
+                    key={membership.membershipId}
+                    style={{ marginTop: "0.85rem" }}
+                  >
                     <Link
                       to={`/members/${membership.memberId}`}
                       state={{
