@@ -93,8 +93,9 @@ public class SecurityConfig {
 						.requestMatchers(HttpMethod.POST, "/api/users").permitAll()
 
 						/*
-						 * Der aktuell eingeloggte Benutzer darf seine eigene E-Mail ändern.
+						 * Self-Service für eingeloggte Benutzer.
 						 */
+						.requestMatchers(HttpMethod.GET, "/api/users/me").authenticated()
 						.requestMatchers(HttpMethod.PUT, "/api/users/me/email").authenticated()
 
 						/*

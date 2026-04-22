@@ -64,6 +64,15 @@ public class UserService {
 		return toResponse(user);
 	}
 
+	/**
+	 * Liefert den aktuell eingeloggten Benutzer anhand des LoginIdentifiers aus dem
+	 * Security-Kontext.
+	 */
+	@Transactional(readOnly = true)
+	public UserResponse findCurrentUser(String loginIdentifier) {
+		return findByLoginIdentifier(loginIdentifier);
+	}
+
 	@Transactional(readOnly = true)
 	public User getUserEntityByLoginIdentifier(String identifier) {
 		String normalizedIdentifier = normalizeLoginIdentifier(identifier);

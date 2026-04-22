@@ -11,7 +11,8 @@ import java.util.List;
  * REST-Controller für Benutzer.
  *
  * Aktueller Zwischenstand: - keine direkte Team-Zuordnung mehr über
- * User-Endpunkte - TeamMemberships werden über eigene Endpunkte verwaltet
+ * User-Endpunkte - TeamMemberships werden über eigene Endpunkte verwaltet -
+ * Self-Service-Endpunkte laufen über /api/users/me
  */
 @RestController
 @RequestMapping("/api/users")
@@ -31,6 +32,17 @@ public class UserController {
 	@GetMapping
 	public List<UserResponse> getAllUsers() {
 		return userService.findAll();
+	}
+
+	/**
+	 * Gibt den aktuell eingeloggten Benutzer zurück.
+	 *
+	 * @param authentication aktuelle Spring-Security-Authentication
+	 * @return aktueller Benutzer als Response-DTO
+	 */
+	@GetMapping("/me")
+	public UserResponse getCurrentUser(Authentication authentication) {
+		return userService.findCurrentUser(authentication.getName());
 	}
 
 	/**
