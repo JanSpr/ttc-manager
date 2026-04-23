@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { CSSProperties, FormEvent, ReactNode } from "react";
+import type { CSSProperties, FormEvent } from "react";
 import FormField from "../ui/FormField";
 import StatusMessage from "../ui/StatusMessage";
 import type { Team, TeamType, TeamUpsertRequest } from "../../types/team";
@@ -9,6 +9,25 @@ import {
   secondaryButtonStyle,
   textInputStyle,
 } from "../../styles/ui";
+import { SaveIcon, TrashIcon } from "./ManagementFormIcons";
+import {
+  managementFormActionsWrapperStyle,
+  managementFormCenteredActionsStyle,
+  managementFormCompactPrimaryButtonStyle,
+  managementFormCompactSecondaryButtonStyle,
+  managementFormDangerButtonStyle,
+  managementFormDangerRowStyle,
+  managementFormDescriptionStyle,
+  managementFormGridStyle,
+  managementFormHeaderStyle,
+  managementFormHintStyle,
+  managementFormStyle,
+  managementFormTitleStyle,
+  managementSelectedBadgeStyle,
+  managementSelectedInfoStyle,
+  managementSelectedMetaStyle,
+  managementSelectedNameStyle,
+} from "./managementFormStyles";
 
 type TeamFormProps = {
   team?: Team | null;
@@ -24,10 +43,6 @@ type FormValues = {
   name: string;
   description: string;
   type: TeamType;
-};
-
-type IconProps = {
-  size?: number;
 };
 
 function createFormValues(team?: Team | null): FormValues {
@@ -65,75 +80,6 @@ function getTeamShortCode(team: Pick<Team, "name" | "type">): string {
   }
 
   return teamNumber ? `H${teamNumber}` : "H";
-}
-
-function IconWrapper({
-  children,
-  size = 16,
-}: {
-  children: ReactNode;
-  size?: number;
-}) {
-  return (
-    <span
-      aria-hidden="true"
-      style={{
-        display: "inline-flex",
-        width: size,
-        height: size,
-        alignItems: "center",
-        justifyContent: "center",
-        color: "currentColor",
-        flexShrink: 0,
-      }}
-    >
-      {children}
-    </span>
-  );
-}
-
-function SaveIcon({ size = 16 }: IconProps) {
-  return (
-    <IconWrapper size={size}>
-      <svg
-        viewBox="0 0 24 24"
-        width={size}
-        height={size}
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.9"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M5 3h11l3 3v15H5z" />
-        <path d="M8 3v6h8V3" />
-        <path d="M9 17h6" />
-      </svg>
-    </IconWrapper>
-  );
-}
-
-function TrashIcon({ size = 17 }: IconProps) {
-  return (
-    <IconWrapper size={size}>
-      <svg
-        viewBox="0 0 24 24"
-        width={size}
-        height={size}
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.9"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M3 6h18" />
-        <path d="M8 6V4h8v2" />
-        <path d="M19 6l-1 14H6L5 6" />
-        <path d="M10 10v6" />
-        <path d="M14 10v6" />
-      </svg>
-    </IconWrapper>
-  );
 }
 
 function TeamForm({
@@ -192,12 +138,12 @@ function TeamForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} style={formStyle}>
+    <form onSubmit={handleSubmit} style={managementFormStyle}>
       {showHeader ? (
-        <div style={headerStyle}>
+        <div style={managementFormHeaderStyle}>
           <div>
-            <h2 style={titleStyle}>{title}</h2>
-            <p style={descriptionStyle}>
+            <h2 style={managementFormTitleStyle}>{title}</h2>
+            <p style={managementFormDescriptionStyle}>
               {isEditMode
                 ? "Passe hier Name, Kategorie und Beschreibung der Mannschaft an."
                 : "Lege hier eine neue Mannschaft für den Spielbetrieb oder die Planung an."}
@@ -207,12 +153,12 @@ function TeamForm({
       ) : null}
 
       {isEditMode && team && showSelectedInfo ? (
-        <div style={selectedInfoStyle}>
-          <div style={selectedIconStyle}>{getTeamShortCode(team)}</div>
+        <div style={managementSelectedInfoStyle}>
+          <div style={managementSelectedBadgeStyle}>{getTeamShortCode(team)}</div>
 
           <div style={{ minWidth: 0 }}>
-            <div style={selectedNameStyle}>{team.name}</div>
-            <div style={selectedMetaStyle}>
+            <div style={managementSelectedNameStyle}>{team.name}</div>
+            <div style={managementSelectedMetaStyle}>
               ID: {team.id}
               {" · "}
               {getTeamTypeLabel(team.type)}
@@ -224,7 +170,7 @@ function TeamForm({
         </div>
       ) : null}
 
-      <div style={gridStyle}>
+      <div style={managementFormGridStyle}>
         <FormField label="Name" htmlFor="team-name">
           <input
             id="team-name"
@@ -269,7 +215,7 @@ function TeamForm({
         />
       </FormField>
 
-      <p style={hintStyle}>
+      <p style={managementFormHintStyle}>
         Die Beschreibung ist optional und eignet sich zum Beispiel für Liga,
         Altersklasse, Saisonhinweise oder interne Notizen.
       </p>
@@ -281,14 +227,14 @@ function TeamForm({
       ) : null}
 
       {isEditMode ? (
-        <div style={actionsWrapperStyle}>
-          <div style={centeredActionsStyle}>
+        <div style={managementFormActionsWrapperStyle}>
+          <div style={managementFormCenteredActionsStyle}>
             <button
               type="submit"
               disabled={isSubmitting}
               style={{
                 ...primaryButtonStyle,
-                ...compactPrimaryButtonStyle,
+                ...managementFormCompactPrimaryButtonStyle,
                 opacity: isSubmitting ? 0.7 : 1,
                 cursor: isSubmitting ? "default" : "pointer",
                 display: "inline-flex",
@@ -306,7 +252,7 @@ function TeamForm({
               disabled={isSubmitting}
               style={{
                 ...secondaryButtonStyle,
-                ...compactSecondaryButtonStyle,
+                ...managementFormCompactSecondaryButtonStyle,
                 opacity: isSubmitting ? 0.7 : 1,
                 cursor: isSubmitting ? "default" : "pointer",
               }}
@@ -315,13 +261,13 @@ function TeamForm({
             </button>
           </div>
 
-          <div style={dangerRowStyle}>
+          <div style={managementFormDangerRowStyle}>
             <button
               type="button"
               onClick={() => void onDelete?.()}
               disabled={isSubmitting}
               style={{
-                ...dangerButtonStyle,
+                ...managementFormDangerButtonStyle,
                 opacity: isSubmitting ? 0.7 : 1,
                 cursor: isSubmitting ? "default" : "pointer",
                 display: "inline-flex",
@@ -335,14 +281,14 @@ function TeamForm({
           </div>
         </div>
       ) : (
-        <div style={actionsWrapperStyle}>
-          <div style={centeredActionsStyle}>
+        <div style={managementFormActionsWrapperStyle}>
+          <div style={managementFormCenteredActionsStyle}>
             <button
               type="submit"
               disabled={isSubmitting}
               style={{
                 ...primaryButtonStyle,
-                ...compactPrimaryButtonStyle,
+                ...managementFormCompactPrimaryButtonStyle,
                 opacity: isSubmitting ? 0.7 : 1,
                 cursor: isSubmitting ? "default" : "pointer",
                 display: "inline-flex",
@@ -360,7 +306,7 @@ function TeamForm({
               disabled={isSubmitting}
               style={{
                 ...secondaryButtonStyle,
-                ...compactSecondaryButtonStyle,
+                ...managementFormCompactSecondaryButtonStyle,
                 opacity: isSubmitting ? 0.7 : 1,
                 cursor: isSubmitting ? "default" : "pointer",
               }}
@@ -374,120 +320,10 @@ function TeamForm({
   );
 }
 
-const formStyle: CSSProperties = {
-  display: "grid",
-  gap: "1.1rem",
+const spacerStyle: CSSProperties = {
+  display: "contents",
 };
 
-const headerStyle: CSSProperties = {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "flex-start",
-  gap: "1rem",
-  flexWrap: "wrap",
-};
-
-const titleStyle: CSSProperties = {
-  margin: 0,
-  fontSize: "1.05rem",
-  fontWeight: 800,
-  color: colors.text,
-};
-
-const descriptionStyle: CSSProperties = {
-  margin: "0.35rem 0 0 0",
-  color: colors.textMuted,
-  lineHeight: 1.5,
-  fontSize: "0.95rem",
-};
-
-const selectedInfoStyle: CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  gap: "0.85rem",
-  padding: "0.9rem",
-  borderRadius: "14px",
-  border: `1px solid ${colors.border}`,
-  backgroundColor: colors.surfaceSoft,
-};
-
-const selectedIconStyle: CSSProperties = {
-  width: "42px",
-  height: "42px",
-  borderRadius: "12px",
-  border: `1px solid ${colors.borderStrong}`,
-  background: "linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%)",
-  color: colors.primary,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  fontWeight: 800,
-  fontSize: "0.95rem",
-  flexShrink: 0,
-};
-
-const selectedNameStyle: CSSProperties = {
-  color: colors.text,
-  fontWeight: 700,
-};
-
-const selectedMetaStyle: CSSProperties = {
-  marginTop: "0.2rem",
-  color: colors.textMuted,
-  fontSize: "0.88rem",
-  lineHeight: 1.5,
-};
-
-const gridStyle: CSSProperties = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-  gap: "1rem",
-};
-
-const hintStyle: CSSProperties = {
-  margin: 0,
-  color: colors.textMuted,
-  fontSize: "0.92rem",
-  lineHeight: 1.55,
-};
-
-const actionsWrapperStyle: CSSProperties = {
-  display: "grid",
-  gap: "0.9rem",
-};
-
-const centeredActionsStyle: CSSProperties = {
-  display: "flex",
-  justifyContent: "center",
-  gap: "0.65rem",
-  flexWrap: "wrap",
-};
-
-const dangerRowStyle: CSSProperties = {
-  display: "flex",
-  justifyContent: "center",
-};
-
-const compactPrimaryButtonStyle: CSSProperties = {
-  minHeight: "40px",
-  padding: "0.62rem 0.95rem",
-  borderRadius: "10px",
-};
-
-const compactSecondaryButtonStyle: CSSProperties = {
-  minHeight: "40px",
-  padding: "0.62rem 0.95rem",
-  borderRadius: "10px",
-};
-
-const dangerButtonStyle: CSSProperties = {
-  minHeight: "42px",
-  padding: "0.62rem 1rem",
-  borderRadius: "10px",
-  border: "1px solid #fecaca",
-  backgroundColor: colors.dangerSoft,
-  color: colors.danger,
-  fontWeight: 700,
-};
+void spacerStyle;
 
 export default TeamForm;
