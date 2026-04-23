@@ -76,14 +76,23 @@ function TeamAvatar({ teamName }: { teamName: string }) {
   );
 }
 
-function MemberAvatar({ fullName }: { fullName: string }) {
+function MemberAvatar({
+  fullName,
+  size = 46,
+}: {
+  fullName: string;
+  size?: number;
+}) {
+  const fontSize = size <= 34 ? "0.78rem" : "0.95rem";
+  const borderRadius = size <= 34 ? "10px" : "14px";
+
   return (
     <div
       aria-hidden="true"
       style={{
-        width: "48px",
-        height: "48px",
-        borderRadius: "14px",
+        width: `${size}px`,
+        height: `${size}px`,
+        borderRadius,
         border: `1px solid ${colors.border}`,
         background: "linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%)",
         color: colors.primary,
@@ -91,7 +100,7 @@ function MemberAvatar({ fullName }: { fullName: string }) {
         alignItems: "center",
         justifyContent: "center",
         fontWeight: 700,
-        fontSize: "0.95rem",
+        fontSize,
         flexShrink: 0,
         boxShadow: "0 6px 16px rgba(15, 23, 42, 0.05)",
         userSelect: "none",
@@ -116,14 +125,14 @@ function getStatusBadgeStyle(isActive: boolean) {
 
 const profileBadgeStyle = {
   ...badgeStyle,
-  fontSize: "0.75rem",
-  padding: "0.2rem 0.5rem",
-  fontWeight: 600,
+  fontSize: "0.82rem",
+  padding: "0.28rem 0.62rem",
+  fontWeight: 700,
 };
 
 const lineupBadgeStyle = {
-  minWidth: "40px",
-  height: "40px",
+  minWidth: "38px",
+  height: "38px",
   borderRadius: "12px",
   border: `1px solid ${colors.border}`,
   backgroundColor: colors.surface,
@@ -175,6 +184,8 @@ export default function TeamDetailPage() {
     void loadTeamDetail();
   }, [id]);
 
+  const captain = team?.memberships.find((membership) => membership.captain);
+
   return (
     <div
       style={{
@@ -210,28 +221,96 @@ export default function TeamDetailPage() {
           <PageIntro
             title={team.name}
             description={team.description || "Keine Beschreibung vorhanden."}
-            eyebrow={
-              <div
-                style={{
-                  position: "absolute",
-                  left: "1.75rem",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  margin: 0,
-                }}
-              >
-                <TeamAvatar teamName={team.name} />
-              </div>
-            }
+            eyebrow="Mannschaft"
             style={{
               position: "relative",
-              minHeight: "112px",
               paddingLeft: "6.75rem",
+              paddingRight: captain ? "20rem" : "1.75rem",
+              minHeight: captain ? "150px" : "112px",
               display: "flex",
               flexDirection: "column",
               justifyContent: "center",
             }}
           />
+
+          <div
+            style={{
+              position: "relative",
+              marginTop: "-10.9rem",
+              pointerEvents: "none",
+            }}
+          >
+            <div
+              style={{
+                position: "absolute",
+                left: "1.75rem",
+                top: "2.35rem",
+                pointerEvents: "auto",
+              }}
+            >
+              <TeamAvatar teamName={team.name} />
+            </div>
+
+            {captain ? (
+              <div
+                style={{
+                  position: "absolute",
+                  right: "1.75rem",
+                  bottom: "2.55rem",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.6rem",
+                  pointerEvents: "auto",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: "0.78rem",
+                    fontWeight: 700,
+                    color: colors.textMuted,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Mannschaftsführer:
+                </div>
+
+                <Link
+                  to={`/members/${captain.memberId}`}
+                  style={{ textDecoration: "none", display: "block" }}
+                >
+                  <ClickableCard
+                    style={{
+                      padding: "0.38rem 0.58rem",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.5rem",
+                      }}
+                    >
+                      <MemberAvatar
+                        fullName={captain.memberFullName}
+                        size={30}
+                      />
+
+                      <div
+                        style={{
+                          fontSize: "0.92rem",
+                          fontWeight: 700,
+                          color: colors.text,
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {captain.memberFullName}
+                      </div>
+                    </div>
+                  </ClickableCard>
+                </Link>
+              </div>
+            ) : null}
+          </div>
 
           <Card>
             <h2 style={cardTitleStyle}>Mannschaftsmitglieder</h2>
@@ -259,7 +338,7 @@ export default function TeamDetailPage() {
                       key={membership.memberId}
                       style={{
                         display: "grid",
-                        gridTemplateColumns: "40px minmax(0, 1fr)",
+                        gridTemplateColumns: "38px minmax(0, 1fr)",
                         alignItems: "center",
                         gap: "0.75rem",
                       }}
