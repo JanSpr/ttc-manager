@@ -38,6 +38,8 @@ type MemberFormProps = {
   onSubmit: (request: MemberUpsertRequest) => Promise<void>;
   onCancelEdit?: () => void;
   onDelete?: () => Promise<void>;
+  showHeader?: boolean;
+  showSelectedInfo?: boolean;
 };
 
 type FormValues = {
@@ -69,12 +71,20 @@ function getMemberTypeLabel(type: MemberType): string {
   return type === "ADULT" ? "Erwachsene" : "Jugend";
 }
 
+function getMemberInitials(member: Pick<Member, "firstName" | "lastName">): string {
+  return `${member.firstName.charAt(0)}${member.lastName.charAt(0)}`
+    .toUpperCase()
+    .trim() || "?";
+}
+
 function MemberForm({
   member,
   isSubmitting,
   onSubmit,
   onCancelEdit,
   onDelete,
+  showHeader = true,
+  showSelectedInfo = true,
 }: MemberFormProps) {
   const [values, setValues] = useState<FormValues>(() => createFormValues(member));
   const [errorMessage, setErrorMessage] = useState("");
@@ -144,23 +154,23 @@ function MemberForm({
 
   return (
     <form onSubmit={handleSubmit} style={managementFormStyle}>
-      <div style={managementFormHeaderStyle}>
-        <div>
-          <h2 style={managementFormTitleStyle}>{title}</h2>
-          <p style={managementFormDescriptionStyle}>
-            {isEditMode
-              ? "Passe hier Stammdaten und die optionale User-Verknüpfung des Mitglieds an."
-              : "Erfasse hier ein neues Vereinsmitglied und ordne es bei Bedarf direkt einem User zu."}
-          </p>
+      {showHeader ? (
+        <div style={managementFormHeaderStyle}>
+          <div>
+            <h2 style={managementFormTitleStyle}>{title}</h2>
+            <p style={managementFormDescriptionStyle}>
+              {isEditMode
+                ? "Passe hier Stammdaten und die optionale User-Verknüpfung des Mitglieds an."
+                : "Erfasse hier ein neues Vereinsmitglied und ordne es bei Bedarf direkt einem User zu."}
+            </p>
+          </div>
         </div>
-      </div>
+      ) : null}
 
-      {isEditMode && member ? (
+      {isEditMode && member && showSelectedInfo ? (
         <div style={managementSelectedInfoStyle}>
           <div style={managementSelectedBadgeStyle}>
-            {`${member.firstName.charAt(0)}${member.lastName.charAt(0)}`
-              .toUpperCase()
-              .trim() || "?"}
+            {getMemberInitials(member)}
           </div>
 
           <div style={{ minWidth: 0 }}>
