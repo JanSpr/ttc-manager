@@ -1,4 +1,5 @@
 import { useState } from "react";
+
 import Card from "../../ui/Card";
 import MemberForm from "./MemberForm";
 import EditorSection from "../common/EditorSection";
@@ -6,11 +7,14 @@ import type { Member, MemberUpsertRequest } from "../../../types/member";
 import { colors } from "../../../styles/ui";
 import { EditIcon } from "../common/ManagementIcons";
 
+type EditorMode = "closed" | "create" | "edit";
+
 type MembersEditorPanelProps = {
-  selectedMember: Member | null;
+  editorMode: EditorMode;
+  member: Member | null;
   isSubmitting: boolean;
   onSubmit: (request: MemberUpsertRequest) => Promise<void>;
-  onCancel: () => void;
+  onCancelEdit: () => void;
   onDelete?: () => Promise<void>;
 };
 
@@ -25,53 +29,70 @@ function getMemberInitials(member: Pick<Member, "firstName" | "lastName">): stri
 }
 
 function MembersEditorPanel({
-  selectedMember,
+  editorMode,
+  member,
   isSubmitting,
   onSubmit,
-  onCancel,
+  onCancelEdit,
   onDelete,
 }: MembersEditorPanelProps) {
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(editorMode !== "closed");
 
-  const isEditMode = Boolean(selectedMember);
+  const isEditMode = editorMode === "edit" && Boolean(member);
+  const isCreateMode = editorMode === "create";
+
+  const formKey =
+    editorMode === "edit"
+      ? `edit-member-${member?.id ?? "unknown"}`
+      : editorMode === "create"
+        ? "new-member"
+        : "closed-member";
 
   return (
     <Card style={{ marginTop: 0 }}>
       <div style={{ display: "grid", gap: "1rem" }}>
-        {isEditMode && selectedMember ? (
+        {isEditMode && member ? (
           <div style={memberSummaryCardStyle}>
-            <div style={memberSummaryIconStyle}>
-              {getMemberInitials(selectedMember)}
-            </div>
+            <div style={memberSummaryIconStyle}>{getMemberInitials(member)}</div>
 
             <div style={{ minWidth: 0, flex: 1 }}>
-              <div style={memberSummaryNameStyle}>{selectedMember.fullName}</div>
+              <div style={memberSummaryNameStyle}>{member.fullName}</div>
+
               <div style={memberSummaryMetaStyle}>
-                ID: {selectedMember.id}
-                {selectedMember.userId != null
-                  ? ` · User-ID ${selectedMember.userId}`
-                  : ""}
+                ID: {member.id}
+                {member.userId != null ? ` · User-ID ${member.userId}` : ""}
                 {" · "}
-                {getMemberTypeLabel(selectedMember.type)}
+                {getMemberTypeLabel(member.type)}
               </div>
             </div>
           </div>
         ) : null}
 
         <EditorSection
+          sectionId="member-data"
           title="Mitgliedsdaten"
-          actionLabel={isDetailsOpen ? "Schließen" : "Bearbeiten"}
+          description={
+            isCreateMode
+              ? "Lege hier ein neues Vereinsmitglied an."
+              : "Pflege hier die Stammdaten und die optionale User-Verknüpfung."
+          }
+          actionLabel={isDetailsOpen ? "Schließen" : isCreateMode ? "Formular öffnen" : "Bearbeiten"}
           actionIcon={<EditIcon />}
           isOpen={isDetailsOpen}
           onToggle={() => setIsDetailsOpen((current) => !current)}
-          collapsedHint="Stammdaten und optionale User-Verknüpfung des Mitglieds bearbeiten."
+          collapsedHint={
+            isCreateMode
+              ? "Öffne das Formular, um ein neues Mitglied anzulegen."
+              : "Öffne den Bereich, um die Stammdaten dieses Mitglieds zu bearbeiten."
+          }
         >
           <MemberForm
-            member={selectedMember}
+            key={formKey}
+            member={editorMode === "edit" ? member : null}
             isSubmitting={isSubmitting}
             onSubmit={onSubmit}
-            onCancelEdit={onCancel}
-            onDelete={onDelete}
+            onCancelEdit={onCancelEdit}
+            onDelete={editorMode === "edit" ? onDelete : undefined}
             showHeader={false}
             showSelectedInfo={false}
           />

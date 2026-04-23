@@ -1,25 +1,52 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { badgeStyle, colors } from "../../../styles/ui";
 
 type EditorSectionProps = {
+  sectionId?: string;
   title: string;
-  actionLabel: string;
+  description?: string;
+  actionLabel?: string;
   actionIcon?: ReactNode;
+  actions?: ReactNode;
+  headerContent?: ReactNode;
   isOpen: boolean;
   onToggle: () => void;
-  collapsedHint: string;
+  collapsedHint?: string;
   children: ReactNode;
 };
 
 function EditorSection({
+  sectionId,
   title,
+  description,
   actionLabel,
   actionIcon,
+  actions,
+  headerContent,
   isOpen,
   onToggle,
   collapsedHint,
   children,
 }: EditorSectionProps) {
+  const contentId = sectionId ? `${sectionId}-content` : undefined;
+
+  const resolvedActions =
+    actions ??
+    (actionLabel ? (
+      <button
+        type="button"
+        onClick={onToggle}
+        style={sectionActionButtonStyle}
+        aria-expanded={isOpen}
+        aria-controls={contentId}
+      >
+        <span style={buttonIconTextRowStyle}>
+          {actionIcon}
+          <span>{actionLabel}</span>
+        </span>
+      </button>
+    ) : null);
+
   return (
     <section style={sectionCardStyle}>
       <div style={sectionHeaderRowStyle}>
@@ -27,31 +54,35 @@ function EditorSection({
           <div style={sectionBadgeRowStyle}>
             <span style={badgeStyle}>{title}</span>
           </div>
+
+          {description ? (
+            <p style={sectionDescriptionStyle}>{description}</p>
+          ) : null}
+
+          {headerContent ? (
+            <div style={sectionHeaderContentStyle}>{headerContent}</div>
+          ) : null}
         </div>
 
-        <button
-          type="button"
-          onClick={onToggle}
-          style={sectionActionButtonStyle}
-          aria-expanded={isOpen}
-        >
-          <span style={buttonIconTextRowStyle}>
-            {actionIcon}
-            <span>{actionLabel}</span>
-          </span>
-        </button>
+        {resolvedActions ? (
+          <div style={sectionActionsWrapperStyle}>{resolvedActions}</div>
+        ) : null}
       </div>
 
       {isOpen ? (
-        <div style={sectionContentStyle}>{children}</div>
-      ) : (
-        <div style={sectionCollapsedHintStyle}>{collapsedHint}</div>
-      )}
+        <div id={contentId} style={sectionContentStyle}>
+          {children}
+        </div>
+      ) : collapsedHint ? (
+        <div id={contentId} style={sectionCollapsedHintStyle}>
+          {collapsedHint}
+        </div>
+      ) : null}
     </section>
   );
 }
 
-const sectionCardStyle = {
+const sectionCardStyle: CSSProperties = {
   display: "grid",
   gap: "0.9rem",
   padding: "1rem",
@@ -60,26 +91,47 @@ const sectionCardStyle = {
   backgroundColor: colors.surface,
 };
 
-const sectionHeaderRowStyle = {
+const sectionHeaderRowStyle: CSSProperties = {
   display: "flex",
   justifyContent: "space-between",
   alignItems: "flex-start",
   gap: "1rem",
-  flexWrap: "wrap" as const,
+  flexWrap: "wrap",
 };
 
-const sectionHeaderTextStyle = {
+const sectionHeaderTextStyle: CSSProperties = {
   minWidth: 0,
   flex: 1,
+  display: "grid",
+  gap: "0.5rem",
 };
 
-const sectionBadgeRowStyle = {
+const sectionBadgeRowStyle: CSSProperties = {
   display: "flex",
   alignItems: "center",
   gap: "0.5rem",
 };
 
-const sectionActionButtonStyle = {
+const sectionDescriptionStyle: CSSProperties = {
+  margin: 0,
+  color: colors.textMuted,
+  fontSize: "0.95rem",
+  lineHeight: 1.5,
+};
+
+const sectionHeaderContentStyle: CSSProperties = {
+  display: "grid",
+  gap: "0.5rem",
+};
+
+const sectionActionsWrapperStyle: CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: "0.5rem",
+  flexShrink: 0,
+};
+
+const sectionActionButtonStyle: CSSProperties = {
   minHeight: "38px",
   padding: "0.55rem 0.8rem",
   borderRadius: "10px",
@@ -91,12 +143,12 @@ const sectionActionButtonStyle = {
   flexShrink: 0,
 };
 
-const sectionContentStyle = {
+const sectionContentStyle: CSSProperties = {
   display: "grid",
   gap: "1rem",
 };
 
-const sectionCollapsedHintStyle = {
+const sectionCollapsedHintStyle: CSSProperties = {
   padding: "0.85rem 0.95rem",
   borderRadius: "12px",
   border: `1px dashed ${colors.border}`,
@@ -106,7 +158,7 @@ const sectionCollapsedHintStyle = {
   lineHeight: 1.5,
 };
 
-const buttonIconTextRowStyle = {
+const buttonIconTextRowStyle: CSSProperties = {
   display: "inline-flex",
   alignItems: "center",
   gap: "0.5rem",
