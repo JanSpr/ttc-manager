@@ -4,7 +4,6 @@ import FormField from "../ui/FormField";
 import StatusMessage from "../ui/StatusMessage";
 import type { Team, TeamType, TeamUpsertRequest } from "../../types/team";
 import {
-  colors,
   primaryButtonStyle,
   secondaryButtonStyle,
   textInputStyle,
