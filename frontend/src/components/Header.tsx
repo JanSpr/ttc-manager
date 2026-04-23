@@ -10,15 +10,14 @@ type HeaderProps = {
   onLogout: () => void;
 };
 
-type OpenMenu = "user" | "management" | null;
-
 function Header({ user, onLogout }: HeaderProps) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [openMenu, setOpenMenu] = useState<OpenMenu>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [managementMenuOpen, setManagementMenuOpen] = useState(false);
 
-  const userMenuRef = useRef<HTMLDivElement | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
   const managementMenuRef = useRef<HTMLDivElement | null>(null);
 
   const displayName =
@@ -34,24 +33,27 @@ function Header({ user, onLogout }: HeaderProps) {
   const isTeamsActive = location.pathname.startsWith("/management/teams");
 
   useEffect(() => {
-    if (!openMenu) return;
+    if (!menuOpen && !managementMenuOpen) return;
 
     function handleClickOutside(event: MouseEvent) {
       const target = event.target as Node;
 
-      const clickedInsideUserMenu =
-        userMenuRef.current?.contains(target) ?? false;
-      const clickedInsideManagementMenu =
-        managementMenuRef.current?.contains(target) ?? false;
+      if (menuRef.current && !menuRef.current.contains(target)) {
+        setMenuOpen(false);
+      }
 
-      if (!clickedInsideUserMenu && !clickedInsideManagementMenu) {
-        setOpenMenu(null);
+      if (
+        managementMenuRef.current &&
+        !managementMenuRef.current.contains(target)
+      ) {
+        setManagementMenuOpen(false);
       }
     }
 
     function handleEscape(event: KeyboardEvent) {
       if (event.key === "Escape") {
-        setOpenMenu(null);
+        setMenuOpen(false);
+        setManagementMenuOpen(false);
       }
     }
 
@@ -62,37 +64,35 @@ function Header({ user, onLogout }: HeaderProps) {
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleEscape);
     };
-  }, [openMenu]);
+  }, [menuOpen, managementMenuOpen]);
 
-  function toggleUserMenu() {
-    setOpenMenu((prev) => (prev === "user" ? null : "user"));
+  function toggleMenu() {
+    setMenuOpen((prev) => !prev);
+    setManagementMenuOpen(false);
   }
 
   function toggleManagementMenu() {
-    setOpenMenu((prev) => (prev === "management" ? null : "management"));
-  }
-
-  function closeMenus() {
-    setOpenMenu(null);
+    setManagementMenuOpen((prev) => !prev);
+    setMenuOpen(false);
   }
 
   function handleNavigateToProfile() {
-    closeMenus();
+    setMenuOpen(false);
     navigate("/profile");
   }
 
   function handleNavigateToManagementMembers() {
-    closeMenus();
+    setManagementMenuOpen(false);
     navigate("/management/members");
   }
 
   function handleNavigateToManagementTeams() {
-    closeMenus();
+    setManagementMenuOpen(false);
     navigate("/management/teams");
   }
 
   async function handleLogoutClick() {
-    closeMenus();
+    setMenuOpen(false);
     await onLogout();
   }
 
@@ -114,7 +114,6 @@ function Header({ user, onLogout }: HeaderProps) {
 
   const managementButtonStyle: CSSProperties = {
     border: "none",
-    textDecoration: "none",
     color: isManagementActive ? colors.text : colors.textMuted,
     fontWeight: isManagementActive ? 700 : 600,
     padding: "9px 14px",
@@ -221,31 +220,37 @@ function Header({ user, onLogout }: HeaderProps) {
             {isManagementVisible ? (
               <div
                 ref={managementMenuRef}
-                style={{ position: "relative", display: "flex", alignItems: "center" }}
+                style={{
+                  position: "relative",
+                  display: "flex",
+                  alignItems: "center",
+                }}
               >
                 <button
                   type="button"
                   onClick={toggleManagementMenu}
-                  aria-expanded={openMenu === "management"}
+                  aria-expanded={managementMenuOpen}
                   style={managementButtonStyle}
                 >
                   Verwaltung
                   <span
                     style={{
+                      color: colors.textMuted,
                       fontSize: "0.8rem",
                       lineHeight: 1,
-                      transform:
-                        openMenu === "management"
-                          ? "rotate(180deg)"
-                          : "rotate(0deg)",
+                      alignSelf: "center",
+                      transform: managementMenuOpen
+                        ? "rotate(180deg)"
+                        : "rotate(0deg)",
                       transition: "transform 0.15s ease",
+                      marginLeft: "2px",
                     }}
                   >
                     ▾
                   </span>
                 </button>
 
-                {openMenu === "management" ? (
+                {managementMenuOpen ? (
                   <div
                     style={{
                       position: "absolute",
@@ -266,23 +271,17 @@ function Header({ user, onLogout }: HeaderProps) {
                         padding: "6px",
                       }}
                     >
-                      <button
-                        type="button"
+                      <ManagementMenuItem
+                        label="Mitglieder"
+                        isActive={isMembersActive}
                         onClick={handleNavigateToManagementMembers}
-                        style={dropdownItemStyle(isMembersActive)}
-                      >
-                        <span style={dropdownIconStyle}>👥</span>
-                        <span>Mitglieder</span>
-                      </button>
+                      />
 
-                      <button
-                        type="button"
+                      <ManagementMenuItem
+                        label="Mannschaften"
+                        isActive={isTeamsActive}
                         onClick={handleNavigateToManagementTeams}
-                        style={dropdownItemStyle(isTeamsActive)}
-                      >
-                        <span style={dropdownIconStyle}>🛡️</span>
-                        <span>Mannschaften</span>
-                      </button>
+                      />
                     </div>
                   </div>
                 ) : null}
@@ -292,7 +291,7 @@ function Header({ user, onLogout }: HeaderProps) {
         </div>
 
         <div
-          ref={userMenuRef}
+          ref={menuRef}
           style={{
             position: "relative",
             display: "flex",
@@ -301,8 +300,7 @@ function Header({ user, onLogout }: HeaderProps) {
         >
           <button
             type="button"
-            onClick={toggleUserMenu}
-            aria-expanded={openMenu === "user"}
+            onClick={toggleMenu}
             style={{
               padding: "8px 12px",
               borderRadius: "999px",
@@ -354,8 +352,7 @@ function Header({ user, onLogout }: HeaderProps) {
                 fontSize: "0.8rem",
                 lineHeight: 1,
                 alignSelf: "center",
-                transform:
-                  openMenu === "user" ? "rotate(180deg)" : "rotate(0deg)",
+                transform: menuOpen ? "rotate(180deg)" : "rotate(0deg)",
                 transition: "transform 0.15s ease",
                 marginLeft: "2px",
               }}
@@ -364,7 +361,7 @@ function Header({ user, onLogout }: HeaderProps) {
             </span>
           </button>
 
-          {openMenu === "user" ? (
+          {menuOpen && (
             <div
               style={{
                 position: "absolute",
@@ -435,10 +432,35 @@ function Header({ user, onLogout }: HeaderProps) {
                 </button>
               </div>
             </div>
-          ) : null}
+          )}
         </div>
       </div>
     </header>
+  );
+}
+
+function ManagementMenuItem({
+  label,
+  isActive,
+  onClick,
+}: {
+  label: string;
+  isActive: boolean;
+  onClick: () => void;
+}) {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      style={managementMenuItemStyle(isActive, isHovered)}
+    >
+      <ManagementItemIcon />
+      <span>{label}</span>
+    </button>
   );
 }
 
@@ -453,30 +475,54 @@ const menuItemStyle: CSSProperties = {
   cursor: "pointer",
 };
 
-const dropdownIconStyle: CSSProperties = {
-  width: "20px",
-  display: "inline-flex",
-  justifyContent: "center",
-  alignItems: "center",
-  fontSize: "0.95rem",
-  flexShrink: 0,
-};
-
-function dropdownItemStyle(isActive: boolean): CSSProperties {
+function managementMenuItemStyle(
+  isActive: boolean,
+  isHovered: boolean
+): CSSProperties {
   return {
     width: "100%",
     padding: "10px 12px",
     border: "none",
     borderRadius: "10px",
-    backgroundColor: isActive ? colors.primarySoft : "transparent",
-    color: isActive ? colors.text : colors.text,
+    backgroundColor: isActive
+      ? colors.primarySoft
+      : isHovered
+        ? colors.surfaceSoft
+        : "transparent",
+    color: colors.text,
     textAlign: "left",
     fontWeight: isActive ? 700 : 600,
     cursor: "pointer",
     display: "flex",
     alignItems: "center",
     gap: "10px",
+    transition: "background-color 0.15s ease, color 0.15s ease",
   };
+}
+
+const managementIconStyle: CSSProperties = {
+  width: "18px",
+  height: "18px",
+  flexShrink: 0,
+  opacity: 0.8,
+};
+
+function ManagementItemIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={managementIconStyle}
+      aria-hidden="true"
+    >
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+    </svg>
+  );
 }
 
 export default Header;
