@@ -55,6 +55,13 @@ public class TeamMembershipService {
 					+ " existiert bereits eine Membership in Team mit ID " + teamId + ".");
 		}
 
+		// 🔥 NEU: Captain-Check
+		if (Boolean.TRUE.equals(request.getCaptain())
+				&& teamMembershipRepository.existsByTeamIdAndCaptainTrue(teamId)) {
+			throw new IllegalArgumentException(
+					"Dieses Team hat bereits einen Mannschaftsführer. Bitte entferne diesen zuerst.");
+		}
+
 		TeamMembership membership = new TeamMembership();
 		membership.setTeam(team);
 		membership.setMember(member);
@@ -81,6 +88,13 @@ public class TeamMembershipService {
 		if (memberChanged && teamMembershipRepository.existsByTeamIdAndMemberId(teamId, request.getMemberId())) {
 			throw new IllegalArgumentException("Für Member mit ID " + request.getMemberId()
 					+ " existiert bereits eine Membership in Team mit ID " + teamId + ".");
+		}
+
+		// 🔥 NEU: Captain-Check (Update)
+		if (Boolean.TRUE.equals(request.getCaptain())
+				&& teamMembershipRepository.existsByTeamIdAndCaptainTrueAndIdNot(teamId, membershipId)) {
+			throw new IllegalArgumentException(
+					"Dieses Team hat bereits einen Mannschaftsführer. Bitte entferne diesen zuerst.");
 		}
 
 		existingMembership.setMember(member);
