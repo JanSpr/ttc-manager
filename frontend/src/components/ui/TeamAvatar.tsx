@@ -1,4 +1,4 @@
-import { colors } from "../../styles/ui";
+import AvatarBase from "./AvatarBase";
 
 function getTeamInitials(teamName: string): string {
   const trimmedName = teamName.trim();
@@ -17,45 +17,15 @@ function getTeamInitials(teamName: string): string {
 type TeamAvatarProps = {
   teamName: string;
   size?: number;
-  borderRadius?: string;
-  borderColor?: string;
-  fontSize?: string;
-  fontWeight?: number;
-  boxShadow?: string;
 };
 
-function TeamAvatar({
-  teamName,
-  size = 44,
-  borderRadius = "12px",
-  borderColor = colors.border,
-  fontSize = "0.9rem",
-  fontWeight = 700,
-  boxShadow = "0 6px 16px rgba(15, 23, 42, 0.05)",
-}: TeamAvatarProps) {
-  const initials = getTeamInitials(teamName);
-
+function TeamAvatar({ teamName, size = 44 }: TeamAvatarProps) {
   return (
-    <div
-      aria-hidden="true"
-      style={{
-        width: `${size}px`,
-        height: `${size}px`,
-        borderRadius,
-        border: `1px solid ${borderColor}`,
-        background: "linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%)",
-        color: colors.primary,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontWeight,
-        fontSize,
-        flexShrink: 0,
-        boxShadow,
-      }}
-    >
-      {initials}
-    </div>
+    <AvatarBase
+      initials={getTeamInitials(teamName)}
+      size={size}
+      shape="rounded"
+    />
   );
 }
 
