@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import FormField from "../../ui/FormField";
 import StatusMessage from "../../ui/StatusMessage";
@@ -45,6 +45,7 @@ type TeamFormProps = {
   onAssignCaptain: (memberId: number) => Promise<void>;
   onCancelEdit?: () => void;
   onDelete?: () => Promise<void>;
+  onSubmitSuccess?: () => void;
   showHeader?: boolean;
   showSelectedInfo?: boolean;
 };
@@ -102,18 +103,30 @@ function TeamForm({
   onAssignCaptain,
   onCancelEdit,
   onDelete,
+  onSubmitSuccess,
   showHeader = true,
   showSelectedInfo = true,
 }: TeamFormProps) {
   const [values, setValues] = useState<FormValues>(() => createFormValues(team));
   const [errorMessage, setErrorMessage] = useState("");
   const [captainSearchValue, setCaptainSearchValue] = useState("");
+  const [selectedCaptainMemberId, setSelectedCaptainMemberId] = useState<
+    number | null
+  >(null);
 
   const isEditMode = Boolean(team);
   const title = isEditMode ? "Mannschaft bearbeiten" : "Mannschaft anlegen";
 
   const currentCaptain =
     memberships.find((membership) => membership.captain) ?? null;
+
+  useEffect(() => {
+    setValues(createFormValues(team));
+  }, [team]);
+
+  useEffect(() => {
+    setSelectedCaptainMemberId(currentCaptain?.memberId ?? null);
+  }, [currentCaptain?.memberId]);
 
   const filteredCaptainCandidates = useMemo(() => {
     const normalizedSearch = captainSearchValue.trim().toLocaleLowerCase("de");
@@ -132,6 +145,14 @@ function TeamForm({
         })
       );
   }, [allMembers, captainSearchValue]);
+
+  const selectedCaptain =
+    allMembers.find((member) => member.id === selectedCaptainMemberId) ?? null;
+
+  const hasPendingCaptainChange =
+    isEditMode &&
+    selectedCaptainMemberId != null &&
+    selectedCaptainMemberId !== (currentCaptain?.memberId ?? null);
 
   function updateField<K extends keyof FormValues>(key: K, value: FormValues[K]) {
     setValues((current) => ({
@@ -166,15 +187,27 @@ function TeamForm({
       return;
     }
 
-    await onSubmit(request);
+    try {
+      await onSubmit(request);
 
-    if (!isEditMode) {
-      setValues(createFormValues(null));
+      if (isEditMode && hasPendingCaptainChange && selectedCaptainMemberId != null) {
+        await onAssignCaptain(selectedCaptainMemberId);
+      }
+
+      if (!isEditMode) {
+        setValues(createFormValues(null));
+        setCaptainSearchValue("");
+        setSelectedCaptainMemberId(null);
+      }
+
+      onSubmitSuccess?.();
+    } catch (error) {
+      console.error("Mannschaftsdaten konnten nicht gespeichert werden.", error);
     }
   }
 
-  async function handleCaptainSelect(memberId: number) {
-    await onAssignCaptain(memberId);
+  function handleCaptainSelect(memberId: number) {
+    setSelectedCaptainMemberId(memberId);
     setCaptainSearchValue("");
   }
 
@@ -269,10 +302,15 @@ function TeamForm({
           >
             <div style={captainFieldWrapperStyle}>
               <div style={captainCurrentInfoStyle}>
-                <span style={captainCurrentLabelStyle}>Aktuell:</span>
+                <span style={captainCurrentLabelStyle}>Ausgewählt:</span>
                 <span style={captainCurrentValueStyle}>
-                  {currentCaptain?.memberFullName ?? "Nicht gesetzt"}
+                  {selectedCaptain?.fullName ??
+                    currentCaptain?.memberFullName ??
+                    "Nicht gesetzt"}
                 </span>
+                {hasPendingCaptainChange ? (
+                  <span style={captainPendingBadgeStyle}>Noch nicht gespeichert</span>
+                ) : null}
               </div>
 
               <div style={captainSearchInputWrapperStyle}>
@@ -282,7 +320,7 @@ function TeamForm({
                   value={captainSearchValue}
                   onChange={(event) => setCaptainSearchValue(event.target.value)}
                   style={textInputStyle}
-                  placeholder="Mitglied suchen und als Mannschaftsführer setzen..."
+                  placeholder="Mitglied suchen und als Mannschaftsführer auswählen..."
                   disabled={isSubmitting || isMembershipSubmitting}
                 />
 
@@ -303,27 +341,33 @@ function TeamForm({
                 filteredCaptainCandidates.length > 0 ? (
                   <div style={captainResultsStyle}>
                     {filteredCaptainCandidates.slice(0, 8).map((member) => {
-                      const isCurrentCaptain =
-                        currentCaptain?.memberId === member.id;
+                      const isSelected = selectedCaptainMemberId === member.id;
+                      const isCurrentCaptain = currentCaptain?.memberId === member.id;
 
                       return (
                         <button
                           key={member.id}
                           type="button"
-                          onClick={() => void handleCaptainSelect(member.id)}
+                          onClick={() => handleCaptainSelect(member.id)}
                           disabled={isSubmitting || isMembershipSubmitting}
                           style={{
                             ...captainResultButtonStyle,
-                            backgroundColor: isCurrentCaptain
+                            backgroundColor: isSelected
                               ? colors.surfaceSoft
                               : "#ffffff",
-                            fontWeight: isCurrentCaptain ? 700 : 500,
+                            fontWeight: isSelected ? 700 : 500,
                           }}
                         >
                           <span>{member.fullName}</span>
-                          {isCurrentCaptain ? (
-                            <span style={captainCurrentBadgeStyle}>Aktuell</span>
-                          ) : null}
+
+                          <span style={captainResultMetaStyle}>
+                            {isSelected ? (
+                              <span style={captainSelectedBadgeStyle}>Ausgewählt</span>
+                            ) : null}
+                            {!isSelected && isCurrentCaptain ? (
+                              <span style={captainCurrentBadgeStyle}>Aktuell</span>
+                            ) : null}
+                          </span>
                         </button>
                       );
                     })}
@@ -338,8 +382,9 @@ function TeamForm({
           </FormField>
 
           <p style={managementFormHintStyle}>
-            Der Mannschaftsführer kann auch gesetzt werden, wenn die Person
-            nicht als Spieler in der Mannschaft geführt wird.
+            Die Auswahl wird erst beim Speichern übernommen. Der
+            Mannschaftsführer kann auch gesetzt werden, wenn die Person nicht als
+            Spieler in der Mannschaft geführt wird.
           </p>
         </div>
       ) : null}
@@ -355,30 +400,36 @@ function TeamForm({
           <div style={managementFormCenteredActionsStyle}>
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || isMembershipSubmitting}
               style={{
                 ...primaryButtonStyle,
                 ...managementFormCompactPrimaryButtonStyle,
-                opacity: isSubmitting ? 0.7 : 1,
-                cursor: isSubmitting ? "default" : "pointer",
+                opacity: isSubmitting || isMembershipSubmitting ? 0.7 : 1,
+                cursor:
+                  isSubmitting || isMembershipSubmitting ? "default" : "pointer",
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "0.55rem",
               }}
             >
               <SaveIcon />
-              <span>{isSubmitting ? "Speichern..." : "Änderungen speichern"}</span>
+              <span>
+                {isSubmitting || isMembershipSubmitting
+                  ? "Speichern..."
+                  : "Änderungen speichern"}
+              </span>
             </button>
 
             <button
               type="button"
               onClick={onCancelEdit}
-              disabled={isSubmitting}
+              disabled={isSubmitting || isMembershipSubmitting}
               style={{
                 ...secondaryButtonStyle,
                 ...managementFormCompactSecondaryButtonStyle,
-                opacity: isSubmitting ? 0.7 : 1,
-                cursor: isSubmitting ? "default" : "pointer",
+                opacity: isSubmitting || isMembershipSubmitting ? 0.7 : 1,
+                cursor:
+                  isSubmitting || isMembershipSubmitting ? "default" : "pointer",
               }}
             >
               Abbrechen
@@ -389,11 +440,12 @@ function TeamForm({
             <button
               type="button"
               onClick={() => void onDelete?.()}
-              disabled={isSubmitting}
+              disabled={isSubmitting || isMembershipSubmitting}
               style={{
                 ...managementFormDangerButtonStyle,
-                opacity: isSubmitting ? 0.7 : 1,
-                cursor: isSubmitting ? "default" : "pointer",
+                opacity: isSubmitting || isMembershipSubmitting ? 0.7 : 1,
+                cursor:
+                  isSubmitting || isMembershipSubmitting ? "default" : "pointer",
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "0.65rem",
@@ -476,6 +528,16 @@ const captainCurrentValueStyle = {
   fontWeight: 700,
 };
 
+const captainPendingBadgeStyle = {
+  flexShrink: 0,
+  padding: "0.18rem 0.5rem",
+  borderRadius: "999px",
+  backgroundColor: "#fef3c7",
+  color: "#92400e",
+  fontSize: "0.78rem",
+  fontWeight: 700,
+};
+
 const captainSearchInputWrapperStyle = {
   position: "relative" as const,
 };
@@ -517,12 +579,27 @@ const captainResultButtonStyle = {
   cursor: "pointer",
 };
 
-const captainCurrentBadgeStyle = {
+const captainResultMetaStyle = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: "0.4rem",
   flexShrink: 0,
+};
+
+const captainSelectedBadgeStyle = {
   padding: "0.18rem 0.5rem",
   borderRadius: "999px",
   backgroundColor: colors.surfaceSoft,
   color: colors.primary,
+  fontSize: "0.78rem",
+  fontWeight: 700,
+};
+
+const captainCurrentBadgeStyle = {
+  padding: "0.18rem 0.5rem",
+  borderRadius: "999px",
+  backgroundColor: "#eef2ff",
+  color: "#4338ca",
   fontSize: "0.78rem",
   fontWeight: 700,
 };

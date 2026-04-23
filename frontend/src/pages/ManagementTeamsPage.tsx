@@ -227,6 +227,7 @@ function ManagementTeamsPage() {
           : "Mannschaft konnte nicht gespeichert werden.",
         "error"
       );
+      throw error;
     } finally {
       setIsSubmitting(false);
     }
@@ -267,6 +268,7 @@ function ManagementTeamsPage() {
           : "Mannschaft konnte nicht gelöscht werden.",
         "error"
       );
+      throw error;
     } finally {
       setIsSubmitting(false);
     }
@@ -332,6 +334,7 @@ function ManagementTeamsPage() {
           : "Mitglied konnte nicht hinzugefügt werden.",
         "error"
       );
+      throw error;
     } finally {
       setIsMembershipSubmitting(false);
     }
@@ -379,7 +382,8 @@ function ManagementTeamsPage() {
       if (selectedMembership) {
         await updateTeamMembership(selectedTeam.id, selectedMembership.id, {
           memberId: selectedMembership.memberId,
-          lineupPosition: selectedMembership.lineupPosition ?? memberships.length + 1,
+          lineupPosition:
+            selectedMembership.lineupPosition ?? memberships.length + 1,
           player: selectedMembership.player,
           captain: true,
           viceCaptain: selectedMembership.viceCaptain,
@@ -405,6 +409,7 @@ function ManagementTeamsPage() {
           : "Mannschaftsführer konnte nicht gesetzt werden.",
         "error"
       );
+      throw error;
     } finally {
       setIsMembershipSubmitting(false);
     }
@@ -496,6 +501,7 @@ function ManagementTeamsPage() {
           : "Mitglied konnte nicht entfernt werden.",
         "error"
       );
+      throw error;
     } finally {
       setIsMembershipSubmitting(false);
     }

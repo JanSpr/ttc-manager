@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Card from "../../ui/Card";
 import TeamForm from "./TeamForm";
 import EditorSection from "../common/EditorSection";
@@ -71,6 +71,12 @@ function TeamsEditorPanel({
 }: TeamsEditorPanelProps) {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
+  useEffect(() => {
+    if (editorMode === "create") {
+      setIsDetailsOpen(true);
+    }
+  }, [editorMode]);
+
   const isEditMode = editorMode === "edit" && team;
 
   return (
@@ -113,6 +119,7 @@ function TeamsEditorPanel({
             onAssignCaptain={onAssignCaptain}
             onCancelEdit={onCancelEdit}
             onDelete={editorMode === "edit" ? onDelete : undefined}
+            onSubmitSuccess={() => setIsDetailsOpen(false)}
             showHeader={false}
             showSelectedInfo={false}
           />
