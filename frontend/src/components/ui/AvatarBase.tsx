@@ -4,7 +4,7 @@ type AvatarBaseProps = {
   initials: string;
   size?: number;
   shape?: "round" | "rounded";
-  tone?: "default" | "muted";
+  tone?: "default" | "muted" | "team";
   fontSize?: string;
   fontWeight?: number;
   borderColor?: string;
@@ -21,16 +21,25 @@ function AvatarBase({
   borderColor,
   boxShadow = "0 6px 16px rgba(15, 23, 42, 0.05)",
 }: AvatarBaseProps) {
-  const isMuted = tone === "muted";
+  let background = "";
+  let textColor = "";
+  let finalBorderColor = borderColor;
 
-  const background = isMuted
-    ? "linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)"
-    : "linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%)";
-
-  const textColor = isMuted ? colors.textMuted : colors.primary;
-
-  const finalBorderColor =
-    borderColor ?? (isMuted ? "#cbd5e1" : colors.borderStrong);
+  if (tone === "muted") {
+    // 👤 nicht registriert (jetzt im blauen System)
+    background = "#ffffff";
+    textColor = "#60a5fa"; // helles Blau (tailwind blue-400)
+    finalBorderColor = borderColor ?? "#93c5fd"; // blue-300
+  } else if (tone === "team") {
+    background = "linear-gradient(135deg, #ede9fe 0%, #eef2ff 100%)";
+    textColor = colors.primary;
+    finalBorderColor = borderColor ?? colors.border;
+  } else {
+    // 👤 registriert
+    background = "linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%)";
+    textColor = colors.primary;
+    finalBorderColor = borderColor ?? colors.border;
+  }
 
   const borderRadius = shape === "round" ? "999px" : "12px";
 

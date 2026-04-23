@@ -33,11 +33,17 @@ function TeamAvatar({
   fontWeight = 700,
   boxShadow = "0 6px 16px rgba(15, 23, 42, 0.05)",
 }: TeamAvatarProps) {
+  const shape =
+    borderRadius === "999px" || borderRadius === "50%"
+      ? "round"
+      : "rounded";
+
   return (
     <AvatarBase
       initials={getTeamInitials(teamName)}
       size={size}
-      shape={borderRadius === "999px" || borderRadius === "50%" ? "round" : "rounded"}
+      shape={shape}
+      tone="team"
       fontSize={fontSize}
       fontWeight={fontWeight}
       borderColor={borderColor}
