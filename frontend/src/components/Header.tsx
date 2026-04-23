@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import type { CSSProperties } from "react";
 import type { User } from "../types/user";
 import { colors } from "../styles/ui";
@@ -10,10 +10,16 @@ type HeaderProps = {
   onLogout: () => void;
 };
 
+type OpenMenu = "user" | "management" | null;
+
 function Header({ user, onLogout }: HeaderProps) {
   const navigate = useNavigate();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement | null>(null);
+  const location = useLocation();
+
+  const [openMenu, setOpenMenu] = useState<OpenMenu>(null);
+
+  const userMenuRef = useRef<HTMLDivElement | null>(null);
+  const managementMenuRef = useRef<HTMLDivElement | null>(null);
 
   const displayName =
     [user.firstName, user.lastName].filter(Boolean).join(" ").trim() ||
@@ -23,19 +29,27 @@ function Header({ user, onLogout }: HeaderProps) {
     (role) => role === "ADMIN" || role === "BOARD"
   );
 
+  const isManagementActive = location.pathname.startsWith("/management");
+
   useEffect(() => {
-    if (!menuOpen) return;
+    if (!openMenu) return;
 
     function handleClickOutside(event: MouseEvent) {
-      if (!menuRef.current) return;
-      if (!menuRef.current.contains(event.target as Node)) {
-        setMenuOpen(false);
+      const target = event.target as Node;
+
+      const clickedInsideUserMenu =
+        userMenuRef.current?.contains(target) ?? false;
+      const clickedInsideManagementMenu =
+        managementMenuRef.current?.contains(target) ?? false;
+
+      if (!clickedInsideUserMenu && !clickedInsideManagementMenu) {
+        setOpenMenu(null);
       }
     }
 
     function handleEscape(event: KeyboardEvent) {
       if (event.key === "Escape") {
-        setMenuOpen(false);
+        setOpenMenu(null);
       }
     }
 
@@ -46,19 +60,37 @@ function Header({ user, onLogout }: HeaderProps) {
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleEscape);
     };
-  }, [menuOpen]);
+  }, [openMenu]);
 
-  function toggleMenu() {
-    setMenuOpen((prev) => !prev);
+  function toggleUserMenu() {
+    setOpenMenu((prev) => (prev === "user" ? null : "user"));
+  }
+
+  function toggleManagementMenu() {
+    setOpenMenu((prev) => (prev === "management" ? null : "management"));
+  }
+
+  function closeMenus() {
+    setOpenMenu(null);
   }
 
   function handleNavigateToProfile() {
-    setMenuOpen(false);
+    closeMenus();
     navigate("/profile");
   }
 
+  function handleNavigateToManagementMembers() {
+    closeMenus();
+    navigate("/management/members");
+  }
+
+  function handleNavigateToManagementTeams() {
+    closeMenus();
+    navigate("/management/teams");
+  }
+
   async function handleLogoutClick() {
-    setMenuOpen(false);
+    closeMenus();
     await onLogout();
   }
 
@@ -77,6 +109,26 @@ function Header({ user, onLogout }: HeaderProps) {
       "background-color 0.15s ease, color 0.15s ease, transform 0.15s ease",
     boxShadow: isActive ? "inset 0 0 0 1px rgba(37, 99, 235, 0.08)" : "none",
   });
+
+  const managementButtonStyle: CSSProperties = {
+    border: "none",
+    textDecoration: "none",
+    color: isManagementActive ? colors.text : colors.textMuted,
+    fontWeight: isManagementActive ? 700 : 600,
+    padding: "9px 14px",
+    borderRadius: "10px",
+    backgroundColor: isManagementActive ? colors.primarySoft : "transparent",
+    transition:
+      "background-color 0.15s ease, color 0.15s ease, transform 0.15s ease",
+    boxShadow: isManagementActive
+      ? "inset 0 0 0 1px rgba(37, 99, 235, 0.08)"
+      : "none",
+    cursor: "pointer",
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "8px",
+    fontSize: "1rem",
+  };
 
   return (
     <header
@@ -119,8 +171,7 @@ function Header({ user, onLogout }: HeaderProps) {
                 width: "38px",
                 height: "38px",
                 borderRadius: "12px",
-                background:
-                  "linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)",
+                background: "linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -144,6 +195,7 @@ function Header({ user, onLogout }: HeaderProps) {
               >
                 TTC Manager
               </div>
+
               <div
                 style={{
                   fontSize: "0.8rem",
@@ -165,15 +217,104 @@ function Header({ user, onLogout }: HeaderProps) {
             </NavLink>
 
             {isManagementVisible ? (
-              <NavLink to="/management" style={navLinkStyle}>
-                Verwaltung
-              </NavLink>
+              <div
+                ref={managementMenuRef}
+                style={{ position: "relative", display: "flex", alignItems: "center" }}
+              >
+                <button
+                  type="button"
+                  onClick={toggleManagementMenu}
+                  aria-expanded={openMenu === "management"}
+                  style={managementButtonStyle}
+                >
+                  Verwaltung
+                  <span
+                    style={{
+                      fontSize: "0.8rem",
+                      lineHeight: 1,
+                      transform:
+                        openMenu === "management"
+                          ? "rotate(180deg)"
+                          : "rotate(0deg)",
+                      transition: "transform 0.15s ease",
+                    }}
+                  >
+                    ▾
+                  </span>
+                </button>
+
+                {openMenu === "management" ? (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "100%",
+                      left: 0,
+                      paddingTop: "8px",
+                      minWidth: "250px",
+                      zIndex: 30,
+                    }}
+                  >
+                    <div
+                      style={{
+                        backgroundColor: colors.surface,
+                        border: `1px solid ${colors.border}`,
+                        borderRadius: "14px",
+                        boxShadow: "0 16px 40px rgba(15, 23, 42, 0.12)",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <div
+                        style={{
+                          padding: "12px 14px",
+                          borderBottom: `1px solid ${colors.border}`,
+                          backgroundColor: colors.surfaceSoft,
+                        }}
+                      >
+                        <div
+                          style={{
+                            color: colors.text,
+                            fontWeight: 700,
+                            fontSize: "0.92rem",
+                          }}
+                        >
+                          Verwaltung
+                        </div>
+                        <div
+                          style={{
+                            color: colors.textMuted,
+                            fontSize: "0.82rem",
+                            marginTop: "2px",
+                          }}
+                        >
+                          Schnellzugriff auf die Verwaltungsbereiche
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleNavigateToManagementMembers}
+                        style={menuItemStyle}
+                      >
+                        Mitgliederverwaltung
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleNavigateToManagementTeams}
+                        style={menuItemStyle}
+                      >
+                        Mannschaftsverwaltung
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
             ) : null}
           </nav>
         </div>
 
         <div
-          ref={menuRef}
+          ref={userMenuRef}
           style={{
             position: "relative",
             display: "flex",
@@ -182,7 +323,8 @@ function Header({ user, onLogout }: HeaderProps) {
         >
           <button
             type="button"
-            onClick={toggleMenu}
+            onClick={toggleUserMenu}
+            aria-expanded={openMenu === "user"}
             style={{
               padding: "8px 12px",
               borderRadius: "999px",
@@ -234,7 +376,8 @@ function Header({ user, onLogout }: HeaderProps) {
                 fontSize: "0.8rem",
                 lineHeight: 1,
                 alignSelf: "center",
-                transform: menuOpen ? "rotate(180deg)" : "rotate(0deg)",
+                transform:
+                  openMenu === "user" ? "rotate(180deg)" : "rotate(0deg)",
                 transition: "transform 0.15s ease",
                 marginLeft: "2px",
               }}
@@ -243,7 +386,7 @@ function Header({ user, onLogout }: HeaderProps) {
             </span>
           </button>
 
-          {menuOpen && (
+          {openMenu === "user" ? (
             <div
               style={{
                 position: "absolute",
@@ -284,6 +427,7 @@ function Header({ user, onLogout }: HeaderProps) {
                     >
                       {displayName}
                     </div>
+
                     <div
                       style={{
                         color: colors.textMuted,
@@ -313,7 +457,7 @@ function Header({ user, onLogout }: HeaderProps) {
                 </button>
               </div>
             </div>
-          )}
+          ) : null}
         </div>
       </div>
     </header>
