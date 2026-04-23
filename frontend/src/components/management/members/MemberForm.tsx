@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import FormField from "../../ui/FormField";
 import StatusMessage from "../../ui/StatusMessage";
+import MemberAvatar from "../../MemberAvatar";
 import type {
   Member,
   MemberType,
@@ -26,7 +27,6 @@ import {
   managementFormHintStyle,
   managementFormStyle,
   managementFormTitleStyle,
-  managementSelectedBadgeStyle,
   managementSelectedInfoStyle,
   managementSelectedMetaStyle,
   managementSelectedNameStyle,
@@ -69,12 +69,6 @@ function createFormValues(member?: Member | null): FormValues {
 
 function getMemberTypeLabel(type: MemberType): string {
   return type === "ADULT" ? "Erwachsene" : "Jugend";
-}
-
-function getMemberInitials(member: Pick<Member, "firstName" | "lastName">): string {
-  return `${member.firstName.charAt(0)}${member.lastName.charAt(0)}`
-    .toUpperCase()
-    .trim() || "?";
 }
 
 function MemberForm({
@@ -169,9 +163,7 @@ function MemberForm({
 
       {isEditMode && member && showSelectedInfo ? (
         <div style={managementSelectedInfoStyle}>
-          <div style={managementSelectedBadgeStyle}>
-            {getMemberInitials(member)}
-          </div>
+          <MemberAvatar member={member} size={42} fontSize="0.95rem" boxShadow="none" />
 
           <div style={{ minWidth: 0 }}>
             <div style={managementSelectedNameStyle}>{member.fullName}</div>
@@ -295,7 +287,7 @@ function MemberForm({
                 cursor: isSubmitting ? "default" : "pointer",
                 display: "inline-flex",
                 alignItems: "center",
-                gap: "0.65rem",
+                gap: "0.45rem",
               }}
             >
               <TrashIcon />
@@ -304,39 +296,23 @@ function MemberForm({
           </div>
         </div>
       ) : (
-        <div style={managementFormActionsWrapperStyle}>
-          <div style={managementFormCenteredActionsStyle}>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              style={{
-                ...primaryButtonStyle,
-                ...managementFormCompactPrimaryButtonStyle,
-                opacity: isSubmitting ? 0.7 : 1,
-                cursor: isSubmitting ? "default" : "pointer",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "0.55rem",
-              }}
-            >
-              <SaveIcon />
-              <span>{isSubmitting ? "Speichern..." : "Mitglied anlegen"}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={onCancelEdit}
-              disabled={isSubmitting}
-              style={{
-                ...secondaryButtonStyle,
-                ...managementFormCompactSecondaryButtonStyle,
-                opacity: isSubmitting ? 0.7 : 1,
-                cursor: isSubmitting ? "default" : "pointer",
-              }}
-            >
-              Abbrechen
-            </button>
-          </div>
+        <div style={managementFormCenteredActionsStyle}>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            style={{
+              ...primaryButtonStyle,
+              ...managementFormCompactPrimaryButtonStyle,
+              opacity: isSubmitting ? 0.7 : 1,
+              cursor: isSubmitting ? "default" : "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.55rem",
+            }}
+          >
+            <SaveIcon />
+            <span>{isSubmitting ? "Speichern..." : "Mitglied anlegen"}</span>
+          </button>
         </div>
       )}
     </form>

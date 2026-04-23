@@ -3,9 +3,11 @@ import { Link, useParams } from "react-router-dom";
 import { fetchTeamById } from "../api/teamApi";
 import type { Team, TeamMembershipSummary } from "../types/team";
 import PageIntro from "../components/layout/PageIntro";
+import MemberAvatar from "../components/MemberAvatar";
 import Card from "../components/ui/Card";
 import ClickableCard from "../components/ui/ClickableCard";
 import StatusMessage from "../components/ui/StatusMessage";
+import TeamAvatar from "../components/ui/TeamAvatar";
 import { badgeStyle, cardTitleStyle, colors } from "../styles/ui";
 
 function formatMembershipRole(membership: TeamMembershipSummary): string {
@@ -34,92 +36,15 @@ function formatLineupPosition(position: number | null | undefined): string {
   return String(position);
 }
 
-function getInitials(value: string): string {
-  const trimmedValue = value.trim();
-
-  if (!trimmedValue) {
-    return "?";
-  }
-
-  const words = trimmedValue.split(/\s+/).filter(Boolean);
-
-  if (words.length >= 2) {
-    return `${words[0][0]}${words[1][0]}`.toUpperCase();
-  }
-
-  return trimmedValue.slice(0, 2).toUpperCase();
-}
-
-function TeamAvatar({ teamName }: { teamName: string }) {
-  return (
-    <div
-      aria-hidden="true"
-      style={{
-        width: "68px",
-        height: "68px",
-        borderRadius: "16px",
-        border: `1px solid ${colors.border}`,
-        background: "linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%)",
-        color: colors.primary,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontWeight: 700,
-        fontSize: "1.1rem",
-        flexShrink: 0,
-        boxShadow: "0 8px 20px rgba(15, 23, 42, 0.06)",
-        userSelect: "none",
-      }}
-    >
-      {getInitials(teamName)}
-    </div>
-  );
-}
-
-function MemberAvatar({
-  fullName,
-  size = 46,
-}: {
-  fullName: string;
-  size?: number;
-}) {
-  const fontSize = size <= 34 ? "0.78rem" : "0.95rem";
-  const borderRadius = size <= 34 ? "10px" : "14px";
-
-  return (
-    <div
-      aria-hidden="true"
-      style={{
-        width: `${size}px`,
-        height: `${size}px`,
-        borderRadius,
-        border: `1px solid ${colors.border}`,
-        background: "linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%)",
-        color: colors.primary,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontWeight: 700,
-        fontSize,
-        flexShrink: 0,
-        boxShadow: "0 6px 16px rgba(15, 23, 42, 0.05)",
-        userSelect: "none",
-      }}
-    >
-      {getInitials(fullName)}
-    </div>
-  );
-}
-
-function getStatusBadgeStyle(isActive: boolean) {
+function getStatusBadgeStyle(isRegistered: boolean) {
   return {
     ...badgeStyle,
     fontSize: "0.75rem",
     padding: "0.2rem 0.5rem",
     fontWeight: 600,
     opacity: 1,
-    backgroundColor: isActive ? colors.primarySoft : colors.surfaceSoft,
-    color: isActive ? colors.primary : colors.textMuted,
+    backgroundColor: isRegistered ? colors.primarySoft : colors.surfaceSoft,
+    color: isRegistered ? colors.primary : colors.textMuted,
   };
 }
 
@@ -248,7 +173,14 @@ export default function TeamDetailPage() {
                 pointerEvents: "auto",
               }}
             >
-              <TeamAvatar teamName={team.name} />
+              <TeamAvatar
+                teamName={team.name}
+                size={68}
+                borderColor={colors.border}
+                fontSize="1.1rem"
+                fontWeight={700}
+                boxShadow="0 8px 20px rgba(15, 23, 42, 0.06)"
+              />
             </div>
 
             {captain ? (
@@ -292,7 +224,10 @@ export default function TeamDetailPage() {
                     >
                       <MemberAvatar
                         fullName={captain.memberFullName}
+                        isRegistered={captain.userId != null}
                         size={30}
+                        fontSize="0.78rem"
+                        boxShadow="0 6px 16px rgba(15, 23, 42, 0.05)"
                       />
 
                       <div
@@ -370,7 +305,13 @@ export default function TeamDetailPage() {
                                 flex: 1,
                               }}
                             >
-                              <MemberAvatar fullName={membership.memberFullName} />
+                              <MemberAvatar
+                                fullName={membership.memberFullName}
+                                isRegistered={isRegistered}
+                                size={46}
+                                fontSize="0.95rem"
+                                boxShadow="0 6px 16px rgba(15, 23, 42, 0.05)"
+                              />
 
                               <div style={{ minWidth: 0 }}>
                                 <div
@@ -403,7 +344,7 @@ export default function TeamDetailPage() {
                               }}
                             >
                               <span style={getStatusBadgeStyle(isRegistered)}>
-                                {isRegistered ? "Aktiv" : "Nicht registriert"}
+                                {isRegistered ? "Registriert" : "Nicht registriert"}
                               </span>
                               <span style={profileBadgeStyle}>Profil</span>
                             </div>

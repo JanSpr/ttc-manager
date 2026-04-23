@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import Card from "../../ui/Card";
+import MemberAvatar from "../../MemberAvatar";
 import MemberForm from "./MemberForm";
 import EditorSection from "../common/EditorSection";
 import type { Member, MemberUpsertRequest } from "../../../types/member";
@@ -20,12 +21,6 @@ type MembersEditorPanelProps = {
 
 function getMemberTypeLabel(type: Member["type"]): string {
   return type === "YOUTH" ? "Jugend" : "Erwachsene";
-}
-
-function getMemberInitials(member: Pick<Member, "firstName" | "lastName">): string {
-  return `${member.firstName.charAt(0)}${member.lastName.charAt(0)}`
-    .toUpperCase()
-    .trim() || "?";
 }
 
 function MembersEditorPanel({
@@ -53,7 +48,7 @@ function MembersEditorPanel({
       <div style={{ display: "grid", gap: "1rem" }}>
         {isEditMode && member ? (
           <div style={memberSummaryCardStyle}>
-            <div style={memberSummaryIconStyle}>{getMemberInitials(member)}</div>
+            <MemberAvatar member={member} size={42} fontSize="0.95rem" boxShadow="none" />
 
             <div style={{ minWidth: 0, flex: 1 }}>
               <div style={memberSummaryNameStyle}>{member.fullName}</div>
@@ -110,22 +105,6 @@ const memberSummaryCardStyle = {
   borderRadius: "14px",
   border: `1px solid ${colors.border}`,
   backgroundColor: colors.surfaceSoft,
-};
-
-const memberSummaryIconStyle = {
-  width: "42px",
-  height: "42px",
-  borderRadius: "12px",
-  border: `1px solid ${colors.border}`,
-  background: "linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%)",
-  color: colors.primary,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  fontWeight: 800,
-  fontSize: "0.95rem",
-  flexShrink: 0,
-  userSelect: "none" as const,
 };
 
 const memberSummaryNameStyle = {

@@ -17,14 +17,31 @@ function getTeamInitials(teamName: string): string {
 type TeamAvatarProps = {
   teamName: string;
   size?: number;
+  borderRadius?: string;
+  borderColor?: string;
+  fontSize?: string;
+  fontWeight?: number;
+  boxShadow?: string;
 };
 
-function TeamAvatar({ teamName, size = 44 }: TeamAvatarProps) {
+function TeamAvatar({
+  teamName,
+  size = 44,
+  borderRadius = "12px",
+  borderColor,
+  fontSize = "0.9rem",
+  fontWeight = 700,
+  boxShadow = "0 6px 16px rgba(15, 23, 42, 0.05)",
+}: TeamAvatarProps) {
   return (
     <AvatarBase
       initials={getTeamInitials(teamName)}
       size={size}
-      shape="rounded"
+      shape={borderRadius === "999px" || borderRadius === "50%" ? "round" : "rounded"}
+      fontSize={fontSize}
+      fontWeight={fontWeight}
+      borderColor={borderColor}
+      boxShadow={boxShadow}
     />
   );
 }

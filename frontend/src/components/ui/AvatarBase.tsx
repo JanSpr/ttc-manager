@@ -27,11 +27,12 @@ function AvatarBase({
     ? "linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)"
     : "linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%)";
 
-  const textColor = isMuted ? "#64748b" : colors.primary;
+  const textColor = isMuted ? colors.textMuted : colors.primary;
 
-  const finalBorderColor = borderColor ?? (isMuted ? "#cbd5f5" : colors.border);
+  const finalBorderColor =
+    borderColor ?? (isMuted ? "#cbd5e1" : colors.borderStrong);
 
-  const borderRadius = shape === "round" ? "50%" : "12px";
+  const borderRadius = shape === "round" ? "999px" : "12px";
 
   return (
     <div
@@ -50,6 +51,7 @@ function AvatarBase({
         fontSize,
         flexShrink: 0,
         boxShadow,
+        userSelect: "none",
       }}
     >
       {initials}

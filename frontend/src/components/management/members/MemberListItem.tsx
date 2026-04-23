@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import type { Member } from "../../../types/member";
 import { colors } from "../../../styles/ui";
+import MemberAvatar from "../../MemberAvatar";
 import { EditIcon, EyeIcon } from "../common/ManagementIcons";
 import {
   getManagementActionGroupStyle,
@@ -58,27 +59,7 @@ function MemberListItem({
           : colors.surface,
       }}
     >
-      <div
-        style={{
-          width: "38px",
-          height: "38px",
-          borderRadius: "12px",
-          border: `1px solid ${colors.borderStrong}`,
-          background: "linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%)",
-          color: colors.primary,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: "0.88rem",
-          fontWeight: 800,
-          flexShrink: 0,
-          userSelect: "none",
-        }}
-      >
-        {`${member.firstName.charAt(0)}${member.lastName.charAt(0)}`
-          .toUpperCase()
-          .trim() || "?"}
-      </div>
+      <MemberAvatar member={member} size={38} fontSize="0.88rem" boxShadow="none" />
 
       <button
         type="button"

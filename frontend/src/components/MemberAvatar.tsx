@@ -1,31 +1,71 @@
-import AvatarBase from "./ui/AvatarBase";
 import type { Member } from "../types/member";
-
-function getMemberInitials(member: Member): string {
-  const first = member.firstName?.[0] ?? "";
-  const last = member.lastName?.[0] ?? "";
-
-  if (first || last) {
-    return `${first}${last}`.toUpperCase();
-  }
-
-  return "?";
-}
+import AvatarBase from "./ui/AvatarBase";
 
 type MemberAvatarProps = {
-  member: Member;
+  member?: Pick<Member, "firstName" | "lastName" | "fullName" | "userId">;
+  fullName?: string;
+  isRegistered?: boolean;
   size?: number;
+  fontSize?: string;
+  boxShadow?: string;
 };
 
-function MemberAvatar({ member, size = 40 }: MemberAvatarProps) {
-  const isRegistered = member.userId != null;
+function getInitialsFromName(fullName: string): string {
+  const trimmedName = fullName.trim();
+
+  if (!trimmedName) {
+    return "?";
+  }
+
+  const words = trimmedName.split(/\s+/).filter(Boolean);
+
+  if (words.length >= 2) {
+    return `${words[0][0]}${words[1][0]}`.toUpperCase();
+  }
+
+  return trimmedName.slice(0, 2).toUpperCase();
+}
+
+function getMemberDisplayName(
+  member?: Pick<Member, "firstName" | "lastName" | "fullName" | "userId">,
+  fullName?: string
+): string {
+  if (member?.fullName?.trim()) {
+    return member.fullName.trim();
+  }
+
+  if (fullName?.trim()) {
+    return fullName.trim();
+  }
+
+  const firstName = member?.firstName?.trim() ?? "";
+  const lastName = member?.lastName?.trim() ?? "";
+  const combinedName = `${firstName} ${lastName}`.trim();
+
+  return combinedName || "?";
+}
+
+function MemberAvatar({
+  member,
+  fullName,
+  isRegistered,
+  size = 40,
+  fontSize = "1rem",
+  boxShadow = "0 10px 24px rgba(15, 23, 42, 0.06)",
+}: MemberAvatarProps) {
+  const displayName = getMemberDisplayName(member, fullName);
+  const resolvedIsRegistered = isRegistered ?? member?.userId != null;
 
   return (
     <AvatarBase
-      initials={getMemberInitials(member)}
+      initials={getInitialsFromName(displayName)}
       size={size}
       shape="round"
-      tone={isRegistered ? "default" : "muted"}
+      tone={resolvedIsRegistered ? "default" : "muted"}
+      fontSize={fontSize}
+      fontWeight={800}
+      borderColor={resolvedIsRegistered ? "#d1d5db" : "#cbd5e1"}
+      boxShadow={boxShadow}
     />
   );
 }
