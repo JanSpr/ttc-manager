@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import { fetchTeamById } from "../api/teamApi";
 import type { Team, TeamMembershipSummary } from "../types/team";
 import PageIntro from "../components/layout/PageIntro";
@@ -9,6 +9,10 @@ import ClickableCard from "../components/ui/ClickableCard";
 import StatusMessage from "../components/ui/StatusMessage";
 import TeamAvatar from "../components/ui/TeamAvatar";
 import { badgeStyle, cardTitleStyle, colors } from "../styles/ui";
+
+type LocationState = {
+  fromManagementTeams?: boolean;
+};
 
 function formatMembershipRole(membership: TeamMembershipSummary): string {
   const labels: string[] = [];
@@ -73,6 +77,9 @@ const lineupBadgeStyle = {
 
 export default function TeamDetailPage() {
   const { id } = useParams();
+  const location = useLocation();
+  const state = (location.state as LocationState | null) ?? null;
+
   const [team, setTeam] = useState<Team | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -111,6 +118,11 @@ export default function TeamDetailPage() {
 
   const captain = team?.memberships.find((membership) => membership.captain);
 
+  const backTarget = state?.fromManagementTeams ? "/management/teams" : "/teams";
+  const backLabel = state?.fromManagementTeams
+    ? "← Zurück zur Mannschaftsverwaltung"
+    : "← Zurück zur Mannschaftsübersicht";
+
   return (
     <div
       style={{
@@ -122,7 +134,7 @@ export default function TeamDetailPage() {
       }}
     >
       <Link
-        to="/teams"
+        to={backTarget}
         style={{
           color: colors.primary,
           textDecoration: "none",
@@ -130,7 +142,7 @@ export default function TeamDetailPage() {
           width: "fit-content",
         }}
       >
-        ← Zurück zur Mannschaftsübersicht
+        {backLabel}
       </Link>
 
       {loading && (

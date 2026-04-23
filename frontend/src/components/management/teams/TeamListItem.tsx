@@ -49,7 +49,11 @@ function TeamListItem({
     isEditorOpen && (isHovered || isEditingThisTeam);
 
   function handleOpenDetails() {
-    navigate(`/teams/${team.id}`);
+    navigate(`/teams/${team.id}`, {
+      state: {
+        fromManagementTeams: true,
+      },
+    });
   }
 
   return (
