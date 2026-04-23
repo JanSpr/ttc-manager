@@ -22,7 +22,6 @@ type TeamsEditorPanelProps = {
   isSubmitting: boolean;
   isMembershipSubmitting: boolean;
   onSubmit: (request: TeamUpsertRequest) => Promise<void>;
-  onCancelEdit: () => void;
   onDelete?: () => Promise<void>;
   onCreateMembership: (
     request: TeamMembershipUpsertRequest
@@ -62,7 +61,6 @@ function TeamsEditorPanel({
   isSubmitting,
   isMembershipSubmitting,
   onSubmit,
-  onCancelEdit,
   onDelete,
   onCreateMembership,
   onAssignCaptain,
