@@ -7,6 +7,13 @@ import ClickableCard from "../components/ui/ClickableCard";
 import StatusMessage from "../components/ui/StatusMessage";
 import { badgeStyle, colors } from "../styles/ui";
 
+function sortTeamsByName(a: Team, b: Team): number {
+  return a.name.localeCompare(b.name, "de", {
+    numeric: true,
+    sensitivity: "base",
+  });
+}
+
 function TeamSection({
   teams,
   type,
@@ -16,14 +23,12 @@ function TeamSection({
 }) {
   const label = type === "YOUTH" ? "Jugend" : "Erwachsene";
 
-  // 🔹 größerer Badge für Überschrift
   const sectionBadgeStyle = {
     ...badgeStyle,
     fontSize: "0.9rem",
     padding: "0.35rem 0.75rem",
   };
 
-  // 🔹 kleinerer Badge für Mitglieder
   const memberBadgeStyle = {
     ...badgeStyle,
     fontSize: "0.75rem",
@@ -38,9 +43,17 @@ function TeamSection({
           <span style={sectionBadgeStyle}>{label}</span>
         </div>
 
-        <StatusMessage variant="muted" marginTop="0">
+        <div
+          style={{
+            border: `1px solid ${colors.border}`,
+            borderRadius: "18px",
+            backgroundColor: colors.surface,
+            padding: "1.1rem 1.2rem",
+            color: colors.textMuted,
+          }}
+        >
           Keine Mannschaften vorhanden.
-        </StatusMessage>
+        </div>
       </section>
     );
   }
@@ -55,43 +68,56 @@ function TeamSection({
         style={{
           display: "grid",
           gap: "1rem",
+          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
         }}
       >
         {teams.map((team) => (
           <Link
             key={team.id}
             to={`/teams/${team.id}`}
-            style={{ textDecoration: "none", color: "inherit" }}
+            aria-label={`Mannschaft ${team.name} öffnen`}
+            style={{ textDecoration: "none" }}
           >
             <ClickableCard>
               <div
                 style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: "1rem",
-                  alignItems: "flex-start",
-                  flexWrap: "wrap",
+                  display: "grid",
+                  gap: "0.9rem",
                 }}
               >
-                <div>
-                  <h3 style={{ margin: "0 0 0.5rem 0", fontSize: "1.2rem" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "flex-start",
+                    gap: "1rem",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <h3
+                    style={{
+                      margin: 0,
+                      fontSize: "1.1rem",
+                      color: colors.text,
+                    }}
+                  >
                     {team.name}
                   </h3>
 
-                  <p
-                    style={{
-                      margin: "0 0 0.35rem 0",
-                      color: colors.textMuted,
-                      lineHeight: 1.5,
-                    }}
-                  >
-                    {team.description || "Keine Beschreibung vorhanden."}
-                  </p>
+                  <span style={memberBadgeStyle}>
+                    {team.memberCount} Mitglieder
+                  </span>
                 </div>
 
-                <div style={memberBadgeStyle}>
-                  {team.memberCount} Mitglieder
-                </div>
+                <p
+                  style={{
+                    margin: 0,
+                    color: colors.textMuted,
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {team.description || "Keine Beschreibung vorhanden."}
+                </p>
               </div>
             </ClickableCard>
           </Link>
@@ -111,7 +137,6 @@ export default function TeamsPage() {
       try {
         setLoading(true);
         setError(null);
-
         const data = await fetchTeams();
         setTeams(data);
       } catch (err) {
@@ -126,43 +151,58 @@ export default function TeamsPage() {
   }, []);
 
   const adultTeams = useMemo(
-    () => teams.filter((team) => team.type === "ADULT"),
+    () =>
+      teams
+        .filter((team) => team.type === "ADULT")
+        .slice()
+        .sort(sortTeamsByName),
     [teams]
   );
 
   const youthTeams = useMemo(
-    () => teams.filter((team) => team.type === "YOUTH"),
+    () =>
+      teams
+        .filter((team) => team.type === "YOUTH")
+        .slice()
+        .sort(sortTeamsByName),
     [teams]
   );
 
   return (
-    <div>
+    <div
+      style={{
+        maxWidth: "1100px",
+        margin: "0 auto",
+        padding: "1.5rem 1rem 3rem",
+        display: "grid",
+        gap: "1.5rem",
+      }}
+    >
       <PageIntro
-        title="Mannschaften"
-        description="Hier findest du alle angelegten Mannschaften und kannst direkt in die jeweilige Detailansicht wechseln."
-        accent
+        eyebrow="Mannschaften"
+        title="Alle Mannschaften im Überblick"
+        description="Hier findest du alle aktuell erfassten Erwachsenen- und Jugendmannschaften."
       />
 
-      {loading && <StatusMessage>Mannschaften werden geladen...</StatusMessage>}
+      {loading && (
+        <StatusMessage variant="info">
+          Mannschaften werden geladen...
+        </StatusMessage>
+      )}
+
       {error && <StatusMessage variant="error">{error}</StatusMessage>}
 
       {!loading && !error && teams.length === 0 && (
-        <StatusMessage variant="muted">
+        <StatusMessage variant="info">
           Es wurden noch keine Mannschaften gefunden.
         </StatusMessage>
       )}
 
       {!loading && !error && teams.length > 0 && (
-        <div
-          style={{
-            display: "grid",
-            gap: "2rem",
-            marginTop: "1.5rem",
-          }}
-        >
+        <>
           <TeamSection teams={adultTeams} type="ADULT" />
           <TeamSection teams={youthTeams} type="YOUTH" />
-        </div>
+        </>
       )}
     </div>
   );
