@@ -111,7 +111,7 @@ function TeamsEditorPanel({
             isMembershipSubmitting={isMembershipSubmitting}
             onSubmit={onSubmit}
             onAssignCaptain={onAssignCaptain}
-            onCancelEdit={onCancelEdit}
+            onCancelEdit={() => setIsDetailsOpen(false)}
             onDelete={editorMode === "edit" ? onDelete : undefined}
             onSubmitSuccess={() => setIsDetailsOpen(false)}
             showHeader={false}
