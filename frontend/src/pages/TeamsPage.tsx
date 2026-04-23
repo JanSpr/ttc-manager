@@ -196,6 +196,7 @@ export default function TeamsPage() {
         eyebrow="Mannschaften"
         title="Mannschaften"
         description="Hier findest du alle aktuell erfassten Erwachsenen- und Jugendmannschaften im Überblick."
+        accent
       />
 
       {error && <StatusMessage variant="error">{error}</StatusMessage>}
