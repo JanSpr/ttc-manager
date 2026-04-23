@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { fetchMemberById } from "../api/memberApi";
 import { fetchTeams } from "../api/teamApi";
+import { fetchUserById } from "../api/userApi";
 import type { Member } from "../types/member";
 import type { Team, TeamMembershipSummary } from "../types/team";
+import type { User } from "../types/user";
 import MemberAvatar from "../components/MemberAvatar";
 import TeamAvatar from "../components/ui/TeamAvatar";
 import Card from "../components/ui/Card";
@@ -49,6 +51,24 @@ function getActivityBadgeStyle(isActive: boolean) {
   };
 }
 
+function getGlobalRoleLabels(user: User | null): string[] {
+  if (!user) {
+    return [];
+  }
+
+  const labels: string[] = [];
+
+  if (user.roles.includes("ADMIN")) {
+    labels.push("Admin");
+  }
+
+  if (user.roles.includes("BOARD")) {
+    labels.push("Vorstand");
+  }
+
+  return labels.length > 0 ? labels : ["Spieler"];
+}
+
 function getMembershipRoleLabel(
   membership: TeamMembershipSummary | undefined,
 ): string {
@@ -81,8 +101,15 @@ function getLineupLabel(membership: TeamMembershipSummary | undefined): string {
   return `Position ${membership.lineupPosition}`;
 }
 
-function MemberHeader({ member }: { member: Member }) {
+function MemberHeader({
+  member,
+  user,
+}: {
+  member: Member;
+  user: User | null;
+}) {
   const isRegistered = member.userId != null;
+  const globalRoleLabels = getGlobalRoleLabels(user);
 
   return (
     <section
@@ -141,6 +168,12 @@ function MemberHeader({ member }: { member: Member }) {
         <span style={getActivityBadgeStyle(member.active)}>
           {member.active ? "Aktives Mitglied" : "Inaktives Mitglied"}
         </span>
+
+        {globalRoleLabels.map((label) => (
+          <span key={label} style={badgeStyle}>
+            {label}
+          </span>
+        ))}
       </div>
     </section>
   );
@@ -152,6 +185,7 @@ export default function MemberDetailPage() {
   const state = (location.state as LocationState | null) ?? null;
 
   const [member, setMember] = useState<Member | null>(null);
+  const [linkedUser, setLinkedUser] = useState<User | null>(null);
   const [memberTeams, setMemberTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -185,7 +219,12 @@ export default function MemberDetailPage() {
           memberData.teamIds.includes(team.id),
         );
 
+        const resolvedUser = memberData.userId
+          ? await fetchUserById(memberData.userId)
+          : null;
+
         setMember(memberData);
+        setLinkedUser(resolvedUser);
         setMemberTeams(resolvedTeams);
       } catch (err) {
         console.error("Fehler beim Laden des Mitglieds:", err);
@@ -227,7 +266,7 @@ export default function MemberDetailPage() {
 
       {!loading && !error && member && (
         <>
-          <MemberHeader member={member} />
+          <MemberHeader member={member} user={linkedUser} />
 
           <Card>
             <h2 style={cardTitleStyle}>Grunddaten</h2>
@@ -248,10 +287,21 @@ export default function MemberDetailPage() {
           <Card>
             <h2 style={cardTitleStyle}>Verknüpftes Benutzerkonto</h2>
 
-            {member.userId ? (
-              <StatusMessage variant="info" marginTop="0">
-                Dieses Mitglied hat ein aktives Benutzerkonto.
-              </StatusMessage>
+            {linkedUser ? (
+              <div
+                style={{
+                  display: "grid",
+                  gap: "1rem",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+                }}
+              >
+                <DataField label="Benutzername" value={linkedUser.username} />
+                <DataField label="E-Mail" value={linkedUser.email} />
+                <DataField
+                  label="Globale Rolle"
+                  value={getGlobalRoleLabels(linkedUser).join(", ")}
+                />
+              </div>
             ) : (
               <StatusMessage variant="muted" marginTop="0">
                 Diesem Mitglied ist aktuell kein Benutzerkonto zugeordnet.
