@@ -40,6 +40,10 @@ function getTeamShortCode(team: Team): string {
   return teamNumber ? `H${teamNumber}` : "H";
 }
 
+function getCaptainName(team: Team): string | null {
+  return team.memberships.find((membership) => membership.captain)?.memberFullName ?? null;
+}
+
 function TeamListItem({
   team,
   isLast,
@@ -54,6 +58,8 @@ function TeamListItem({
 
   const memberLabel =
     team.memberCount === 1 ? "1 Mitglied" : `${team.memberCount} Mitglieder`;
+
+  const captainName = getCaptainName(team);
 
   const showActionsInList = !isEditorOpen && isHovered;
   const showActionsInEditor =
@@ -111,8 +117,19 @@ function TeamListItem({
         }}
       >
         <div style={{ fontWeight: 700 }}>{team.name}</div>
+
         <div style={{ fontSize: "0.85rem", color: colors.textMuted }}>
           {getTeamTypeLabel(team.type)} · {memberLabel}
+        </div>
+
+        <div
+          style={{
+            marginTop: "0.18rem",
+            fontSize: "0.82rem",
+            color: captainName ? colors.text : colors.textMuted,
+          }}
+        >
+          MF: {captainName ?? "nicht gesetzt"}
         </div>
       </button>
 

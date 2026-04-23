@@ -52,6 +52,10 @@ function getTeamShortCode(team: Pick<Team, "name" | "type">): string {
   return teamNumber ? `H${teamNumber}` : "H";
 }
 
+function getCaptainName(team: Team): string | null {
+  return team.memberships.find((membership) => membership.captain)?.memberFullName ?? null;
+}
+
 function TeamsEditorPanel({
   editorMode,
   team,
@@ -70,6 +74,7 @@ function TeamsEditorPanel({
   const [isDetailsOpen, setIsDetailsOpen] = useState(editorMode === "create");
 
   const isEditMode = editorMode === "edit" && team;
+  const captainName = team ? getCaptainName(team) : null;
 
   return (
     <Card style={{ marginTop: 0 }}>
@@ -87,6 +92,10 @@ function TeamsEditorPanel({
                 {" · "}
                 {team.memberCount}{" "}
                 {team.memberCount === 1 ? "Mitglied" : "Mitglieder"}
+              </div>
+
+              <div style={teamSummaryCaptainStyle}>
+                Mannschaftsführer: {captainName ?? "nicht gesetzt"}
               </div>
             </div>
           </div>
@@ -169,6 +178,14 @@ const teamSummaryMetaStyle = {
   color: colors.textMuted,
   fontSize: "0.88rem",
   lineHeight: 1.5,
+};
+
+const teamSummaryCaptainStyle = {
+  marginTop: "0.25rem",
+  color: colors.text,
+  fontSize: "0.88rem",
+  lineHeight: 1.5,
+  fontWeight: 600,
 };
 
 export default TeamsEditorPanel;
