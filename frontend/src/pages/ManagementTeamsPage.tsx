@@ -337,6 +337,79 @@ function ManagementTeamsPage() {
     }
   }
 
+  async function handleAssignCaptain(memberId: number) {
+    if (!selectedTeam) {
+      return;
+    }
+
+    const currentCaptainMembership =
+      memberships.find((membership) => membership.captain) ?? null;
+    const selectedMembership =
+      memberships.find((membership) => membership.memberId === memberId) ?? null;
+
+    if (currentCaptainMembership?.memberId === memberId) {
+      return;
+    }
+
+    setIsMembershipSubmitting(true);
+
+    try {
+      if (currentCaptainMembership) {
+        const shouldRemoveCurrentCaptainMembership =
+          !currentCaptainMembership.player && !currentCaptainMembership.viceCaptain;
+
+        if (shouldRemoveCurrentCaptainMembership) {
+          await deleteTeamMembership(selectedTeam.id, currentCaptainMembership.id);
+        } else {
+          await updateTeamMembership(
+            selectedTeam.id,
+            currentCaptainMembership.id,
+            {
+              memberId: currentCaptainMembership.memberId,
+              lineupPosition:
+                currentCaptainMembership.lineupPosition ?? memberships.length,
+              player: currentCaptainMembership.player,
+              captain: false,
+              viceCaptain: currentCaptainMembership.viceCaptain,
+            }
+          );
+        }
+      }
+
+      if (selectedMembership) {
+        await updateTeamMembership(selectedTeam.id, selectedMembership.id, {
+          memberId: selectedMembership.memberId,
+          lineupPosition: selectedMembership.lineupPosition ?? memberships.length + 1,
+          player: selectedMembership.player,
+          captain: true,
+          viceCaptain: selectedMembership.viceCaptain,
+        });
+      } else {
+        await createTeamMembership(selectedTeam.id, {
+          memberId,
+          lineupPosition: memberships.length + 1,
+          player: false,
+          captain: true,
+          viceCaptain: false,
+        });
+      }
+
+      await normalizeMembershipLineup(selectedTeam.id);
+      await refreshTeamAndMemberships(selectedTeam.id);
+      showToast("Mannschaftsführer erfolgreich gesetzt.", "success");
+    } catch (error) {
+      console.error("Mannschaftsführer konnte nicht gesetzt werden.", error);
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "Mannschaftsführer konnte nicht gesetzt werden.",
+        "error"
+      );
+    } finally {
+      setIsMembershipSubmitting(false);
+    }
+  }
+
   async function handleSaveLineup(updatedMemberships: TeamMembership[]) {
     if (!selectedTeam) {
       return;
@@ -482,6 +555,7 @@ function ManagementTeamsPage() {
             onCancelEdit={closeEditor}
             onDelete={editorMode === "edit" ? handleDelete : undefined}
             onCreateMembership={handleCreateMembership}
+            onAssignCaptain={handleAssignCaptain}
             onDeleteMembership={handleDeleteMembership}
             onSaveLineup={handleSaveLineup}
           />

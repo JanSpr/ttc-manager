@@ -27,6 +27,7 @@ type TeamsEditorPanelProps = {
   onCreateMembership: (
     request: TeamMembershipUpsertRequest
   ) => Promise<void>;
+  onAssignCaptain: (memberId: number) => Promise<void>;
   onDeleteMembership: (membershipId: number) => Promise<void>;
   onSaveLineup: (memberships: TeamMembership[]) => Promise<void>;
 };
@@ -64,6 +65,7 @@ function TeamsEditorPanel({
   onCancelEdit,
   onDelete,
   onCreateMembership,
+  onAssignCaptain,
   onDeleteMembership,
   onSaveLineup,
 }: TeamsEditorPanelProps) {
@@ -98,13 +100,17 @@ function TeamsEditorPanel({
           actionIcon={<EditIcon />}
           isOpen={isDetailsOpen}
           onToggle={() => setIsDetailsOpen((current) => !current)}
-          collapsedHint="Name, Kategorie und Beschreibung der Mannschaft bearbeiten."
+          collapsedHint="Name, Kategorie, Beschreibung und Mannschaftsführer bearbeiten."
         >
           <TeamForm
             key={editorMode === "edit" ? team?.id ?? "edit-team" : "new-team"}
             team={editorMode === "edit" ? team : null}
+            allMembers={allMembers}
+            memberships={memberships}
             isSubmitting={isSubmitting}
+            isMembershipSubmitting={isMembershipSubmitting}
             onSubmit={onSubmit}
+            onAssignCaptain={onAssignCaptain}
             onCancelEdit={onCancelEdit}
             onDelete={editorMode === "edit" ? onDelete : undefined}
             showHeader={false}

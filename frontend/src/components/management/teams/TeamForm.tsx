@@ -1,9 +1,16 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import FormField from "../../ui/FormField";
 import StatusMessage from "../../ui/StatusMessage";
-import type { Team, TeamType, TeamUpsertRequest } from "../../../types/team";
+import type { Member } from "../../../types/member";
+import type {
+  Team,
+  TeamMembership,
+  TeamType,
+  TeamUpsertRequest,
+} from "../../../types/team";
 import {
+  colors,
   primaryButtonStyle,
   secondaryButtonStyle,
   textInputStyle,
@@ -30,8 +37,12 @@ import {
 
 type TeamFormProps = {
   team?: Team | null;
+  allMembers: Member[];
+  memberships: TeamMembership[];
   isSubmitting: boolean;
+  isMembershipSubmitting: boolean;
   onSubmit: (request: TeamUpsertRequest) => Promise<void>;
+  onAssignCaptain: (memberId: number) => Promise<void>;
   onCancelEdit?: () => void;
   onDelete?: () => Promise<void>;
   showHeader?: boolean;
@@ -83,8 +94,12 @@ function getTeamShortCode(team: Pick<Team, "name" | "type">): string {
 
 function TeamForm({
   team,
+  allMembers,
+  memberships,
   isSubmitting,
+  isMembershipSubmitting,
   onSubmit,
+  onAssignCaptain,
   onCancelEdit,
   onDelete,
   showHeader = true,
@@ -92,9 +107,31 @@ function TeamForm({
 }: TeamFormProps) {
   const [values, setValues] = useState<FormValues>(() => createFormValues(team));
   const [errorMessage, setErrorMessage] = useState("");
+  const [captainSearchValue, setCaptainSearchValue] = useState("");
 
   const isEditMode = Boolean(team);
   const title = isEditMode ? "Mannschaft bearbeiten" : "Mannschaft anlegen";
+
+  const currentCaptain =
+    memberships.find((membership) => membership.captain) ?? null;
+
+  const filteredCaptainCandidates = useMemo(() => {
+    const normalizedSearch = captainSearchValue.trim().toLocaleLowerCase("de");
+
+    if (!normalizedSearch) {
+      return [];
+    }
+
+    return [...allMembers]
+      .filter((member) =>
+        member.fullName.toLocaleLowerCase("de").includes(normalizedSearch)
+      )
+      .sort((left, right) =>
+        left.fullName.localeCompare(right.fullName, "de", {
+          sensitivity: "base",
+        })
+      );
+  }, [allMembers, captainSearchValue]);
 
   function updateField<K extends keyof FormValues>(key: K, value: FormValues[K]) {
     setValues((current) => ({
@@ -134,6 +171,11 @@ function TeamForm({
     if (!isEditMode) {
       setValues(createFormValues(null));
     }
+  }
+
+  async function handleCaptainSelect(memberId: number) {
+    await onAssignCaptain(memberId);
+    setCaptainSearchValue("");
   }
 
   return (
@@ -218,6 +260,89 @@ function TeamForm({
         Die Beschreibung ist optional und eignet sich zum Beispiel für Liga,
         Altersklasse, Saisonhinweise oder interne Notizen.
       </p>
+
+      {isEditMode ? (
+        <div style={captainSectionStyle}>
+          <FormField
+            label="Mannschaftsführer"
+            htmlFor="team-captain-member-search"
+          >
+            <div style={captainFieldWrapperStyle}>
+              <div style={captainCurrentInfoStyle}>
+                <span style={captainCurrentLabelStyle}>Aktuell:</span>
+                <span style={captainCurrentValueStyle}>
+                  {currentCaptain?.memberFullName ?? "Nicht gesetzt"}
+                </span>
+              </div>
+
+              <div style={captainSearchInputWrapperStyle}>
+                <input
+                  id="team-captain-member-search"
+                  type="text"
+                  value={captainSearchValue}
+                  onChange={(event) => setCaptainSearchValue(event.target.value)}
+                  style={textInputStyle}
+                  placeholder="Mitglied suchen und als Mannschaftsführer setzen..."
+                  disabled={isSubmitting || isMembershipSubmitting}
+                />
+
+                {captainSearchValue ? (
+                  <button
+                    type="button"
+                    onClick={() => setCaptainSearchValue("")}
+                    style={captainClearButtonStyle}
+                    aria-label="Suche löschen"
+                    disabled={isSubmitting || isMembershipSubmitting}
+                  >
+                    ✕
+                  </button>
+                ) : null}
+              </div>
+
+              {captainSearchValue.trim() ? (
+                filteredCaptainCandidates.length > 0 ? (
+                  <div style={captainResultsStyle}>
+                    {filteredCaptainCandidates.slice(0, 8).map((member) => {
+                      const isCurrentCaptain =
+                        currentCaptain?.memberId === member.id;
+
+                      return (
+                        <button
+                          key={member.id}
+                          type="button"
+                          onClick={() => void handleCaptainSelect(member.id)}
+                          disabled={isSubmitting || isMembershipSubmitting}
+                          style={{
+                            ...captainResultButtonStyle,
+                            backgroundColor: isCurrentCaptain
+                              ? colors.surfaceSoft
+                              : "#ffffff",
+                            fontWeight: isCurrentCaptain ? 700 : 500,
+                          }}
+                        >
+                          <span>{member.fullName}</span>
+                          {isCurrentCaptain ? (
+                            <span style={captainCurrentBadgeStyle}>Aktuell</span>
+                          ) : null}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div style={captainEmptyStateStyle}>
+                    Keine passenden Mitglieder gefunden.
+                  </div>
+                )
+              ) : null}
+            </div>
+          </FormField>
+
+          <p style={managementFormHintStyle}>
+            Der Mannschaftsführer kann auch gesetzt werden, wenn die Person
+            nicht als Spieler in der Mannschaft geführt wird.
+          </p>
+        </div>
+      ) : null}
 
       {errorMessage ? (
         <StatusMessage variant="error" marginTop="0">
@@ -318,5 +443,97 @@ function TeamForm({
     </form>
   );
 }
+
+const captainSectionStyle = {
+  display: "grid",
+  gap: "0.45rem",
+};
+
+const captainFieldWrapperStyle = {
+  display: "grid",
+  gap: "0.65rem",
+};
+
+const captainCurrentInfoStyle = {
+  display: "flex",
+  flexWrap: "wrap" as const,
+  alignItems: "center",
+  gap: "0.45rem",
+  padding: "0.8rem 0.95rem",
+  borderRadius: "12px",
+  border: `1px solid ${colors.border}`,
+  backgroundColor: colors.surfaceSoft,
+};
+
+const captainCurrentLabelStyle = {
+  color: colors.textMuted,
+  fontSize: "0.9rem",
+  fontWeight: 600,
+};
+
+const captainCurrentValueStyle = {
+  color: colors.text,
+  fontWeight: 700,
+};
+
+const captainSearchInputWrapperStyle = {
+  position: "relative" as const,
+};
+
+const captainClearButtonStyle = {
+  position: "absolute" as const,
+  top: "50%",
+  right: "0.85rem",
+  transform: "translateY(-50%)",
+  border: "none",
+  background: "transparent",
+  color: colors.textMuted,
+  cursor: "pointer",
+  fontSize: "0.95rem",
+  lineHeight: 1,
+  padding: 0,
+};
+
+const captainResultsStyle = {
+  display: "grid",
+  gap: "0.35rem",
+  padding: "0.45rem",
+  borderRadius: "12px",
+  border: `1px solid ${colors.border}`,
+  backgroundColor: "#ffffff",
+};
+
+const captainResultButtonStyle = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: "0.75rem",
+  width: "100%",
+  padding: "0.7rem 0.85rem",
+  borderRadius: "10px",
+  border: `1px solid ${colors.border}`,
+  color: colors.text,
+  textAlign: "left" as const,
+  cursor: "pointer",
+};
+
+const captainCurrentBadgeStyle = {
+  flexShrink: 0,
+  padding: "0.18rem 0.5rem",
+  borderRadius: "999px",
+  backgroundColor: colors.surfaceSoft,
+  color: colors.primary,
+  fontSize: "0.78rem",
+  fontWeight: 700,
+};
+
+const captainEmptyStateStyle = {
+  padding: "0.8rem 0.95rem",
+  borderRadius: "12px",
+  border: `1px dashed ${colors.border}`,
+  color: colors.textMuted,
+  fontSize: "0.92rem",
+  backgroundColor: colors.surfaceSoft,
+};
 
 export default TeamForm;
