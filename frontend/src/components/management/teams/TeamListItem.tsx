@@ -78,9 +78,7 @@ function TeamListItem({
         gap: "0.8rem",
         padding: "0.78rem 0.9rem",
         borderBottom: !isLast ? `1px solid ${colors.border}` : "none",
-        backgroundColor: isEditingThisTeam
-          ? colors.primarySoft
-          : colors.surface,
+        backgroundColor: isEditingThisTeam ? "#dbeafe" : colors.surface,
       }}
     >
       <div
@@ -113,17 +111,15 @@ function TeamListItem({
           flex: 1,
           textAlign: "left",
           cursor: isEditorOpen ? "pointer" : "default",
+          font: "inherit",
+          color: "inherit",
         }}
       >
         <div style={{ fontWeight: 700 }}>{team.name}</div>
 
-        <div style={{ fontSize: "0.85rem", color: colors.textMuted }}>
-          {memberLabel}
-        </div>
+        <div style={metaTextStyle}>{memberLabel}</div>
 
-        <div style={captainLineStyle}>
-          MF: {captainName ?? "nicht gesetzt"}
-        </div>
+        <div style={metaTextStyle}>MF: {captainName ?? "nicht gesetzt"}</div>
       </button>
 
       {isEditorOpen ? (
@@ -171,11 +167,11 @@ function TeamListItem({
   );
 }
 
-const captainLineStyle = {
-  marginTop: "0.2rem",
-  fontSize: "0.82rem",
+const metaTextStyle = {
+  marginTop: "0.1rem",
+  fontSize: "0.85rem",
   color: colors.textMuted,
-  lineHeight: 1.45,
+  lineHeight: 1.3,
 };
 
 export default TeamListItem;
