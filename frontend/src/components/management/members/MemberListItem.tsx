@@ -41,7 +41,11 @@ function MemberListItem({
     isEditorOpen && (isHovered || isEditingThisMember);
 
   function handleOpenDetails() {
-    navigate(`/members/${member.id}`);
+    navigate(`/members/${member.id}`, {
+      state: {
+        fromManagement: true,
+      },
+    });
   }
 
   return (

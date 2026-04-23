@@ -208,6 +208,10 @@ export default function TeamDetailPage() {
 
                 <Link
                   to={`/members/${captain.memberId}`}
+                  state={{
+                    fromTeamId: team.id,
+                    fromTeamName: team.name,
+                  }}
                   style={{ textDecoration: "none", display: "block" }}
                 >
                   <ClickableCard
@@ -284,6 +288,10 @@ export default function TeamDetailPage() {
 
                       <Link
                         to={`/members/${membership.memberId}`}
+                        state={{
+                          fromTeamId: team.id,
+                          fromTeamName: team.name,
+                        }}
                         style={{ textDecoration: "none", minWidth: 0 }}
                       >
                         <ClickableCard>

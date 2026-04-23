@@ -254,12 +254,26 @@ export default function MemberDetailPage() {
     member?.type === "ADULT" ? "Erwachsene" : "Jugendliche";
 
   return (
-    <div>
-      <div style={{ marginBottom: "1rem" }}>
-        <Link to={backTarget} style={{ color: colors.primary }}>
-          {backLabel}
-        </Link>
-      </div>
+    <div
+      style={{
+        maxWidth: "1100px",
+        margin: "0 auto",
+        padding: "1.5rem 1rem 3rem",
+        display: "grid",
+        gap: "1.5rem",
+      }}
+    >
+      <Link
+        to={backTarget}
+        style={{
+          color: colors.primary,
+          textDecoration: "none",
+          fontWeight: 600,
+          width: "fit-content",
+        }}
+      >
+        {backLabel}
+      </Link>
 
       {loading && <StatusMessage>Mitglied wird geladen...</StatusMessage>}
       {error && <StatusMessage variant="error">{error}</StatusMessage>}
