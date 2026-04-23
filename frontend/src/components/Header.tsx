@@ -16,6 +16,9 @@ function Header({ user, onLogout }: HeaderProps) {
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [managementMenuOpen, setManagementMenuOpen] = useState(false);
+  const [isManagementButtonHovered, setIsManagementButtonHovered] =
+    useState(false);
+  const [isUserButtonHovered, setIsUserButtonHovered] = useState(false);
 
   const menuRef = useRef<HTMLDivElement | null>(null);
   const managementMenuRef = useRef<HTMLDivElement | null>(null);
@@ -96,29 +99,17 @@ function Header({ user, onLogout }: HeaderProps) {
     await onLogout();
   }
 
-  const navLinkStyle = ({
-    isActive,
-  }: {
-    isActive: boolean;
-  }): CSSProperties => ({
-    textDecoration: "none",
-    color: isActive ? colors.text : colors.textMuted,
-    fontWeight: isActive ? 700 : 600,
-    padding: "9px 14px",
-    borderRadius: "10px",
-    backgroundColor: isActive ? colors.primarySoft : "transparent",
-    transition:
-      "background-color 0.15s ease, color 0.15s ease, transform 0.15s ease",
-    boxShadow: isActive ? "inset 0 0 0 1px rgba(37, 99, 235, 0.08)" : "none",
-  });
-
   const managementButtonStyle: CSSProperties = {
     border: "none",
     color: isManagementActive ? colors.text : colors.textMuted,
     fontWeight: isManagementActive ? 700 : 600,
     padding: "9px 14px",
     borderRadius: "10px",
-    backgroundColor: isManagementActive ? colors.primarySoft : "transparent",
+    backgroundColor: isManagementActive
+      ? colors.primarySoft
+      : isManagementButtonHovered
+        ? colors.surfaceSoft
+        : "transparent",
     transition:
       "background-color 0.15s ease, color 0.15s ease, transform 0.15s ease",
     boxShadow: isManagementActive
@@ -129,6 +120,21 @@ function Header({ user, onLogout }: HeaderProps) {
     alignItems: "center",
     gap: "8px",
     fontSize: "1rem",
+  };
+
+  const userMenuButtonStyle: CSSProperties = {
+    padding: "8px 12px",
+    borderRadius: "999px",
+    backgroundColor:
+      menuOpen || isUserButtonHovered ? colors.surface : colors.surfaceSoft,
+    border: `1px solid ${colors.border}`,
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    minHeight: "52px",
+    transition:
+      "background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease",
   };
 
   return (
@@ -209,13 +215,8 @@ function Header({ user, onLogout }: HeaderProps) {
           </div>
 
           <nav style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-            <NavLink to="/" style={navLinkStyle} end>
-              Start
-            </NavLink>
-
-            <NavLink to="/teams" style={navLinkStyle}>
-              Mannschaften
-            </NavLink>
+            <HeaderNavLink to="/" label="Start" end />
+            <HeaderNavLink to="/teams" label="Mannschaften" />
 
             {isManagementVisible ? (
               <div
@@ -229,6 +230,8 @@ function Header({ user, onLogout }: HeaderProps) {
                 <button
                   type="button"
                   onClick={toggleManagementMenu}
+                  onMouseEnter={() => setIsManagementButtonHovered(true)}
+                  onMouseLeave={() => setIsManagementButtonHovered(false)}
                   aria-expanded={managementMenuOpen}
                   style={managementButtonStyle}
                 >
@@ -301,17 +304,9 @@ function Header({ user, onLogout }: HeaderProps) {
           <button
             type="button"
             onClick={toggleMenu}
-            style={{
-              padding: "8px 12px",
-              borderRadius: "999px",
-              backgroundColor: colors.surfaceSoft,
-              border: `1px solid ${colors.border}`,
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-              minHeight: "52px",
-            }}
+            onMouseEnter={() => setIsUserButtonHovered(true)}
+            onMouseLeave={() => setIsUserButtonHovered(false)}
+            style={userMenuButtonStyle}
           >
             <UserAvatar user={user} size={34} fontSize="0.9rem" />
 
@@ -415,27 +410,47 @@ function Header({ user, onLogout }: HeaderProps) {
                   </div>
                 </div>
 
-                <button
-                  type="button"
+                <DropdownActionItem
+                  label="Mein Profil"
                   onClick={handleNavigateToProfile}
-                  style={menuItemStyle}
-                >
-                  Mein Profil
-                </button>
+                />
 
-                <button
-                  type="button"
+                <DropdownActionItem
+                  label="Abmelden"
                   onClick={handleLogoutClick}
-                  style={menuItemStyle}
-                >
-                  Abmelden
-                </button>
+                />
               </div>
             </div>
           )}
         </div>
       </div>
     </header>
+  );
+}
+
+function HeaderNavLink({
+  to,
+  label,
+  end = false,
+}: {
+  to: string;
+  label: string;
+  end?: boolean;
+}) {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <NavLink to={to} end={end}>
+      {({ isActive }) => (
+        <span
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          style={navLinkStyle(isActive, isHovered)}
+        >
+          {label}
+        </span>
+      )}
+    </NavLink>
   );
 }
 
@@ -464,16 +479,61 @@ function ManagementMenuItem({
   );
 }
 
-const menuItemStyle: CSSProperties = {
-  width: "100%",
-  padding: "12px 14px",
-  border: "none",
-  backgroundColor: "transparent",
-  color: colors.text,
-  textAlign: "left",
-  fontWeight: 600,
-  cursor: "pointer",
-};
+function DropdownActionItem({
+  label,
+  onClick,
+}: {
+  label: string;
+  onClick: () => void | Promise<void>;
+}) {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <button
+      type="button"
+      onClick={() => void onClick()}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      style={menuItemStyle(isHovered)}
+    >
+      {label}
+    </button>
+  );
+}
+
+function navLinkStyle(isActive: boolean, isHovered: boolean): CSSProperties {
+  return {
+    textDecoration: "none",
+    color: isActive ? colors.text : colors.textMuted,
+    fontWeight: isActive ? 700 : 600,
+    padding: "9px 14px",
+    borderRadius: "10px",
+    backgroundColor: isActive
+      ? colors.primarySoft
+      : isHovered
+        ? colors.surfaceSoft
+        : "transparent",
+    transition:
+      "background-color 0.15s ease, color 0.15s ease, transform 0.15s ease",
+    boxShadow: isActive ? "inset 0 0 0 1px rgba(37, 99, 235, 0.08)" : "none",
+    display: "inline-flex",
+    alignItems: "center",
+  };
+}
+
+function menuItemStyle(isHovered: boolean): CSSProperties {
+  return {
+    width: "100%",
+    padding: "12px 14px",
+    border: "none",
+    backgroundColor: isHovered ? colors.surfaceSoft : "transparent",
+    color: colors.text,
+    textAlign: "left",
+    fontWeight: 600,
+    cursor: "pointer",
+    transition: "background-color 0.15s ease, color 0.15s ease",
+  };
+}
 
 function managementMenuItemStyle(
   isActive: boolean,
