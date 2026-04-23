@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { colors, secondaryButtonStyle } from "../../styles/ui";
+import { colors, secondaryButtonStyle } from "../../../styles/ui";
 
 export function getManagementActionGroupStyle(
   isVisible: boolean

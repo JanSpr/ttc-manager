@@ -1,12 +1,12 @@
 import { useNavigate } from "react-router-dom";
-import type { Team } from "../../types/team";
-import { colors } from "../../styles/ui";
-import { EditIcon, EyeIcon } from "./ManagementIcons";
+import type { Team } from "../../../types/team";
+import { colors } from "../../../styles/ui";
+import { EditIcon, EyeIcon } from "../common/ManagementIcons";
 import {
   getManagementActionGroupStyle,
   managementIconOnlyActionStyle,
   managementListActionButtonStyle,
-} from "./managementUiStyles";
+} from "../common/managementUiStyles";
 
 type TeamListItemProps = {
   team: Team;

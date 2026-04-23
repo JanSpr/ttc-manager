@@ -1,15 +1,15 @@
 import { useMemo, useState } from "react";
-import FormField from "../ui/FormField";
-import StatusMessage from "../ui/StatusMessage";
-import EditorSection from "./EditorSection";
-import type { Member } from "../../types/member";
-import type { TeamMembership, TeamMembershipUpsertRequest } from "../../types/team";
+import FormField from "../../ui/FormField";
+import StatusMessage from "../../ui/StatusMessage";
+import EditorSection from "../common/EditorSection";
+import type { Member } from "../../../types/member";
+import type { TeamMembership, TeamMembershipUpsertRequest } from "../../../types/team";
 import {
   colors,
   primaryButtonStyle,
   secondaryButtonStyle,
   textInputStyle,
-} from "../../styles/ui";
+} from "../../../styles/ui";
 
 type TeamMembershipEditorSectionProps = {
   allMembers: Member[];

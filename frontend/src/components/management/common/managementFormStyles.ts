@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { colors } from "../../styles/ui";
+import { colors } from "../../../styles/ui";
 
 export const managementFormStyle: CSSProperties = {
   display: "grid",

@@ -1,18 +1,18 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
-import FormField from "../ui/FormField";
-import StatusMessage from "../ui/StatusMessage";
+import FormField from "../../ui/FormField";
+import StatusMessage from "../../ui/StatusMessage";
 import type {
   Member,
   MemberType,
   MemberUpsertRequest,
-} from "../../types/member";
+} from "../../../types/member";
 import {
   primaryButtonStyle,
   secondaryButtonStyle,
   textInputStyle,
-} from "../../styles/ui";
-import { SaveIcon, TrashIcon } from "./ManagementFormIcons";
+} from "../../../styles/ui";
+import { SaveIcon, TrashIcon } from "../common/ManagementFormIcons";
 import {
   managementFormActionsWrapperStyle,
   managementFormCenteredActionsStyle,
@@ -30,7 +30,7 @@ import {
   managementSelectedInfoStyle,
   managementSelectedMetaStyle,
   managementSelectedNameStyle,
-} from "./managementFormStyles";
+} from "../common/managementFormStyles";
 
 type MemberFormProps = {
   member?: Member | null;

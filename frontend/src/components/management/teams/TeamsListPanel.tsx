@@ -1,9 +1,9 @@
 import TeamListItem from "./TeamListItem";
 import ManagementListPanel, {
   ManagementListPanelContent,
-} from "./ManagementListPanel";
-import type { Team } from "../../types/team";
-import { PlusIcon } from "./ManagementIcons";
+} from "../common/ManagementListPanel";
+import type { Team } from "../../../types/team";
+import { PlusIcon } from "../common/ManagementIcons";
 
 type TeamsListPanelProps = {
   teamCount: number;

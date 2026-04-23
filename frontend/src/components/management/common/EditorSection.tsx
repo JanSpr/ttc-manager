@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { badgeStyle, colors } from "../../styles/ui";
+import { badgeStyle, colors } from "../../../styles/ui";
 
 type EditorSectionProps = {
   title: string;

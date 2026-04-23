@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import PageIntro from "../components/layout/PageIntro";
-import MembersListPanel from "../components/management/MembersListPanel";
-import MembersEditorPanel from "../components/management/MembersEditorPanel";
+import MembersListPanel from "../components/management/members/MembersListPanel";
+import MembersEditorPanel from "../components/management/members/MembersEditorPanel";
 import { useToast } from "../context/useToast";
 import {
   createMember,

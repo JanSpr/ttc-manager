@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import PageIntro from "../components/layout/PageIntro";
-import TeamsListPanel from "../components/management/TeamsListPanel";
-import TeamsEditorPanel from "../components/management/TeamsEditorPanel";
+import TeamsListPanel from "../components/management/teams/TeamsListPanel";
+import TeamsEditorPanel from "../components/management/teams/TeamsEditorPanel";
 import { useToast } from "../context/useToast";
 import { fetchMembers } from "../api/memberApi";
 import {

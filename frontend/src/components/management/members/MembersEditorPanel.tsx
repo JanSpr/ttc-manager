@@ -1,10 +1,10 @@
 import { useState } from "react";
-import Card from "../ui/Card";
+import Card from "../../ui/Card";
 import MemberForm from "./MemberForm";
-import EditorSection from "./EditorSection";
-import type { Member, MemberUpsertRequest } from "../../types/member";
-import { colors } from "../../styles/ui";
-import { EditIcon } from "./ManagementIcons";
+import EditorSection from "../common/EditorSection";
+import type { Member, MemberUpsertRequest } from "../../../types/member";
+import { colors } from "../../../styles/ui";
+import { EditIcon } from "../common/ManagementIcons";
 
 type MembersEditorPanelProps = {
   selectedMember: Member | null;

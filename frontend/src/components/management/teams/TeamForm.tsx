@@ -1,14 +1,14 @@
 import { useState } from "react";
-import type { CSSProperties, FormEvent } from "react";
-import FormField from "../ui/FormField";
-import StatusMessage from "../ui/StatusMessage";
-import type { Team, TeamType, TeamUpsertRequest } from "../../types/team";
+import type { FormEvent } from "react";
+import FormField from "../../ui/FormField";
+import StatusMessage from "../../ui/StatusMessage";
+import type { Team, TeamType, TeamUpsertRequest } from "../../../types/team";
 import {
   primaryButtonStyle,
   secondaryButtonStyle,
   textInputStyle,
-} from "../../styles/ui";
-import { SaveIcon, TrashIcon } from "./ManagementFormIcons";
+} from "../../../styles/ui";
+import { SaveIcon, TrashIcon } from "../common/ManagementFormIcons";
 import {
   managementFormActionsWrapperStyle,
   managementFormCenteredActionsStyle,
@@ -26,7 +26,7 @@ import {
   managementSelectedInfoStyle,
   managementSelectedMetaStyle,
   managementSelectedNameStyle,
-} from "./managementFormStyles";
+} from "../common/managementFormStyles";
 
 type TeamFormProps = {
   team?: Team | null;
@@ -318,11 +318,5 @@ function TeamForm({
     </form>
   );
 }
-
-const spacerStyle: CSSProperties = {
-  display: "contents",
-};
-
-void spacerStyle;
 
 export default TeamForm;

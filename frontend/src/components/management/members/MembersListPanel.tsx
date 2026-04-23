@@ -1,9 +1,9 @@
 import MemberListItem from "./MemberListItem";
 import ManagementListPanel, {
   ManagementListPanelContent,
-} from "./ManagementListPanel";
-import type { Member } from "../../types/member";
-import { PlusIcon } from "./ManagementIcons";
+} from "../common/ManagementListPanel";
+import type { Member } from "../../../types/member";
+import { PlusIcon } from "../common/ManagementIcons";
 
 type MembersListPanelProps = {
   memberCount: number;

@@ -1,12 +1,8 @@
 import type { ReactNode } from "react";
-import Card from "../ui/Card";
-import StatusMessage from "../ui/StatusMessage";
-import {
-  badgeStyle,
-  cardTitleStyle,
-  colors,
-  secondaryButtonStyle,
-} from "../../styles/ui";
+import Card from "../../ui/Card";
+import StatusMessage from "../../ui/StatusMessage";
+import { badgeStyle, cardTitleStyle, colors } from "../../../styles/ui";
+import { managementCreateButtonStyle } from "./managementUiStyles";
 
 type ManagementListPanelProps = {
   title: string;
@@ -79,7 +75,7 @@ function ManagementListPanel({
       </div>
 
       <div style={createActionRowStyle}>
-        <button type="button" onClick={onCreate} style={createButtonStyle}>
+        <button type="button" onClick={onCreate} style={managementCreateButtonStyle}>
           {createIcon}
           <span>{createLabel}</span>
         </button>
@@ -183,16 +179,6 @@ const createActionRowStyle = {
   gap: "0.55rem",
   flexWrap: "wrap" as const,
   marginBottom: "0.9rem",
-};
-
-const createButtonStyle = {
-  ...secondaryButtonStyle,
-  padding: "0.58rem 0.85rem",
-  minHeight: "38px",
-  borderRadius: "10px",
-  display: "inline-flex",
-  alignItems: "center",
-  gap: "0.5rem",
 };
 
 const listCardStyle = {

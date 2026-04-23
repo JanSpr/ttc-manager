@@ -1,16 +1,17 @@
 import { useState } from "react";
-import Card from "../ui/Card";
+import Card from "../../ui/Card";
 import TeamForm from "./TeamForm";
-import EditorSection from "./EditorSection";
+import EditorSection from "../common/EditorSection";
 import TeamMembershipEditorSection from "./TeamMembershipEditorSection";
-import type { Member } from "../../types/member";
+import type { Member } from "../../../types/member";
 import type {
   Team,
   TeamMembership,
   TeamMembershipUpsertRequest,
   TeamUpsertRequest,
-} from "../../types/team";
-import { colors } from "../../styles/ui";
+} from "../../../types/team";
+import { colors } from "../../../styles/ui";
+import { EditIcon } from "../common/ManagementIcons";
 
 type TeamsEditorPanelProps = {
   editorMode: "create" | "edit";
@@ -49,38 +50,6 @@ function getTeamShortCode(team: Pick<Team, "name" | "type">): string {
   }
 
   return teamNumber ? `H${teamNumber}` : "H";
-}
-
-function EditIcon({ size = 15 }: { size?: number }) {
-  return (
-    <span aria-hidden="true" style={iconWrapperStyle(size)}>
-      <svg
-        viewBox="0 0 24 24"
-        width={size}
-        height={size}
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.9"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M3 17.25V21h3.75L18.8 8.95l-3.75-3.75L3 17.25z" />
-        <path d="M14.9 5.2l3.75 3.75" />
-      </svg>
-    </span>
-  );
-}
-
-function iconWrapperStyle(size: number) {
-  return {
-    display: "inline-flex",
-    width: size,
-    height: size,
-    alignItems: "center",
-    justifyContent: "center",
-    color: "currentColor",
-    flexShrink: 0,
-  } as const;
 }
 
 function TeamsEditorPanel({
