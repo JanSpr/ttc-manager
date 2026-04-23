@@ -344,7 +344,7 @@ export default function TeamDetailPage() {
                               }}
                             >
                               <span style={getStatusBadgeStyle(isRegistered)}>
-                                {isRegistered ? "Registriert" : "Nicht registriert"}
+                                {isRegistered ? "Account aktiv" : "Kein Account"}
                               </span>
                               <span style={profileBadgeStyle}>Profil</span>
                             </div>
