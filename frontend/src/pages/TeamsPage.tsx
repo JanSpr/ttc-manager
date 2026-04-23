@@ -14,6 +14,47 @@ function sortTeamsByName(a: Team, b: Team): number {
   });
 }
 
+function getTeamInitials(teamName: string): string {
+  const trimmedName = teamName.trim();
+
+  if (!trimmedName) return "?";
+
+  const words = trimmedName.split(/\s+/).filter(Boolean);
+
+  if (words.length >= 2) {
+    return `${words[0][0]}${words[1][0]}`.toUpperCase();
+  }
+
+  return trimmedName.slice(0, 2).toUpperCase();
+}
+
+function TeamAvatar({ teamName }: { teamName: string }) {
+  const initials = getTeamInitials(teamName);
+
+  return (
+    <div
+      aria-hidden="true"
+      style={{
+        width: "44px",
+        height: "44px",
+        borderRadius: "12px",
+        border: `1px solid ${colors.border}`,
+        background: "linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%)",
+        color: colors.primary,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontWeight: 700,
+        fontSize: "0.9rem",
+        flexShrink: 0,
+        boxShadow: "0 6px 16px rgba(15, 23, 42, 0.05)",
+      }}
+    >
+      {initials}
+    </div>
+  );
+}
+
 function TeamSection({
   teams,
   type,
@@ -33,30 +74,9 @@ function TeamSection({
     ...badgeStyle,
     fontSize: "0.75rem",
     padding: "0.2rem 0.5rem",
-    opacity: 0.85,
+    opacity: 0.8,
+    fontWeight: 500,
   };
-
-  if (teams.length === 0) {
-    return (
-      <section style={{ display: "grid", gap: "0.85rem" }}>
-        <div>
-          <span style={sectionBadgeStyle}>{label}</span>
-        </div>
-
-        <div
-          style={{
-            border: `1px solid ${colors.border}`,
-            borderRadius: "18px",
-            backgroundColor: colors.surface,
-            padding: "1.1rem 1.2rem",
-            color: colors.textMuted,
-          }}
-        >
-          Keine Mannschaften vorhanden.
-        </div>
-      </section>
-    );
-  }
 
   return (
     <section style={{ display: "grid", gap: "0.85rem" }}>
@@ -75,49 +95,61 @@ function TeamSection({
           <Link
             key={team.id}
             to={`/teams/${team.id}`}
-            aria-label={`Mannschaft ${team.name} öffnen`}
             style={{ textDecoration: "none" }}
           >
             <ClickableCard>
               <div
                 style={{
-                  display: "grid",
+                  display: "flex",
+                  alignItems: "center",
                   gap: "0.9rem",
                 }}
               >
+                <TeamAvatar teamName={team.name} />
+
                 <div
                   style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-start",
-                    gap: "1rem",
-                    flexWrap: "wrap",
+                    flex: 1,
+                    minWidth: 0,
+                    display: "grid",
+                    gap: "0.3rem",
                   }}
                 >
-                  <h3
+                  <div
                     style={{
-                      margin: 0,
-                      fontSize: "1.1rem",
-                      color: colors.text,
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
                     }}
                   >
-                    {team.name}
-                  </h3>
+                    <h3
+                      style={{
+                        margin: 0,
+                        fontSize: "1.05rem",
+                        color: colors.text,
+                      }}
+                    >
+                      {team.name}
+                    </h3>
 
-                  <span style={memberBadgeStyle}>
-                    {team.memberCount} Mitglieder
-                  </span>
+                    <span style={memberBadgeStyle}>
+                      {team.memberCount} Mitglieder
+                    </span>
+                  </div>
+
+                  <p
+                    style={{
+                      margin: 0,
+                      color: colors.textMuted,
+                      fontSize: "0.85rem",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    {team.description || "Keine Beschreibung vorhanden."}
+                  </p>
                 </div>
-
-                <p
-                  style={{
-                    margin: 0,
-                    color: colors.textMuted,
-                    lineHeight: 1.5,
-                  }}
-                >
-                  {team.description || "Keine Beschreibung vorhanden."}
-                </p>
               </div>
             </ClickableCard>
           </Link>
@@ -129,25 +161,15 @@ function TeamSection({
 
 export default function TeamsPage() {
   const [teams, setTeams] = useState<Team[]>([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function loadTeams() {
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await fetchTeams();
-        setTeams(data);
-      } catch (err) {
+    fetchTeams()
+      .then(setTeams)
+      .catch((err) => {
         console.error("Fehler beim Laden der Mannschaften:", err);
         setError("Mannschaften konnten nicht geladen werden.");
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    void loadTeams();
+      });
   }, []);
 
   const adultTeams = useMemo(
@@ -169,41 +191,17 @@ export default function TeamsPage() {
   );
 
   return (
-    <div
-      style={{
-        maxWidth: "1100px",
-        margin: "0 auto",
-        padding: "1.5rem 1rem 3rem",
-        display: "grid",
-        gap: "1.5rem",
-      }}
-    >
+    <div style={{ display: "grid", gap: "1.5rem" }}>
       <PageIntro
         eyebrow="Mannschaften"
-        title="Alle Mannschaften im Überblick"
-        description="Hier findest du alle aktuell erfassten Erwachsenen- und Jugendmannschaften."
+        title="Mannschaften"
+        description="Hier findest du alle aktuell erfassten Erwachsenen- und Jugendmannschaften im Überblick."
       />
-
-      {loading && (
-        <StatusMessage variant="info">
-          Mannschaften werden geladen...
-        </StatusMessage>
-      )}
 
       {error && <StatusMessage variant="error">{error}</StatusMessage>}
 
-      {!loading && !error && teams.length === 0 && (
-        <StatusMessage variant="info">
-          Es wurden noch keine Mannschaften gefunden.
-        </StatusMessage>
-      )}
-
-      {!loading && !error && teams.length > 0 && (
-        <>
-          <TeamSection teams={adultTeams} type="ADULT" />
-          <TeamSection teams={youthTeams} type="YOUTH" />
-        </>
-      )}
+      <TeamSection teams={adultTeams} type="ADULT" />
+      <TeamSection teams={youthTeams} type="YOUTH" />
     </div>
   );
 }
