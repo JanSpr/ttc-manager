@@ -3,6 +3,7 @@ import Card from "../ui/Card";
 import FormField from "../ui/FormField";
 import StatusMessage from "../ui/StatusMessage";
 import TeamForm from "./TeamForm";
+import EditorSection from "./EditorSection";
 import type { Member } from "../../types/member";
 import type {
   Team,
@@ -12,7 +13,6 @@ import type {
   TeamUpsertRequest,
 } from "../../types/team";
 import {
-  badgeStyle,
   colors,
   primaryButtonStyle,
   secondaryButtonStyle,
@@ -439,438 +439,346 @@ function TeamsEditorPanel({
           </div>
         ) : null}
 
-        <section style={sectionCardStyle}>
-          <div style={sectionHeaderRowStyle}>
-            <div style={sectionHeaderTextStyle}>
-              <div style={sectionBadgeRowStyle}>
-                <span style={badgeStyle}>Mannschaftsdaten</span>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setIsDetailsOpen((current) => !current)}
-              style={sectionActionButtonStyle}
-              aria-expanded={isDetailsOpen}
-            >
-              <span style={buttonIconTextRowStyle}>
-                <EditIcon />
-                <span>{isDetailsOpen ? "Schließen" : "Bearbeiten"}</span>
-              </span>
-            </button>
-          </div>
-
-          {isDetailsOpen ? (
-            <div style={sectionContentStyle}>
-              <TeamForm
-                key={editorMode === "edit" ? team?.id ?? "edit-team" : "new-team"}
-                team={editorMode === "edit" ? team : null}
-                isSubmitting={isSubmitting}
-                onSubmit={onSubmit}
-                onCancelEdit={onCancelEdit}
-                onDelete={editorMode === "edit" ? onDelete : undefined}
-                showHeader={false}
-                showSelectedInfo={false}
-              />
-            </div>
-          ) : (
-            <div style={sectionCollapsedHintStyle}>
-              Name, Kategorie und Beschreibung der Mannschaft bearbeiten.
-            </div>
-          )}
-        </section>
+        <EditorSection
+          title="Mannschaftsdaten"
+          actionLabel={isDetailsOpen ? "Schließen" : "Bearbeiten"}
+          actionIcon={<EditIcon />}
+          isOpen={isDetailsOpen}
+          onToggle={() => setIsDetailsOpen((current) => !current)}
+          collapsedHint="Name, Kategorie und Beschreibung der Mannschaft bearbeiten."
+        >
+          <TeamForm
+            key={editorMode === "edit" ? team?.id ?? "edit-team" : "new-team"}
+            team={editorMode === "edit" ? team : null}
+            isSubmitting={isSubmitting}
+            onSubmit={onSubmit}
+            onCancelEdit={onCancelEdit}
+            onDelete={editorMode === "edit" ? onDelete : undefined}
+            showHeader={false}
+            showSelectedInfo={false}
+          />
+        </EditorSection>
 
         {isEditMode ? (
-          <section style={sectionCardStyle}>
-            <div style={sectionHeaderRowStyle}>
-              <div style={sectionHeaderTextStyle}>
-                <div style={sectionBadgeRowStyle}>
-                  <span style={badgeStyle}>Mannschaftsmitglieder</span>
-                </div>
-              </div>
+          <EditorSection
+            title="Mannschaftsmitglieder"
+            actionLabel={isMembersOpen ? "Schließen" : "Verwalten"}
+            actionIcon={<MembersIcon />}
+            isOpen={isMembersOpen}
+            onToggle={() => setIsMembersOpen((current) => !current)}
+            collapsedHint="Mitglieder verwalten und Aufstellung bearbeiten."
+          >
+            {membershipLoadError ? (
+              <StatusMessage variant="error" marginTop="0">
+                {membershipLoadError}
+              </StatusMessage>
+            ) : null}
 
-              <button
-                type="button"
-                onClick={() => setIsMembersOpen((current) => !current)}
-                style={sectionActionButtonStyle}
-                aria-expanded={isMembersOpen}
+            <div style={memberAddAreaStyle}>
+              <FormField
+                label="Mitglied auswählen"
+                htmlFor="team-membership-member-search"
               >
-                <span style={buttonIconTextRowStyle}>
-                  <MembersIcon />
-                  <span>{isMembersOpen ? "Schließen" : "Verwalten"}</span>
-                </span>
-              </button>
-            </div>
-
-            {isMembersOpen ? (
-              <div style={sectionContentStyle}>
-                {membershipLoadError ? (
-                  <StatusMessage variant="error" marginTop="0">
-                    {membershipLoadError}
-                  </StatusMessage>
-                ) : null}
-
-                <div style={memberAddAreaStyle}>
-                  <FormField
-                    label="Mitglied auswählen"
-                    htmlFor="team-membership-member-search"
-                  >
-                    <div style={comboboxWrapperStyle}>
-                      <div style={searchInputWrapperStyle}>
-                        <input
-                          id="team-membership-member-search"
-                          type="text"
-                          value={memberSearchValue}
-                          onChange={(event) => {
-                            setMemberSearchValue(event.target.value);
-                            setSelectedMemberId("");
-                          }}
-                          style={searchInputStyle}
-                          placeholder="Mitglied suchen..."
-                          disabled={
-                            isMembershipSubmitting ||
-                            availableMembers.length === 0 ||
-                            hasLineupChanges
-                          }
-                        />
-
-                        {memberSearchValue ? (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setMemberSearchValue("");
-                              setSelectedMemberId("");
-                              setMembershipError("");
-                            }}
-                            style={clearButtonStyle}
-                            aria-label="Suche löschen"
-                            disabled={
-                              isMembershipSubmitting ||
-                              availableMembers.length === 0 ||
-                              hasLineupChanges
-                            }
-                          >
-                            ✕
-                          </button>
-                        ) : null}
-                      </div>
-
-                      {selectedMember ? (
-                        <div style={selectedMemberInfoStyle}>
-                          Ausgewählt: {selectedMember.fullName}
-                        </div>
-                      ) : null}
-
-                      {memberSearchValue.trim() &&
-                      filteredAvailableMembers.length > 0 ? (
-                        <div style={comboboxResultsStyle}>
-                          {filteredAvailableMembers.slice(0, 8).map((member) => {
-                            const isSelected =
-                              String(member.id) === selectedMemberId;
-
-                            return (
-                              <button
-                                key={member.id}
-                                type="button"
-                                onClick={() => {
-                                  setSelectedMemberId(String(member.id));
-                                  setMemberSearchValue(member.fullName);
-                                  setMembershipError("");
-                                }}
-                                style={{
-                                  ...comboboxResultItemStyle,
-                                  backgroundColor: isSelected
-                                    ? colors.primarySoft
-                                    : colors.surface,
-                                  color: isSelected ? colors.primary : colors.text,
-                                }}
-                                disabled={
-                                  isMembershipSubmitting || hasLineupChanges
-                                }
-                              >
-                                {member.fullName}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      ) : null}
-                    </div>
-                  </FormField>
-
-                  {memberSearchValue.trim() && filteredAvailableMembers.length === 0 ? (
-                    <StatusMessage variant="muted" marginTop="0">
-                      Keine verfügbaren Mitglieder zur Suche gefunden.
-                    </StatusMessage>
-                  ) : null}
-
-                  <div style={addActionRowStyle}>
-                    <button
-                      type="button"
-                      onClick={() => void handleAddMembership()}
+                <div style={comboboxWrapperStyle}>
+                  <div style={searchInputWrapperStyle}>
+                    <input
+                      id="team-membership-member-search"
+                      type="text"
+                      value={memberSearchValue}
+                      onChange={(event) => {
+                        setMemberSearchValue(event.target.value);
+                        setSelectedMemberId("");
+                      }}
+                      style={searchInputStyle}
+                      placeholder="Mitglied suchen..."
                       disabled={
                         isMembershipSubmitting ||
                         availableMembers.length === 0 ||
                         hasLineupChanges
                       }
-                      style={{
-                        ...primaryButtonStyle,
-                        ...compactButtonStyle,
-                        opacity:
+                    />
+
+                    {memberSearchValue ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMemberSearchValue("");
+                          setSelectedMemberId("");
+                          setMembershipError("");
+                        }}
+                        style={clearButtonStyle}
+                        aria-label="Suche löschen"
+                        disabled={
                           isMembershipSubmitting ||
                           availableMembers.length === 0 ||
                           hasLineupChanges
-                            ? 0.7
-                            : 1,
-                        cursor:
-                          isMembershipSubmitting ||
-                          availableMembers.length === 0 ||
-                          hasLineupChanges
-                            ? "default"
-                            : "pointer",
-                      }}
-                    >
-                      <span style={buttonIconTextRowStyle}>
-                        <PlusIcon />
-                        <span>
-                          {isMembershipSubmitting
-                            ? "Wird hinzugefügt..."
-                            : "Mitglied hinzufügen"}
-                        </span>
-                      </span>
-                    </button>
+                        }
+                      >
+                        ✕
+                      </button>
+                    ) : null}
                   </div>
 
-                  {hasLineupChanges ? (
-                    <StatusMessage variant="muted" marginTop="0">
-                      Bitte die geänderte Aufstellung erst speichern oder
-                      zurücksetzen.
-                    </StatusMessage>
-                  ) : null}
-
-                  {availableMembers.length === 0 ? (
-                    <StatusMessage variant="muted" marginTop="0">
-                      Alle verfügbaren Mitglieder sind dieser Mannschaft bereits
-                      zugeordnet.
-                    </StatusMessage>
-                  ) : null}
-
-                  {membershipError ? (
-                    <StatusMessage variant="error" marginTop="0">
-                      {membershipError}
-                    </StatusMessage>
-                  ) : null}
-                </div>
-
-                {sortedMemberships.length === 0 ? (
-                  <StatusMessage variant="muted" marginTop="0">
-                    Dieser Mannschaft sind aktuell keine Mitglieder zugeordnet.
-                  </StatusMessage>
-                ) : (
-                  <>
-                    <div style={reorderHintStyle}>
-                      Spieler per Ziehen neu anordnen.
+                  {selectedMember ? (
+                    <div style={selectedMemberInfoStyle}>
+                      Ausgewählt: {selectedMember.fullName}
                     </div>
+                  ) : null}
 
-                    <div style={membershipListStyle}>
-                      {renderDropZone(0)}
-
-                      {sortedMemberships.map((membership, index) => {
-                        const isDragged = draggedMembershipId === membership.id;
+                  {memberSearchValue.trim() &&
+                  filteredAvailableMembers.length > 0 ? (
+                    <div style={comboboxResultsStyle}>
+                      {filteredAvailableMembers.slice(0, 8).map((member) => {
+                        const isSelected =
+                          String(member.id) === selectedMemberId;
 
                         return (
-                          <div key={membership.id}>
-                            <div
-                              draggable={!isMembershipSubmitting}
-                              onDragStart={() => {
-                                setMembershipError("");
-                                setDraggedMembershipId(membership.id);
-                              }}
-                              onDragEnd={() => {
-                                setDraggedMembershipId(null);
-                                setDragOverIndex(null);
-                              }}
-                              style={{
-                                ...membershipRowStyle,
-                                opacity: isDragged ? 0.55 : 1,
-                                borderBottom:
-                                  index < sortedMemberships.length - 1
-                                    ? `1px solid ${colors.border}`
-                                    : "none",
-                              }}
-                            >
-                              <div
-                                style={dragHandleStyle}
-                                title="Ziehen zum Umsortieren"
-                                aria-hidden="true"
-                              >
-                                <DragHandleIcon />
-                              </div>
-
-                              <div style={membershipPositionStyle}>
-                                {formatLineupPosition(membership.lineupPosition)}
-                              </div>
-
-                              <div style={{ minWidth: 0, flex: 1 }}>
-                                <div style={membershipNameStyle}>
-                                  {membership.memberFullName}
-                                </div>
-                                <div style={membershipMetaStyle}>
-                                  {formatMembershipRole(membership)}
-                                </div>
-                              </div>
-
-                              <div style={membershipActionsStyle}>
-                                <button
-                                  type="button"
-                                  onClick={() => void onDeleteMembership(membership.id)}
-                                  disabled={isMembershipSubmitting || hasLineupChanges}
-                                  title={
-                                    hasLineupChanges
-                                      ? "Erst Aufstellung speichern oder zurücksetzen"
-                                      : "Mitglied entfernen"
-                                  }
-                                  aria-label={`${
-                                    membership.memberFullName
-                                  } aus der Mannschaft entfernen`}
-                                  style={{
-                                    ...iconDeleteButtonStyle,
-                                    opacity:
-                                      isMembershipSubmitting || hasLineupChanges
-                                        ? 0.45
-                                        : 1,
-                                    cursor:
-                                      isMembershipSubmitting || hasLineupChanges
-                                        ? "not-allowed"
-                                        : "pointer",
-                                    color:
-                                      isMembershipSubmitting || hasLineupChanges
-                                        ? colors.textMuted
-                                        : colors.danger,
-                                    borderColor:
-                                      isMembershipSubmitting || hasLineupChanges
-                                        ? colors.border
-                                        : "#fecaca",
-                                    backgroundColor:
-                                      isMembershipSubmitting || hasLineupChanges
-                                        ? colors.surfaceSoft
-                                        : colors.dangerSoft,
-                                  }}
-                                >
-                                  ✕
-                                </button>
-                              </div>
-                            </div>
-
-                            {renderDropZone(index + 1)}
-                          </div>
+                          <button
+                            key={member.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedMemberId(String(member.id));
+                              setMemberSearchValue(member.fullName);
+                              setMembershipError("");
+                            }}
+                            style={{
+                              ...comboboxResultItemStyle,
+                              backgroundColor: isSelected
+                                ? colors.primarySoft
+                                : colors.surface,
+                              color: isSelected ? colors.primary : colors.text,
+                            }}
+                            disabled={
+                              isMembershipSubmitting || hasLineupChanges
+                            }
+                          >
+                            {member.fullName}
+                          </button>
                         );
                       })}
                     </div>
+                  ) : null}
+                </div>
+              </FormField>
 
-                    {hasLineupChanges ? (
-                      <div style={lineupDraftNoticeStyle}>
-                        <span>Die Aufstellung wurde geändert.</span>
+              {memberSearchValue.trim() &&
+              filteredAvailableMembers.length === 0 ? (
+                <StatusMessage variant="muted" marginTop="0">
+                  Keine verfügbaren Mitglieder zur Suche gefunden.
+                </StatusMessage>
+              ) : null}
 
-                        <div style={lineupDraftActionsStyle}>
-                          <button
-                            type="button"
-                            onClick={handleResetLineupDraft}
-                            disabled={isMembershipSubmitting}
-                            style={{
-                              ...secondaryButtonStyle,
-                              ...compactSecondaryActionButtonStyle,
-                              opacity: isMembershipSubmitting ? 0.7 : 1,
-                              cursor: isMembershipSubmitting ? "default" : "pointer",
-                            }}
-                          >
-                            Zurücksetzen
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => void handleSaveLineupDraft()}
-                            disabled={isMembershipSubmitting}
-                            style={{
-                              ...primaryButtonStyle,
-                              ...compactButtonStyle,
-                              opacity: isMembershipSubmitting ? 0.7 : 1,
-                              cursor: isMembershipSubmitting ? "default" : "pointer",
-                            }}
-                          >
-                            Aufstellung speichern
-                          </button>
-                        </div>
-                      </div>
-                    ) : null}
-                  </>
-                )}
+              <div style={addActionRowStyle}>
+                <button
+                  type="button"
+                  onClick={() => void handleAddMembership()}
+                  disabled={
+                    isMembershipSubmitting ||
+                    availableMembers.length === 0 ||
+                    hasLineupChanges
+                  }
+                  style={{
+                    ...primaryButtonStyle,
+                    ...compactButtonStyle,
+                    opacity:
+                      isMembershipSubmitting ||
+                      availableMembers.length === 0 ||
+                      hasLineupChanges
+                        ? 0.7
+                        : 1,
+                    cursor:
+                      isMembershipSubmitting ||
+                      availableMembers.length === 0 ||
+                      hasLineupChanges
+                        ? "default"
+                        : "pointer",
+                  }}
+                >
+                  <span style={buttonIconTextRowStyle}>
+                    <PlusIcon />
+                    <span>
+                      {isMembershipSubmitting
+                        ? "Wird hinzugefügt..."
+                        : "Mitglied hinzufügen"}
+                    </span>
+                  </span>
+                </button>
               </div>
+
+              {hasLineupChanges ? (
+                <StatusMessage variant="muted" marginTop="0">
+                  Bitte die geänderte Aufstellung erst speichern oder
+                  zurücksetzen.
+                </StatusMessage>
+              ) : null}
+
+              {availableMembers.length === 0 ? (
+                <StatusMessage variant="muted" marginTop="0">
+                  Alle verfügbaren Mitglieder sind dieser Mannschaft bereits
+                  zugeordnet.
+                </StatusMessage>
+              ) : null}
+
+              {membershipError ? (
+                <StatusMessage variant="error" marginTop="0">
+                  {membershipError}
+                </StatusMessage>
+              ) : null}
+            </div>
+
+            {sortedMemberships.length === 0 ? (
+              <StatusMessage variant="muted" marginTop="0">
+                Dieser Mannschaft sind aktuell keine Mitglieder zugeordnet.
+              </StatusMessage>
             ) : (
-              <div style={sectionCollapsedHintStyle}>
-                Mitglieder verwalten und Aufstellung bearbeiten.
-              </div>
+              <>
+                <div style={reorderHintStyle}>
+                  Spieler per Ziehen neu anordnen.
+                </div>
+
+                <div style={membershipListStyle}>
+                  {renderDropZone(0)}
+
+                  {sortedMemberships.map((membership, index) => {
+                    const isDragged = draggedMembershipId === membership.id;
+
+                    return (
+                      <div key={membership.id}>
+                        <div
+                          draggable={!isMembershipSubmitting}
+                          onDragStart={() => {
+                            setMembershipError("");
+                            setDraggedMembershipId(membership.id);
+                          }}
+                          onDragEnd={() => {
+                            setDraggedMembershipId(null);
+                            setDragOverIndex(null);
+                          }}
+                          style={{
+                            ...membershipRowStyle,
+                            opacity: isDragged ? 0.55 : 1,
+                            borderBottom:
+                              index < sortedMemberships.length - 1
+                                ? `1px solid ${colors.border}`
+                                : "none",
+                          }}
+                        >
+                          <div
+                            style={dragHandleStyle}
+                            title="Ziehen zum Umsortieren"
+                            aria-hidden="true"
+                          >
+                            <DragHandleIcon />
+                          </div>
+
+                          <div style={membershipPositionStyle}>
+                            {formatLineupPosition(membership.lineupPosition)}
+                          </div>
+
+                          <div style={{ minWidth: 0, flex: 1 }}>
+                            <div style={membershipNameStyle}>
+                              {membership.memberFullName}
+                            </div>
+                            <div style={membershipMetaStyle}>
+                              {formatMembershipRole(membership)}
+                            </div>
+                          </div>
+
+                          <div style={membershipActionsStyle}>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                void onDeleteMembership(membership.id)
+                              }
+                              disabled={
+                                isMembershipSubmitting || hasLineupChanges
+                              }
+                              title={
+                                hasLineupChanges
+                                  ? "Erst Aufstellung speichern oder zurücksetzen"
+                                  : "Mitglied entfernen"
+                              }
+                              aria-label={`${
+                                membership.memberFullName
+                              } aus der Mannschaft entfernen`}
+                              style={{
+                                ...iconDeleteButtonStyle,
+                                opacity:
+                                  isMembershipSubmitting || hasLineupChanges
+                                    ? 0.45
+                                    : 1,
+                                cursor:
+                                  isMembershipSubmitting || hasLineupChanges
+                                    ? "not-allowed"
+                                    : "pointer",
+                                color:
+                                  isMembershipSubmitting || hasLineupChanges
+                                    ? colors.textMuted
+                                    : colors.danger,
+                                borderColor:
+                                  isMembershipSubmitting || hasLineupChanges
+                                    ? colors.border
+                                    : "#fecaca",
+                                backgroundColor:
+                                  isMembershipSubmitting || hasLineupChanges
+                                    ? colors.surfaceSoft
+                                    : colors.dangerSoft,
+                              }}
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        </div>
+
+                        {renderDropZone(index + 1)}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {hasLineupChanges ? (
+                  <div style={lineupDraftNoticeStyle}>
+                    <span>Die Aufstellung wurde geändert.</span>
+
+                    <div style={lineupDraftActionsStyle}>
+                      <button
+                        type="button"
+                        onClick={handleResetLineupDraft}
+                        disabled={isMembershipSubmitting}
+                        style={{
+                          ...secondaryButtonStyle,
+                          ...compactSecondaryActionButtonStyle,
+                          opacity: isMembershipSubmitting ? 0.7 : 1,
+                          cursor: isMembershipSubmitting ? "default" : "pointer",
+                        }}
+                      >
+                        Zurücksetzen
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => void handleSaveLineupDraft()}
+                        disabled={isMembershipSubmitting}
+                        style={{
+                          ...primaryButtonStyle,
+                          ...compactButtonStyle,
+                          opacity: isMembershipSubmitting ? 0.7 : 1,
+                          cursor: isMembershipSubmitting ? "default" : "pointer",
+                        }}
+                      >
+                        Aufstellung speichern
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
+              </>
             )}
-          </section>
+          </EditorSection>
         ) : null}
       </div>
     </Card>
   );
 }
-
-const sectionCardStyle = {
-  display: "grid",
-  gap: "0.9rem",
-  padding: "1rem",
-  borderRadius: "16px",
-  border: `1px solid ${colors.border}`,
-  backgroundColor: colors.surface,
-};
-
-const sectionHeaderRowStyle = {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "flex-start",
-  gap: "1rem",
-  flexWrap: "wrap" as const,
-};
-
-const sectionHeaderTextStyle = {
-  minWidth: 0,
-  flex: 1,
-};
-
-const sectionBadgeRowStyle = {
-  display: "flex",
-  alignItems: "center",
-  gap: "0.5rem",
-};
-
-const sectionActionButtonStyle = {
-  minHeight: "38px",
-  padding: "0.55rem 0.8rem",
-  borderRadius: "10px",
-  border: `1px solid ${colors.border}`,
-  backgroundColor: colors.surfaceSoft,
-  color: colors.text,
-  fontWeight: 700,
-  cursor: "pointer",
-  flexShrink: 0,
-};
-
-const sectionContentStyle = {
-  display: "grid",
-  gap: "1rem",
-};
-
-const sectionCollapsedHintStyle = {
-  padding: "0.85rem 0.95rem",
-  borderRadius: "12px",
-  border: `1px dashed ${colors.border}`,
-  backgroundColor: colors.surfaceSoft,
-  color: colors.textMuted,
-  fontSize: "0.92rem",
-  lineHeight: 1.5,
-};
 
 const teamSummaryCardStyle = {
   display: "flex",
