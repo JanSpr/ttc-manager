@@ -142,15 +142,7 @@ function ManagementTeamsPage() {
     const normalizedSearch = searchValue.trim().toLocaleLowerCase("de");
 
     return [...teams]
-      .sort((left, right) => {
-        if (left.type !== right.type) {
-          return left.type === "ADULT" ? -1 : 1;
-        }
-
-        return left.name.localeCompare(right.name, "de", {
-          sensitivity: "base",
-        });
-      })
+      .sort((left, right) => left.name.localeCompare(right.name, "de", { sensitivity: "base" }))
       .filter((team) => {
         if (!normalizedSearch) {
           return true;
@@ -186,13 +178,6 @@ function ManagementTeamsPage() {
     setMemberships([]);
     setMembershipLoadError("");
     setEditorMode("edit");
-  }
-
-  function closeEditor() {
-    setSelectedTeamId(null);
-    setMemberships([]);
-    setMembershipLoadError("");
-    setEditorMode("closed");
   }
 
   async function handleSubmit(request: TeamUpsertRequest) {

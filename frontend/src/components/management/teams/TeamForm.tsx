@@ -276,7 +276,7 @@ function TeamForm({
           style={{
             ...textInputStyle,
             resize: "vertical",
-            minHeight: "120px",
+            minHeight: "84px",
             fontFamily: "inherit",
           }}
           placeholder="Optionaler Hinweis, z. B. Liga, Saison oder Besonderheiten"

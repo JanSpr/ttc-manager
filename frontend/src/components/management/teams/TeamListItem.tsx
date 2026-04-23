@@ -19,10 +19,6 @@ type TeamListItemProps = {
   onOpenEdit: () => void;
 };
 
-function getTeamTypeLabel(type: Team["type"]): string {
-  return type === "YOUTH" ? "Jugend" : "Erwachsene";
-}
-
 function getTeamShortCode(team: Team): string {
   const normalizedName = team.name.trim();
 
@@ -122,17 +118,14 @@ function TeamListItem({
         <div style={{ fontWeight: 700 }}>{team.name}</div>
 
         <div style={{ fontSize: "0.85rem", color: colors.textMuted }}>
-          {getTeamTypeLabel(team.type)} · {memberLabel}
+          {memberLabel}
         </div>
 
-        <div style={captainRowStyle}>
-          <span style={captainLabelStyle}>Mannschaftsführer</span>
-
-          {captainName ? (
-            <span style={captainValueStyle}>{captainName}</span>
-          ) : (
-            <span style={captainMissingStyle}>nicht gesetzt</span>
-          )}
+        <div style={captainLineStyle}>
+          <span style={captainInlineLabelStyle}>Mannschaftsführer:</span>
+          <span style={captainInlineValueStyle}>
+            {captainName ?? "nicht gesetzt"}
+          </span>
         </div>
       </button>
 
@@ -181,35 +174,19 @@ function TeamListItem({
   );
 }
 
-const captainRowStyle = {
-  display: "flex",
-  flexWrap: "wrap" as const,
-  alignItems: "center",
-  gap: "0.4rem",
-  marginTop: "0.3rem",
-};
-
-const captainLabelStyle = {
+const captainLineStyle = {
+  marginTop: "0.2rem",
+  fontSize: "0.82rem",
   color: colors.textMuted,
-  fontSize: "0.8rem",
-  fontWeight: 600,
+  lineHeight: 1.45,
 };
 
-const captainValueStyle = {
-  display: "inline-flex",
-  alignItems: "center",
-  minHeight: "1.5rem",
-  padding: "0.12rem 0.5rem",
-  borderRadius: "999px",
-  backgroundColor: colors.surfaceSoft,
+const captainInlineLabelStyle = {
+  fontWeight: 500,
+};
+
+const captainInlineValueStyle = {
   color: colors.text,
-  fontSize: "0.8rem",
-  fontWeight: 600,
-};
-
-const captainMissingStyle = {
-  color: colors.textMuted,
-  fontSize: "0.8rem",
 };
 
 export default TeamListItem;
