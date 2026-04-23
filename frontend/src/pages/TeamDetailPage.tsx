@@ -6,7 +6,7 @@ import PageIntro from "../components/layout/PageIntro";
 import Card from "../components/ui/Card";
 import ClickableCard from "../components/ui/ClickableCard";
 import StatusMessage from "../components/ui/StatusMessage";
-import { cardTitleStyle, badgeStyle, colors } from "../styles/ui";
+import { badgeStyle, cardTitleStyle, colors } from "../styles/ui";
 
 function formatMembershipRole(membership: TeamMembershipSummary): string {
   const labels: string[] = [];
@@ -34,9 +34,111 @@ function formatLineupPosition(position: number | null | undefined): string {
   return String(position);
 }
 
+function getInitials(value: string): string {
+  const trimmedValue = value.trim();
+
+  if (!trimmedValue) {
+    return "?";
+  }
+
+  const words = trimmedValue.split(/\s+/).filter(Boolean);
+
+  if (words.length >= 2) {
+    return `${words[0][0]}${words[1][0]}`.toUpperCase();
+  }
+
+  return trimmedValue.slice(0, 2).toUpperCase();
+}
+
+function TeamAvatar({ teamName }: { teamName: string }) {
+  return (
+    <div
+      aria-hidden="true"
+      style={{
+        width: "68px",
+        height: "68px",
+        borderRadius: "16px",
+        border: `1px solid ${colors.border}`,
+        background: "linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%)",
+        color: colors.primary,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontWeight: 700,
+        fontSize: "1.1rem",
+        flexShrink: 0,
+        boxShadow: "0 8px 20px rgba(15, 23, 42, 0.06)",
+        userSelect: "none",
+      }}
+    >
+      {getInitials(teamName)}
+    </div>
+  );
+}
+
+function MemberAvatar({ fullName }: { fullName: string }) {
+  return (
+    <div
+      aria-hidden="true"
+      style={{
+        width: "48px",
+        height: "48px",
+        borderRadius: "14px",
+        border: `1px solid ${colors.border}`,
+        background: "linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%)",
+        color: colors.primary,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontWeight: 700,
+        fontSize: "0.95rem",
+        flexShrink: 0,
+        boxShadow: "0 6px 16px rgba(15, 23, 42, 0.05)",
+        userSelect: "none",
+      }}
+    >
+      {getInitials(fullName)}
+    </div>
+  );
+}
+
+function getStatusBadgeStyle(isActive: boolean) {
+  return {
+    ...badgeStyle,
+    fontSize: "0.75rem",
+    padding: "0.2rem 0.5rem",
+    fontWeight: 600,
+    opacity: 1,
+    backgroundColor: isActive ? colors.primarySoft : colors.surfaceSoft,
+    color: isActive ? colors.primary : colors.textMuted,
+  };
+}
+
+const profileBadgeStyle = {
+  ...badgeStyle,
+  fontSize: "0.75rem",
+  padding: "0.2rem 0.5rem",
+  fontWeight: 600,
+};
+
+const lineupBadgeStyle = {
+  minWidth: "40px",
+  height: "40px",
+  borderRadius: "12px",
+  border: `1px solid ${colors.border}`,
+  backgroundColor: colors.surface,
+  color: colors.text,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontWeight: 700,
+  fontSize: "0.95rem",
+  flexShrink: 0,
+  boxShadow: "0 2px 8px rgba(15, 23, 42, 0.04)",
+};
+
 export default function TeamDetailPage() {
   const { id } = useParams();
-
   const [team, setTeam] = useState<Team | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -60,7 +162,6 @@ export default function TeamDetailPage() {
       try {
         setLoading(true);
         setError(null);
-
         const teamData = await fetchTeamById(teamId);
         setTeam(teamData);
       } catch (err) {
@@ -75,14 +176,33 @@ export default function TeamDetailPage() {
   }, [id]);
 
   return (
-    <div>
-      <div style={{ marginBottom: "1rem" }}>
-        <Link to="/teams" style={{ color: colors.primary }}>
-          ← Zurück zur Mannschaftsübersicht
-        </Link>
-      </div>
+    <div
+      style={{
+        maxWidth: "1100px",
+        margin: "0 auto",
+        padding: "1.5rem 1rem 3rem",
+        display: "grid",
+        gap: "1.5rem",
+      }}
+    >
+      <Link
+        to="/teams"
+        style={{
+          color: colors.primary,
+          textDecoration: "none",
+          fontWeight: 600,
+          width: "fit-content",
+        }}
+      >
+        ← Zurück zur Mannschaftsübersicht
+      </Link>
 
-      {loading && <StatusMessage>Mannschaft wird geladen...</StatusMessage>}
+      {loading && (
+        <StatusMessage variant="info">
+          Mannschaft wird geladen...
+        </StatusMessage>
+      )}
+
       {error && <StatusMessage variant="error">{error}</StatusMessage>}
 
       {!loading && !error && team && (
@@ -90,96 +210,131 @@ export default function TeamDetailPage() {
           <PageIntro
             title={team.name}
             description={team.description || "Keine Beschreibung vorhanden."}
-            eyebrow="Mannschaft"
+            eyebrow={
+              <div
+                style={{
+                  position: "absolute",
+                  left: "1.75rem",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  margin: 0,
+                }}
+              >
+                <TeamAvatar teamName={team.name} />
+              </div>
+            }
+            style={{
+              position: "relative",
+              minHeight: "112px",
+              paddingLeft: "6.75rem",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+            }}
           />
 
           <Card>
             <h2 style={cardTitleStyle}>Mannschaftsmitglieder</h2>
 
             {team.memberships.length === 0 ? (
-              <StatusMessage variant="muted" marginTop="0">
+              <div
+                style={{
+                  color: colors.textMuted,
+                }}
+              >
                 Dieser Mannschaft sind aktuell keine Mitglieder zugeordnet.
-              </StatusMessage>
+              </div>
             ) : (
-              <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-                {team.memberships.map((membership) => (
-                  <li
-                    key={membership.membershipId}
-                    style={{ marginTop: "0.85rem" }}
-                  >
-                    <Link
-                      to={`/members/${membership.memberId}`}
-                      state={{
-                        fromTeamId: team.id,
-                        fromTeamName: team.name,
+              <div
+                style={{
+                  display: "grid",
+                  gap: "0.9rem",
+                }}
+              >
+                {team.memberships.map((membership) => {
+                  const isRegistered = membership.userId != null;
+
+                  return (
+                    <div
+                      key={membership.memberId}
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "40px minmax(0, 1fr)",
+                        alignItems: "center",
+                        gap: "0.75rem",
                       }}
-                      style={{ textDecoration: "none", color: "inherit" }}
                     >
-                      <ClickableCard style={{ borderRadius: "16px" }}>
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "1rem",
-                          }}
-                        >
+                      <div style={lineupBadgeStyle}>
+                        {formatLineupPosition(membership.lineupPosition)}
+                      </div>
+
+                      <Link
+                        to={`/members/${membership.memberId}`}
+                        style={{ textDecoration: "none", minWidth: 0 }}
+                      >
+                        <ClickableCard>
                           <div
                             style={{
-                              width: "40px",
-                              height: "40px",
-                              borderRadius: "999px",
-                              backgroundColor: colors.primarySoft,
-                              color: colors.primary,
-                              fontWeight: 800,
                               display: "flex",
+                              justifyContent: "space-between",
                               alignItems: "center",
-                              justifyContent: "center",
-                              flexShrink: 0,
+                              gap: "1rem",
+                              flexWrap: "wrap",
                             }}
-                            title="Aufstellung"
                           >
-                            {formatLineupPosition(membership.lineupPosition)}
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "0.9rem",
+                                minWidth: 0,
+                                flex: 1,
+                              }}
+                            >
+                              <MemberAvatar fullName={membership.memberFullName} />
+
+                              <div style={{ minWidth: 0 }}>
+                                <div
+                                  style={{
+                                    fontWeight: 700,
+                                    color: colors.text,
+                                  }}
+                                >
+                                  {membership.memberFullName}
+                                </div>
+
+                                <div
+                                  style={{
+                                    color: colors.textMuted,
+                                    fontSize: "0.9rem",
+                                    marginTop: "2px",
+                                  }}
+                                >
+                                  {formatMembershipRole(membership)}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "0.5rem",
+                                flexWrap: "wrap",
+                              }}
+                            >
+                              <span style={getStatusBadgeStyle(isRegistered)}>
+                                {isRegistered ? "Aktiv" : "Nicht registriert"}
+                              </span>
+                              <span style={profileBadgeStyle}>Profil</span>
+                            </div>
                           </div>
-
-                          <div style={{ flex: 1 }}>
-                            <div
-                              style={{
-                                fontWeight: 700,
-                                marginBottom: "0.25rem",
-                                color: colors.text,
-                              }}
-                            >
-                              {membership.memberFullName}
-                            </div>
-
-                            <div
-                              style={{
-                                color: colors.textMuted,
-                                marginBottom: "0.25rem",
-                              }}
-                            >
-                              {formatMembershipRole(membership)}
-                            </div>
-
-                            <div
-                              style={{
-                                fontSize: "0.95rem",
-                                color: colors.textMuted,
-                              }}
-                            >
-                              {membership.userId
-                                ? `Mit Login verknüpft (Benutzer-ID: ${membership.userId})`
-                                : "Kein Login verknüpft"}
-                            </div>
-                          </div>
-
-                          <div style={badgeStyle}>Profil</div>
-                        </div>
-                      </ClickableCard>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+                        </ClickableCard>
+                      </Link>
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </Card>
         </>
