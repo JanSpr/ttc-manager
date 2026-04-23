@@ -5,6 +5,7 @@ import type { Team } from "../types/team";
 import PageIntro from "../components/layout/PageIntro";
 import ClickableCard from "../components/ui/ClickableCard";
 import StatusMessage from "../components/ui/StatusMessage";
+import TeamAvatar from "../components/ui/TeamAvatar";
 import { badgeStyle, colors } from "../styles/ui";
 
 function sortTeamsByName(a: Team, b: Team): number {
@@ -12,47 +13,6 @@ function sortTeamsByName(a: Team, b: Team): number {
     numeric: true,
     sensitivity: "base",
   });
-}
-
-function getTeamInitials(teamName: string): string {
-  const trimmedName = teamName.trim();
-
-  if (!trimmedName) return "?";
-
-  const words = trimmedName.split(/\s+/).filter(Boolean);
-
-  if (words.length >= 2) {
-    return `${words[0][0]}${words[1][0]}`.toUpperCase();
-  }
-
-  return trimmedName.slice(0, 2).toUpperCase();
-}
-
-function TeamAvatar({ teamName }: { teamName: string }) {
-  const initials = getTeamInitials(teamName);
-
-  return (
-    <div
-      aria-hidden="true"
-      style={{
-        width: "44px",
-        height: "44px",
-        borderRadius: "12px",
-        border: `1px solid ${colors.border}`,
-        background: "linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%)",
-        color: colors.primary,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontWeight: 700,
-        fontSize: "0.9rem",
-        flexShrink: 0,
-        boxShadow: "0 6px 16px rgba(15, 23, 42, 0.05)",
-      }}
-    >
-      {initials}
-    </div>
-  );
 }
 
 function TeamSection({

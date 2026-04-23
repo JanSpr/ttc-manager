@@ -7,6 +7,7 @@ import {
   managementIconOnlyActionStyle,
   managementListActionButtonStyle,
 } from "../common/managementUiStyles";
+import TeamAvatar from "../../ui/TeamAvatar";
 
 type TeamListItemProps = {
   team: Team;
@@ -18,23 +19,6 @@ type TeamListItemProps = {
   onMouseLeave: () => void;
   onOpenEdit: () => void;
 };
-
-function getTeamShortCode(team: Team): string {
-  const normalizedName = team.name.trim();
-
-  const romanMatch = normalizedName.match(
-    /\b(I|II|III|IV|V|VI|VII|VIII|IX|X)\b/i
-  );
-  const digitMatch = normalizedName.match(/\b(\d+)\b/);
-
-  const teamNumber = digitMatch?.[1] ?? romanMatch?.[1]?.toUpperCase() ?? "";
-
-  if (team.type === "YOUTH") {
-    return teamNumber ? `J${teamNumber}` : "J";
-  }
-
-  return teamNumber ? `H${teamNumber}` : "H";
-}
 
 function getCaptainName(team: Team): string | null {
   return (
@@ -81,24 +65,15 @@ function TeamListItem({
         backgroundColor: isEditingThisTeam ? "#dbeafe" : colors.surface,
       }}
     >
-      <div
-        style={{
-          width: "38px",
-          height: "38px",
-          borderRadius: "12px",
-          border: `1px solid ${colors.borderStrong}`,
-          background: "linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%)",
-          color: colors.primary,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: "0.88rem",
-          fontWeight: 800,
-          flexShrink: 0,
-        }}
-      >
-        {getTeamShortCode(team)}
-      </div>
+      <TeamAvatar
+        teamName={team.name}
+        size={38}
+        borderRadius="12px"
+        borderColor={colors.borderStrong}
+        fontSize="0.88rem"
+        fontWeight={800}
+        boxShadow="none"
+      />
 
       <button
         type="button"
