@@ -1,7 +1,13 @@
 import { useNavigate } from "react-router-dom";
-import type { CSSProperties, ReactNode } from "react";
 import type { Team } from "../../types/team";
 import { colors } from "../../styles/ui";
+import {
+  EditIcon,
+  EyeIcon,
+  getManagementActionGroupStyle,
+  managementIconOnlyActionStyle,
+  managementListActionButtonStyle,
+} from "./ManagementUi";
 
 type TeamListItemProps = {
   team: Team;
@@ -34,75 +40,6 @@ function getTeamShortCode(team: Team): string {
 
   return teamNumber ? `H${teamNumber}` : "H";
 }
-
-/* ================= ICONS ================= */
-
-function IconWrapper({
-  children,
-  size = 16,
-}: {
-  children: ReactNode;
-  size?: number;
-}) {
-  return (
-    <span
-      aria-hidden="true"
-      style={{
-        display: "inline-flex",
-        width: size,
-        height: size,
-        alignItems: "center",
-        justifyContent: "center",
-        color: "currentColor",
-        flexShrink: 0,
-      }}
-    >
-      {children}
-    </span>
-  );
-}
-
-function EditIcon({ size = 16 }: { size?: number }) {
-  return (
-    <IconWrapper size={size}>
-      <svg
-        viewBox="0 0 24 24"
-        width={size}
-        height={size}
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.9"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M4 20h4l10-10-4-4L4 16v4z" />
-        <path d="M12 6l4 4" />
-      </svg>
-    </IconWrapper>
-  );
-}
-
-function EyeIcon({ size = 16 }: { size?: number }) {
-  return (
-    <IconWrapper size={size}>
-      <svg
-        viewBox="0 0 24 24"
-        width={size}
-        height={size}
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.9"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z" />
-        <circle cx="12" cy="12" r="3" />
-      </svg>
-    </IconWrapper>
-  );
-}
-
-/* ================= COMPONENT ================= */
 
 function TeamListItem({
   team,
@@ -142,15 +79,13 @@ function TeamListItem({
           : colors.surface,
       }}
     >
-      {/* Avatar */}
       <div
         style={{
           width: "38px",
           height: "38px",
           borderRadius: "12px",
           border: `1px solid ${colors.borderStrong}`,
-          background:
-            "linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%)",
+          background: "linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%)",
           color: colors.primary,
           display: "flex",
           alignItems: "center",
@@ -163,7 +98,6 @@ function TeamListItem({
         {getTeamShortCode(team)}
       </div>
 
-      {/* Text */}
       <button
         type="button"
         onClick={() => isEditorOpen && onOpenEdit()}
@@ -183,22 +117,13 @@ function TeamListItem({
         </div>
       </button>
 
-      {/* ACTIONS */}
       {isEditorOpen ? (
-        <div
-          style={{
-            display: "flex",
-            gap: "0.45rem",
-            opacity: showActionsInEditor ? 1 : 0,
-            pointerEvents: showActionsInEditor ? "auto" : "none",
-            transition: "opacity 0.15s",
-          }}
-        >
+        <div style={getManagementActionGroupStyle(showActionsInEditor)}>
           <button
             type="button"
             onClick={handleOpenDetails}
             title="Details anzeigen"
-            style={iconOnlyButton}
+            style={managementIconOnlyActionStyle}
           >
             <EyeIcon />
           </button>
@@ -207,25 +132,17 @@ function TeamListItem({
             type="button"
             onClick={onOpenEdit}
             title="Bearbeiten"
-            style={iconOnlyButton}
+            style={managementIconOnlyActionStyle}
           >
             <EditIcon />
           </button>
         </div>
       ) : (
-        <div
-          style={{
-            display: "flex",
-            gap: "0.45rem",
-            opacity: showActionsInList ? 1 : 0,
-            pointerEvents: showActionsInList ? "auto" : "none",
-            transition: "opacity 0.15s",
-          }}
-        >
+        <div style={getManagementActionGroupStyle(showActionsInList)}>
           <button
             type="button"
             onClick={handleOpenDetails}
-            style={listActionButton}
+            style={managementListActionButtonStyle}
           >
             <EyeIcon />
             <span>Details</span>
@@ -234,7 +151,7 @@ function TeamListItem({
           <button
             type="button"
             onClick={onOpenEdit}
-            style={listActionButton}
+            style={managementListActionButtonStyle}
           >
             <EditIcon />
             <span>Bearbeiten</span>
@@ -244,31 +161,5 @@ function TeamListItem({
     </div>
   );
 }
-
-/* ================= STYLES ================= */
-
-const listActionButton: CSSProperties = {
-  display: "inline-flex",
-  alignItems: "center",
-  gap: "0.4rem",
-  padding: "0.45rem 0.7rem",
-  borderRadius: "10px",
-  border: `1px solid ${colors.border}`,
-  background: "#fff",
-  cursor: "pointer",
-  fontSize: "0.85rem",
-};
-
-const iconOnlyButton: CSSProperties = {
-  width: "36px",
-  height: "36px",
-  borderRadius: "10px",
-  border: `1px solid ${colors.border}`,
-  background: "#fff",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  cursor: "pointer",
-};
 
 export default TeamListItem;

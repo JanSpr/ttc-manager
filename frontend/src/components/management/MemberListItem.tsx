@@ -1,7 +1,13 @@
 import { useNavigate } from "react-router-dom";
-import type { CSSProperties, ReactNode } from "react";
 import type { Member } from "../../types/member";
 import { colors } from "../../styles/ui";
+import {
+  EditIcon,
+  EyeIcon,
+  getManagementActionGroupStyle,
+  managementIconOnlyActionStyle,
+  managementListActionButtonStyle,
+} from "./ManagementUi";
 
 type MemberListItemProps = {
   member: Member;
@@ -16,71 +22,6 @@ type MemberListItemProps = {
 
 function getMemberTypeLabel(type: Member["type"]): string {
   return type === "YOUTH" ? "Jugend" : "Erwachsene";
-}
-
-function IconWrapper({
-  children,
-  size = 16,
-}: {
-  children: ReactNode;
-  size?: number;
-}) {
-  return (
-    <span
-      aria-hidden="true"
-      style={{
-        display: "inline-flex",
-        width: size,
-        height: size,
-        alignItems: "center",
-        justifyContent: "center",
-        color: "currentColor",
-        flexShrink: 0,
-      }}
-    >
-      {children}
-    </span>
-  );
-}
-
-function EditIcon({ size = 16 }: { size?: number }) {
-  return (
-    <IconWrapper size={size}>
-      <svg
-        viewBox="0 0 24 24"
-        width={size}
-        height={size}
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.9"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M4 20h4l10-10-4-4L4 16v4z" />
-        <path d="M12 6l4 4" />
-      </svg>
-    </IconWrapper>
-  );
-}
-
-function EyeIcon({ size = 16 }: { size?: number }) {
-  return (
-    <IconWrapper size={size}>
-      <svg
-        viewBox="0 0 24 24"
-        width={size}
-        height={size}
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.9"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z" />
-        <circle cx="12" cy="12" r="3" />
-      </svg>
-    </IconWrapper>
-  );
 }
 
 function MemberListItem({
@@ -182,21 +123,13 @@ function MemberListItem({
       </button>
 
       {isEditorOpen ? (
-        <div
-          style={{
-            display: "flex",
-            gap: "0.45rem",
-            opacity: showActionsInEditor ? 1 : 0,
-            pointerEvents: showActionsInEditor ? "auto" : "none",
-            transition: "opacity 0.15s ease",
-          }}
-        >
+        <div style={getManagementActionGroupStyle(showActionsInEditor)}>
           <button
             type="button"
             onClick={handleOpenDetails}
             aria-label={`${member.fullName} Details anzeigen`}
             title="Details anzeigen"
-            style={iconOnlyActionStyle}
+            style={managementIconOnlyActionStyle}
           >
             <EyeIcon size={15} />
           </button>
@@ -206,27 +139,19 @@ function MemberListItem({
             onClick={onOpenEdit}
             aria-label={`${member.fullName} bearbeiten`}
             title="Mitglied bearbeiten"
-            style={iconOnlyActionStyle}
+            style={managementIconOnlyActionStyle}
           >
             <EditIcon size={15} />
           </button>
         </div>
       ) : (
-        <div
-          style={{
-            display: "flex",
-            gap: "0.45rem",
-            opacity: showActionsInList ? 1 : 0,
-            pointerEvents: showActionsInList ? "auto" : "none",
-            transition: "opacity 0.15s ease",
-          }}
-        >
+        <div style={getManagementActionGroupStyle(showActionsInList)}>
           <button
             type="button"
             onClick={handleOpenDetails}
             aria-label={`${member.fullName} Details anzeigen`}
             title="Details anzeigen"
-            style={listActionButtonStyle}
+            style={managementListActionButtonStyle}
           >
             <EyeIcon size={15} />
             <span>Details</span>
@@ -237,7 +162,7 @@ function MemberListItem({
             onClick={onOpenEdit}
             aria-label={`${member.fullName} bearbeiten`}
             title="Mitglied bearbeiten"
-            style={listActionButtonStyle}
+            style={managementListActionButtonStyle}
           >
             <EditIcon size={15} />
             <span>Bearbeiten</span>
@@ -247,34 +172,5 @@ function MemberListItem({
     </div>
   );
 }
-
-const listActionButtonStyle: CSSProperties = {
-  minHeight: "36px",
-  padding: "0.48rem 0.72rem",
-  borderRadius: "10px",
-  border: `1px solid ${colors.border}`,
-  backgroundColor: "#ffffff",
-  color: colors.textMuted,
-  display: "inline-flex",
-  alignItems: "center",
-  gap: "0.45rem",
-  fontSize: "0.88rem",
-  fontWeight: 600,
-  cursor: "pointer",
-};
-
-const iconOnlyActionStyle: CSSProperties = {
-  width: "36px",
-  height: "36px",
-  borderRadius: "10px",
-  border: `1px solid ${colors.border}`,
-  backgroundColor: "#ffffff",
-  color: colors.textMuted,
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  textDecoration: "none",
-  cursor: "pointer",
-};
 
 export default MemberListItem;
