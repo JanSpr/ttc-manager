@@ -43,7 +43,7 @@ type TeamFormProps = {
   isMembershipSubmitting: boolean;
   onSubmit: (request: TeamUpsertRequest) => Promise<void>;
   onAssignCaptain: (memberId: number) => Promise<void>;
-  onCancelEdit?: () => void;
+  onCancel?: () => void;
   onDelete?: () => Promise<void>;
   onSubmitSuccess?: () => void;
   showHeader?: boolean;
@@ -101,7 +101,7 @@ function TeamForm({
   isMembershipSubmitting,
   onSubmit,
   onAssignCaptain,
-  onCancelEdit,
+  onCancel,
   onDelete,
   onSubmitSuccess,
   showHeader = true,
@@ -417,7 +417,7 @@ function TeamForm({
 
             <button
               type="button"
-              onClick={onCancelEdit}
+              onClick={onCancel}
               disabled={isSubmitting || isMembershipSubmitting}
               style={{
                 ...secondaryButtonStyle,
@@ -473,7 +473,7 @@ function TeamForm({
 
             <button
               type="button"
-              onClick={onCancelEdit}
+              onClick={onCancel}
               disabled={isSubmitting}
               style={{
                 ...secondaryButtonStyle,
