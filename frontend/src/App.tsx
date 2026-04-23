@@ -12,7 +12,6 @@ import TeamDetailPage from "./pages/TeamDetailPage";
 import MemberDetailPage from "./pages/MemberDetailPage";
 import LoginPage from "./pages/LoginPage";
 import UserProfilePage from "./pages/UserProfilePage";
-import ManagementPage from "./pages/ManagementPage";
 import ManagementMembersPage from "./pages/ManagementMembersPage";
 import ManagementTeamsPage from "./pages/ManagementTeamsPage";
 
@@ -101,11 +100,7 @@ function AppContent() {
 
           <Route
             path="/management"
-            element={
-              <ProtectedRoute allowedRoles={["ADMIN", "BOARD"]}>
-                <ManagementPage />
-              </ProtectedRoute>
-            }
+            element={<Navigate to="/management/members" replace />}
           />
 
           <Route
