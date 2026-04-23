@@ -1,35 +1,41 @@
-import Card from "../ui/Card";
 import MemberForm from "./MemberForm";
+import EditorSection from "./EditorSection";
 import type { Member, MemberUpsertRequest } from "../../types/member";
 
 type MembersEditorPanelProps = {
-  editorMode: "create" | "edit";
-  member: Member | null;
+  selectedMember: Member | null;
   isSubmitting: boolean;
   onSubmit: (request: MemberUpsertRequest) => Promise<void>;
-  onCancelEdit: () => void;
+  onCancel: () => void;
   onDelete?: () => Promise<void>;
 };
 
 function MembersEditorPanel({
-  editorMode,
-  member,
+  selectedMember,
   isSubmitting,
   onSubmit,
-  onCancelEdit,
+  onCancel,
   onDelete,
 }: MembersEditorPanelProps) {
+  const isEditMode = Boolean(selectedMember);
+
   return (
-    <Card style={{ marginTop: 0 }}>
-      <MemberForm
-        key={editorMode === "edit" ? member?.id ?? "edit-member" : "new-member"}
-        member={editorMode === "edit" ? member : null}
-        isSubmitting={isSubmitting}
-        onSubmit={onSubmit}
-        onCancelEdit={onCancelEdit}
-        onDelete={editorMode === "edit" ? onDelete : undefined}
-      />
-    </Card>
+    <div style={{ display: "grid", gap: "1rem" }}>
+      <EditorSection
+        title={isEditMode ? "Mitglied bearbeiten" : "Neues Mitglied"}
+        defaultExpanded
+      >
+        <MemberForm
+          member={selectedMember}
+          isSubmitting={isSubmitting}
+          onSubmit={onSubmit}
+          onCancelEdit={onCancel}
+          onDelete={onDelete}
+          showHeader={false}        // wichtig → Header kommt jetzt aus Section
+          showSelectedInfo={true}
+        />
+      </EditorSection>
+    </div>
   );
 }
 
