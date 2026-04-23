@@ -30,6 +30,8 @@ function Header({ user, onLogout }: HeaderProps) {
   );
 
   const isManagementActive = location.pathname.startsWith("/management");
+  const isMembersActive = location.pathname.startsWith("/management/members");
+  const isTeamsActive = location.pathname.startsWith("/management/teams");
 
   useEffect(() => {
     if (!openMenu) return;
@@ -250,7 +252,7 @@ function Header({ user, onLogout }: HeaderProps) {
                       top: "100%",
                       left: 0,
                       paddingTop: "8px",
-                      minWidth: "250px",
+                      minWidth: "220px",
                       zIndex: 30,
                     }}
                   >
@@ -261,49 +263,25 @@ function Header({ user, onLogout }: HeaderProps) {
                         borderRadius: "14px",
                         boxShadow: "0 16px 40px rgba(15, 23, 42, 0.12)",
                         overflow: "hidden",
+                        padding: "6px",
                       }}
                     >
-                      <div
-                        style={{
-                          padding: "12px 14px",
-                          borderBottom: `1px solid ${colors.border}`,
-                          backgroundColor: colors.surfaceSoft,
-                        }}
-                      >
-                        <div
-                          style={{
-                            color: colors.text,
-                            fontWeight: 700,
-                            fontSize: "0.92rem",
-                          }}
-                        >
-                          Verwaltung
-                        </div>
-                        <div
-                          style={{
-                            color: colors.textMuted,
-                            fontSize: "0.82rem",
-                            marginTop: "2px",
-                          }}
-                        >
-                          Schnellzugriff auf die Verwaltungsbereiche
-                        </div>
-                      </div>
-
                       <button
                         type="button"
                         onClick={handleNavigateToManagementMembers}
-                        style={menuItemStyle}
+                        style={dropdownItemStyle(isMembersActive)}
                       >
-                        Mitgliederverwaltung
+                        <span style={dropdownIconStyle}>👥</span>
+                        <span>Mitglieder</span>
                       </button>
 
                       <button
                         type="button"
                         onClick={handleNavigateToManagementTeams}
-                        style={menuItemStyle}
+                        style={dropdownItemStyle(isTeamsActive)}
                       >
-                        Mannschaftsverwaltung
+                        <span style={dropdownIconStyle}>🛡️</span>
+                        <span>Mannschaften</span>
                       </button>
                     </div>
                   </div>
@@ -474,5 +452,31 @@ const menuItemStyle: CSSProperties = {
   fontWeight: 600,
   cursor: "pointer",
 };
+
+const dropdownIconStyle: CSSProperties = {
+  width: "20px",
+  display: "inline-flex",
+  justifyContent: "center",
+  alignItems: "center",
+  fontSize: "0.95rem",
+  flexShrink: 0,
+};
+
+function dropdownItemStyle(isActive: boolean): CSSProperties {
+  return {
+    width: "100%",
+    padding: "10px 12px",
+    border: "none",
+    borderRadius: "10px",
+    backgroundColor: isActive ? colors.primarySoft : "transparent",
+    color: isActive ? colors.text : colors.text,
+    textAlign: "left",
+    fontWeight: isActive ? 700 : 600,
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+  };
+}
 
 export default Header;
