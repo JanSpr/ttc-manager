@@ -122,10 +122,7 @@ function TeamListItem({
         </div>
 
         <div style={captainLineStyle}>
-          <span style={captainInlineLabelStyle}>Mannschaftsführer:</span>
-          <span style={captainInlineValueStyle}>
-            {captainName ?? "nicht gesetzt"}
-          </span>
+          MF: {captainName ?? "nicht gesetzt"}
         </div>
       </button>
 
@@ -179,14 +176,6 @@ const captainLineStyle = {
   fontSize: "0.82rem",
   color: colors.textMuted,
   lineHeight: 1.45,
-};
-
-const captainInlineLabelStyle = {
-  fontWeight: 500,
-};
-
-const captainInlineValueStyle = {
-  color: colors.text,
 };
 
 export default TeamListItem;
