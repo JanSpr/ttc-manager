@@ -41,7 +41,10 @@ function getTeamShortCode(team: Team): string {
 }
 
 function getCaptainName(team: Team): string | null {
-  return team.memberships.find((membership) => membership.captain)?.memberFullName ?? null;
+  return (
+    team.memberships.find((membership) => membership.captain)?.memberFullName ??
+    null
+  );
 }
 
 function TeamListItem({
@@ -122,14 +125,14 @@ function TeamListItem({
           {getTeamTypeLabel(team.type)} · {memberLabel}
         </div>
 
-        <div
-          style={{
-            marginTop: "0.18rem",
-            fontSize: "0.82rem",
-            color: captainName ? colors.text : colors.textMuted,
-          }}
-        >
-          MF: {captainName ?? "nicht gesetzt"}
+        <div style={captainRowStyle}>
+          <span style={captainLabelStyle}>Mannschaftsführer</span>
+
+          {captainName ? (
+            <span style={captainValueStyle}>{captainName}</span>
+          ) : (
+            <span style={captainMissingStyle}>nicht gesetzt</span>
+          )}
         </div>
       </button>
 
@@ -177,5 +180,36 @@ function TeamListItem({
     </div>
   );
 }
+
+const captainRowStyle = {
+  display: "flex",
+  flexWrap: "wrap" as const,
+  alignItems: "center",
+  gap: "0.4rem",
+  marginTop: "0.3rem",
+};
+
+const captainLabelStyle = {
+  color: colors.textMuted,
+  fontSize: "0.8rem",
+  fontWeight: 600,
+};
+
+const captainValueStyle = {
+  display: "inline-flex",
+  alignItems: "center",
+  minHeight: "1.5rem",
+  padding: "0.12rem 0.5rem",
+  borderRadius: "999px",
+  backgroundColor: colors.surfaceSoft,
+  color: colors.text,
+  fontSize: "0.8rem",
+  fontWeight: 600,
+};
+
+const captainMissingStyle = {
+  color: colors.textMuted,
+  fontSize: "0.8rem",
+};
 
 export default TeamListItem;

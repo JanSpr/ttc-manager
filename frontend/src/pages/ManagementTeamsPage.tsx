@@ -550,11 +550,6 @@ function ManagementTeamsPage() {
 
         {isEditorOpen ? (
           <TeamsEditorPanel
-            key={
-              editorMode === "create"
-                ? "team-editor-create"
-                : `team-editor-${selectedTeam?.id ?? "unknown"}`
-            }
             editorMode={editorMode}
             team={selectedTeam}
             allMembers={allMembers}
@@ -563,7 +558,6 @@ function ManagementTeamsPage() {
             isSubmitting={isSubmitting}
             isMembershipSubmitting={isMembershipSubmitting}
             onSubmit={handleSubmit}
-            onCancelEdit={closeEditor}
             onDelete={editorMode === "edit" ? handleDelete : undefined}
             onCreateMembership={handleCreateMembership}
             onAssignCaptain={handleAssignCaptain}
