@@ -3,19 +3,148 @@ import { Link, useLocation, useParams } from "react-router-dom";
 import { fetchMemberById } from "../api/memberApi";
 import { fetchTeams } from "../api/teamApi";
 import type { Member } from "../types/member";
-import type { Team } from "../types/team";
-import PageIntro from "../components/layout/PageIntro";
+import type { Team, TeamMembershipSummary } from "../types/team";
+import MemberAvatar from "../components/MemberAvatar";
+import TeamAvatar from "../components/ui/TeamAvatar";
 import Card from "../components/ui/Card";
 import DataField from "../components/ui/DataField";
 import ClickableCard from "../components/ui/ClickableCard";
 import StatusMessage from "../components/ui/StatusMessage";
-import { cardTitleStyle, badgeStyle, colors } from "../styles/ui";
+import {
+  badgeStyle,
+  cardTitleStyle,
+  colors,
+  contentCardStyle,
+  sectionDescriptionStyle,
+  sectionTitleStyle,
+} from "../styles/ui";
 
 type LocationState = {
   fromTeamId?: number;
   fromTeamName?: string;
   fromManagement?: boolean;
 };
+
+function getAccountBadgeStyle(isRegistered: boolean) {
+  return {
+    ...badgeStyle,
+    fontSize: "0.75rem",
+    padding: "0.22rem 0.55rem",
+    fontWeight: 700,
+    backgroundColor: isRegistered ? colors.primarySoft : colors.surface,
+    color: isRegistered ? colors.primary : "#60a5fa",
+    border: `1px solid ${isRegistered ? colors.primarySoft : "#93c5fd"}`,
+  };
+}
+
+function getActivityBadgeStyle(isActive: boolean) {
+  return {
+    ...badgeStyle,
+    fontSize: "0.75rem",
+    padding: "0.22rem 0.55rem",
+    fontWeight: 700,
+    backgroundColor: isActive ? colors.primarySoft : colors.surfaceSoft,
+    color: isActive ? colors.primary : colors.textMuted,
+    border: `1px solid ${isActive ? colors.primarySoft : colors.border}`,
+  };
+}
+
+function getMembershipRoleLabel(
+  membership: TeamMembershipSummary | undefined,
+): string {
+  if (!membership) {
+    return "Keine Rolle hinterlegt";
+  }
+
+  const roles: string[] = [];
+
+  if (membership.captain) {
+    roles.push("Mannschaftsführer");
+  }
+
+  if (membership.viceCaptain) {
+    roles.push("Stellvertretung");
+  }
+
+  if (membership.player) {
+    roles.push("Spieler");
+  }
+
+  return roles.length > 0 ? roles.join(" · ") : "Keine Teamfunktion";
+}
+
+function getLineupLabel(membership: TeamMembershipSummary | undefined): string {
+  if (!membership || membership.lineupPosition == null) {
+    return "Keine Aufstellungsposition";
+  }
+
+  return `Position ${membership.lineupPosition}`;
+}
+
+function MemberHeader({ member }: { member: Member }) {
+  const isRegistered = member.userId != null;
+
+  return (
+    <section
+      style={{
+        ...contentCardStyle,
+        marginTop: 0,
+        padding: "1.75rem",
+        display: "flex",
+        alignItems: "center",
+        gap: "1.25rem",
+        flexWrap: "wrap",
+      }}
+    >
+      <MemberAvatar
+        member={member}
+        size={82}
+        fontSize="1.25rem"
+        boxShadow="0 10px 24px rgba(15, 23, 42, 0.07)"
+      />
+
+      <div style={{ minWidth: 0, flex: 1 }}>
+        <div
+          style={{
+            marginBottom: "0.45rem",
+            fontSize: "0.82rem",
+            fontWeight: 800,
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
+            color: colors.primary,
+          }}
+        >
+          Mitglied
+        </div>
+
+        <h1 style={sectionTitleStyle}>{member.fullName}</h1>
+
+        <p style={sectionDescriptionStyle}>
+          Detailansicht eines Vereinsmitglieds.
+        </p>
+      </div>
+
+      <div
+        style={{
+          alignSelf: "flex-start",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "flex-end",
+          gap: "0.45rem",
+          flexWrap: "wrap",
+        }}
+      >
+        <span style={getAccountBadgeStyle(isRegistered)}>
+          {isRegistered ? "Account aktiv" : "Kein Account"}
+        </span>
+
+        <span style={getActivityBadgeStyle(member.active)}>
+          {member.active ? "Aktives Mitglied" : "Inaktives Mitglied"}
+        </span>
+      </div>
+    </section>
+  );
+}
 
 export default function MemberDetailPage() {
   const { id } = useParams();
@@ -98,11 +227,7 @@ export default function MemberDetailPage() {
 
       {!loading && !error && member && (
         <>
-          <PageIntro
-            title={member.fullName}
-            description="Detailansicht eines Vereinsmitglieds."
-            eyebrow="Mitglied"
-          />
+          <MemberHeader member={member} />
 
           <Card>
             <h2 style={cardTitleStyle}>Grunddaten</h2>
@@ -116,7 +241,6 @@ export default function MemberDetailPage() {
             >
               <DataField label="Vorname" value={member.firstName || "-"} />
               <DataField label="Nachname" value={member.lastName || "-"} />
-              <DataField label="Mitglieds-ID" value={String(member.id)} />
               <DataField label="Kategorie" value={memberTypeLabel} />
             </div>
           </Card>
@@ -125,15 +249,9 @@ export default function MemberDetailPage() {
             <h2 style={cardTitleStyle}>Verknüpftes Benutzerkonto</h2>
 
             {member.userId ? (
-              <div
-                style={{
-                  display: "grid",
-                  gap: "1rem",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-                }}
-              >
-                <DataField label="Benutzer-ID" value={String(member.userId)} />
-              </div>
+              <StatusMessage variant="info" marginTop="0">
+                Dieses Mitglied hat ein aktives Benutzerkonto.
+              </StatusMessage>
             ) : (
               <StatusMessage variant="muted" marginTop="0">
                 Diesem Mitglied ist aktuell kein Benutzerkonto zugeordnet.
@@ -155,52 +273,77 @@ export default function MemberDetailPage() {
                   gap: "0.85rem",
                 }}
               >
-                {memberTeams.map((team) => (
-                  <Link
-                    key={team.id}
-                    to={`/teams/${team.id}`}
-                    style={{ textDecoration: "none", color: "inherit" }}
-                  >
-                    <ClickableCard>
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          gap: "1rem",
-                          alignItems: "flex-start",
-                          flexWrap: "wrap",
-                        }}
-                      >
-                        <div>
+                {memberTeams.map((team) => {
+                  const membership = team.memberships.find(
+                    (teamMembership) => teamMembership.memberId === member.id,
+                  );
+
+                  return (
+                    <Link
+                      key={team.id}
+                      to={`/teams/${team.id}`}
+                      style={{ textDecoration: "none", color: "inherit" }}
+                    >
+                      <ClickableCard>
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            gap: "1rem",
+                            alignItems: "center",
+                            flexWrap: "wrap",
+                          }}
+                        >
                           <div
                             style={{
-                              fontWeight: 700,
-                              color: colors.text,
-                              marginBottom: "0.3rem",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "0.85rem",
+                              minWidth: 0,
+                              flex: 1,
                             }}
                           >
-                            {team.name}
+                            <TeamAvatar
+                              teamName={team.name}
+                              size={44}
+                              boxShadow="0 6px 16px rgba(15, 23, 42, 0.05)"
+                            />
+
+                            <div style={{ minWidth: 0 }}>
+                              <div
+                                style={{
+                                  fontWeight: 700,
+                                  color: colors.text,
+                                  marginBottom: "0.25rem",
+                                }}
+                              >
+                                {team.name}
+                              </div>
+
+                              <div
+                                style={{
+                                  color: colors.textMuted,
+                                  fontSize: "0.9rem",
+                                  lineHeight: 1.45,
+                                }}
+                              >
+                                {getMembershipRoleLabel(membership)}
+                                {" · "}
+                                {getLineupLabel(membership)}
+                              </div>
+                            </div>
                           </div>
 
-                          <div
-                            style={{
-                              color: colors.textMuted,
-                              fontSize: "0.95rem",
-                            }}
-                          >
-                            {team.description || "Keine Beschreibung vorhanden."}
+                          <div style={badgeStyle}>
+                            {team.memberCount === 1
+                              ? "1 Mitglied"
+                              : `${team.memberCount} Mitglieder`}
                           </div>
                         </div>
-
-                        <div style={badgeStyle}>
-                          {team.memberCount === 1
-                            ? "1 Mitglied"
-                            : `${team.memberCount} Mitglieder`}
-                        </div>
-                      </div>
-                    </ClickableCard>
-                  </Link>
-                ))}
+                      </ClickableCard>
+                    </Link>
+                  );
+                })}
               </div>
             )}
           </Card>
