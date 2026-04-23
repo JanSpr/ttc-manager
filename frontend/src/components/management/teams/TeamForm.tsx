@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import FormField from "../../ui/FormField";
 import StatusMessage from "../../ui/StatusMessage";
@@ -110,7 +110,7 @@ function TeamForm({
   const [values, setValues] = useState<FormValues>(() => createFormValues(team));
   const [errorMessage, setErrorMessage] = useState("");
   const [captainSearchValue, setCaptainSearchValue] = useState("");
-  const [selectedCaptainMemberId, setSelectedCaptainMemberId] = useState<
+  const [pendingCaptainMemberId, setPendingCaptainMemberId] = useState<
     number | null
   >(null);
 
@@ -120,13 +120,16 @@ function TeamForm({
   const currentCaptain =
     memberships.find((membership) => membership.captain) ?? null;
 
-  useEffect(() => {
-    setValues(createFormValues(team));
-  }, [team]);
+  const effectiveCaptainMemberId =
+    pendingCaptainMemberId ?? currentCaptain?.memberId ?? null;
 
-  useEffect(() => {
-    setSelectedCaptainMemberId(currentCaptain?.memberId ?? null);
-  }, [currentCaptain?.memberId]);
+  const selectedCaptain =
+    allMembers.find((member) => member.id === effectiveCaptainMemberId) ?? null;
+
+  const hasPendingCaptainChange =
+    isEditMode &&
+    pendingCaptainMemberId != null &&
+    pendingCaptainMemberId !== (currentCaptain?.memberId ?? null);
 
   const filteredCaptainCandidates = useMemo(() => {
     const normalizedSearch = captainSearchValue.trim().toLocaleLowerCase("de");
@@ -145,14 +148,6 @@ function TeamForm({
         })
       );
   }, [allMembers, captainSearchValue]);
-
-  const selectedCaptain =
-    allMembers.find((member) => member.id === selectedCaptainMemberId) ?? null;
-
-  const hasPendingCaptainChange =
-    isEditMode &&
-    selectedCaptainMemberId != null &&
-    selectedCaptainMemberId !== (currentCaptain?.memberId ?? null);
 
   function updateField<K extends keyof FormValues>(key: K, value: FormValues[K]) {
     setValues((current) => ({
@@ -190,14 +185,14 @@ function TeamForm({
     try {
       await onSubmit(request);
 
-      if (isEditMode && hasPendingCaptainChange && selectedCaptainMemberId != null) {
-        await onAssignCaptain(selectedCaptainMemberId);
+      if (isEditMode && hasPendingCaptainChange && pendingCaptainMemberId != null) {
+        await onAssignCaptain(pendingCaptainMemberId);
       }
 
       if (!isEditMode) {
         setValues(createFormValues(null));
         setCaptainSearchValue("");
-        setSelectedCaptainMemberId(null);
+        setPendingCaptainMemberId(null);
       }
 
       onSubmitSuccess?.();
@@ -207,7 +202,7 @@ function TeamForm({
   }
 
   function handleCaptainSelect(memberId: number) {
-    setSelectedCaptainMemberId(memberId);
+    setPendingCaptainMemberId(memberId);
     setCaptainSearchValue("");
   }
 
@@ -341,7 +336,7 @@ function TeamForm({
                 filteredCaptainCandidates.length > 0 ? (
                   <div style={captainResultsStyle}>
                     {filteredCaptainCandidates.slice(0, 8).map((member) => {
-                      const isSelected = selectedCaptainMemberId === member.id;
+                      const isSelected = effectiveCaptainMemberId === member.id;
                       const isCurrentCaptain = currentCaptain?.memberId === member.id;
 
                       return (

@@ -550,6 +550,11 @@ function ManagementTeamsPage() {
 
         {isEditorOpen ? (
           <TeamsEditorPanel
+            key={
+              editorMode === "create"
+                ? "team-editor-create"
+                : `team-editor-${selectedTeam?.id ?? "unknown"}`
+            }
             editorMode={editorMode}
             team={selectedTeam}
             allMembers={allMembers}
