@@ -2,12 +2,9 @@ import TeamListItem from "./TeamListItem";
 import Card from "../ui/Card";
 import StatusMessage from "../ui/StatusMessage";
 import type { Team } from "../../types/team";
-import {
-  badgeStyle,
-  cardTitleStyle,
-  colors,
-} from "../../styles/ui";
-import { managementCreateButtonStyle, PlusIcon } from "./ManagementUi";
+import { badgeStyle, cardTitleStyle, colors } from "../../styles/ui";
+import { PlusIcon } from "./ManagementIcons";
+import { managementCreateButtonStyle } from "./managementUiStyles";
 
 type TeamsListPanelProps = {
   teamCount: number;

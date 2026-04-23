@@ -1,13 +1,12 @@
 import { useNavigate } from "react-router-dom";
 import type { Member } from "../../types/member";
 import { colors } from "../../styles/ui";
+import { EditIcon, EyeIcon } from "./ManagementIcons";
 import {
-  EditIcon,
-  EyeIcon,
   getManagementActionGroupStyle,
   managementIconOnlyActionStyle,
   managementListActionButtonStyle,
-} from "./ManagementUi";
+} from "./managementUiStyles";
 
 type MemberListItemProps = {
   member: Member;
