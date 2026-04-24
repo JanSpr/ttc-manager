@@ -25,7 +25,7 @@ export interface TeamMembership {
 
 export type TeamMembershipUpsertRequest = {
   memberId: number;
-  lineupPosition: number;
+  lineupPosition: number | null;
   player: boolean;
   captain: boolean;
   viceCaptain: boolean;

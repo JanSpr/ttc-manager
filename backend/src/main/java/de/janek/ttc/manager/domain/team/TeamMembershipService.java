@@ -66,10 +66,10 @@ public class TeamMembershipService {
 		TeamMembership membership = new TeamMembership();
 		membership.setTeam(team);
 		membership.setMember(member);
-		membership.setLineupPosition(isPlayer ? request.getLineupPosition() : null);
 		membership.setPlayer(isPlayer);
 		membership.setCaptain(Boolean.TRUE.equals(request.getCaptain()));
 		membership.setViceCaptain(Boolean.TRUE.equals(request.getViceCaptain()));
+		membership.setLineupPosition(resolveLineupPosition(isPlayer, request.getLineupPosition()));
 
 		TeamMembership savedMembership = teamMembershipRepository.save(membership);
 		return toResponse(savedMembership);
@@ -100,10 +100,10 @@ public class TeamMembershipService {
 		boolean isPlayer = Boolean.TRUE.equals(request.getPlayer());
 
 		existingMembership.setMember(member);
-		existingMembership.setLineupPosition(isPlayer ? request.getLineupPosition() : null);
 		existingMembership.setPlayer(isPlayer);
 		existingMembership.setCaptain(Boolean.TRUE.equals(request.getCaptain()));
 		existingMembership.setViceCaptain(Boolean.TRUE.equals(request.getViceCaptain()));
+		existingMembership.setLineupPosition(resolveLineupPosition(isPlayer, request.getLineupPosition()));
 
 		TeamMembership savedMembership = teamMembershipRepository.save(existingMembership);
 		return toResponse(savedMembership);
@@ -118,6 +118,14 @@ public class TeamMembershipService {
 		}
 
 		teamMembershipRepository.delete(membership);
+	}
+
+	private Integer resolveLineupPosition(boolean isPlayer, Integer requestedLineupPosition) {
+		if (!isPlayer) {
+			return null;
+		}
+
+		return requestedLineupPosition;
 	}
 
 	private Team getTeamEntityById(Long id) {
