@@ -813,10 +813,11 @@ const iconDeleteButtonStyle = {
 
 const lineupDraftNoticeStyle = {
   display: "flex",
+  flexDirection: "column" as const,
   alignItems: "center",
-  justifyContent: "space-between",
-  gap: "1rem",
-  flexWrap: "wrap" as const,
+  justifyContent: "center",
+  gap: "0.75rem",
+  textAlign: "center" as const,
   padding: "0.9rem 1rem",
   borderRadius: "14px",
   border: `1px dashed ${colors.border}`,
@@ -827,6 +828,7 @@ const lineupDraftNoticeStyle = {
 const lineupDraftActionsStyle = {
   display: "flex",
   alignItems: "center",
+  justifyContent: "center",
   gap: "0.65rem",
   flexWrap: "wrap" as const,
 };
