@@ -40,13 +40,29 @@ public class UserService {
 		return toResponse(getUserEntityById(id));
 	}
 
+	@Transactional(readOnly = true)
+	public UserResponse findCurrentUser(String loginIdentifier) {
+		return findByLoginIdentifier(loginIdentifier);
+	}
+
+	@Transactional(readOnly = true)
+	public UserResponse findByLoginIdentifier(String identifier) {
+		return toResponse(getUserEntityByLoginIdentifier(identifier));
+	}
+
+	@Transactional(readOnly = true)
+	public User getUserEntityByLoginIdentifier(String identifier) {
+		String normalizedIdentifier = normalizeLoginIdentifier(identifier);
+
+		return userRepository.findByEmailIgnoreCaseOrUsernameIgnoreCase(normalizedIdentifier, normalizedIdentifier)
+				.orElseThrow(() -> new ResourceNotFoundException(
+						"User mit Login '" + identifier + "' wurde nicht gefunden."));
+	}
+
 	public UserResponse create(CreateUserRequest request) {
 		validateUniqueEmail(request.getEmail(), null);
 
-		// 🔹 Member holen
 		Member member = resolveMember(request.getMemberId());
-
-		// 🔹 sicherstellen: Member hat noch keinen User
 		validateMemberWithoutUser(member, null);
 
 		String normalizedFirstName = request.getFirstName().trim();
@@ -65,7 +81,6 @@ public class UserService {
 
 		User savedUser = userRepository.save(user);
 
-		// 🔹 VERKNÜPFUNG SETZEN (wichtig!)
 		member.setUser(savedUser);
 		savedUser.setMember(member);
 
@@ -78,8 +93,6 @@ public class UserService {
 		validateUniqueEmail(request.getEmail(), id);
 
 		Member newMember = resolveMember(request.getMemberId());
-
-		// 🔹 prüfen ob Member schon vergeben
 		validateMemberWithoutUser(newMember, id);
 
 		existingUser.setFirstName(request.getFirstName().trim());
@@ -92,15 +105,28 @@ public class UserService {
 			existingUser.setPasswordHash(passwordEncoder.encode(request.getPassword().trim()));
 		}
 
-		// 🔹 alte Verknüpfung lösen
 		Member oldMember = existingUser.getMember();
 		if (oldMember != null && !oldMember.equals(newMember)) {
 			oldMember.setUser(null);
 		}
 
-		// 🔹 neue setzen
 		newMember.setUser(existingUser);
 		existingUser.setMember(newMember);
+
+		User savedUser = userRepository.save(existingUser);
+		return toResponse(savedUser);
+	}
+
+	public UserResponse updateOwnUser(String loginIdentifier, UpdateOwnUserRequest request) {
+		User existingUser = getUserEntityByLoginIdentifier(loginIdentifier);
+
+		validateUniqueEmail(request.getEmail(), existingUser.getId());
+
+		existingUser.setEmail(normalizeEmail(request.getEmail()));
+
+		if (hasText(request.getPassword())) {
+			existingUser.setPasswordHash(passwordEncoder.encode(request.getPassword().trim()));
+		}
 
 		User savedUser = userRepository.save(existingUser);
 		return toResponse(savedUser);
@@ -159,6 +185,10 @@ public class UserService {
 		return email.trim().toLowerCase(Locale.ROOT);
 	}
 
+	private String normalizeLoginIdentifier(String identifier) {
+		return identifier.trim().toLowerCase(Locale.ROOT);
+	}
+
 	private Set<GlobalRole> copyRoles(Set<GlobalRole> roles) {
 		return roles != null ? new HashSet<>(roles) : new HashSet<>();
 	}
@@ -175,8 +205,6 @@ public class UserService {
 				user.getUsername(), user.getEmail(), user.isActive(), Set.copyOf(user.getRoles()), memberId,
 				memberFullName);
 	}
-
-	// --- Username Logik bleibt unverändert ---
 
 	private String generateUniqueUsername(String firstName, String lastName) {
 		String firstPart = extractUsernamePart(firstName, 3);

@@ -10,4 +10,15 @@ export type User = {
   active: boolean;
   roles: GlobalRole[];
   memberId: number | null;
+  memberFullName: string | null;
+};
+
+export type UserUpsertRequest = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password?: string;
+  active: boolean;
+  memberId: number;
+  roles: GlobalRole[];
 };
