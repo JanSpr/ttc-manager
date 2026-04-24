@@ -275,8 +275,11 @@ function ManagementTeamsPage() {
     const currentMemberships = sortMemberships(
       await fetchTeamMemberships(teamId)
     );
+    const playerMemberships = currentMemberships.filter(
+      (membership) => membership.player
+    );
 
-    const updates = currentMemberships
+    const playerUpdates = playerMemberships
       .map((membership, index) => ({
         membership,
         nextLineupPosition: index + 1,
@@ -286,7 +289,19 @@ function ManagementTeamsPage() {
           membership.lineupPosition !== nextLineupPosition
       );
 
-    for (const { membership, nextLineupPosition } of updates) {
+    const nonPlayerUpdates = currentMemberships
+      .filter(
+        (membership) => !membership.player && membership.lineupPosition != null
+      )
+      .map((membership) => ({
+        membership,
+        nextLineupPosition: membership.lineupPosition ?? 0,
+      }));
+
+    for (const { membership, nextLineupPosition } of [
+      ...playerUpdates,
+      ...nonPlayerUpdates,
+    ]) {
       await updateTeamMembership(teamId, membership.id, {
         memberId: membership.memberId,
         lineupPosition: nextLineupPosition,
@@ -355,7 +370,8 @@ function ManagementTeamsPage() {
             {
               memberId: currentCaptainMembership.memberId,
               lineupPosition:
-                currentCaptainMembership.lineupPosition ?? memberships.length,
+                currentCaptainMembership.lineupPosition ??
+                memberships.filter((membership) => membership.player).length,
               player: currentCaptainMembership.player,
               captain: false,
               viceCaptain: currentCaptainMembership.viceCaptain,
@@ -368,7 +384,8 @@ function ManagementTeamsPage() {
         await updateTeamMembership(selectedTeam.id, selectedMembership.id, {
           memberId: selectedMembership.memberId,
           lineupPosition:
-            selectedMembership.lineupPosition ?? memberships.length + 1,
+            selectedMembership.lineupPosition ??
+            memberships.filter((membership) => membership.player).length + 1,
           player: selectedMembership.player,
           captain: true,
           viceCaptain: selectedMembership.viceCaptain,
@@ -376,7 +393,7 @@ function ManagementTeamsPage() {
       } else {
         await createTeamMembership(selectedTeam.id, {
           memberId,
-          lineupPosition: memberships.length + 1,
+          lineupPosition: memberships.filter((membership) => membership.player).length + 1,
           player: false,
           captain: true,
           viceCaptain: false,
@@ -408,7 +425,10 @@ function ManagementTeamsPage() {
     setIsMembershipSubmitting(true);
 
     try {
-      const updates = updatedMemberships.filter((membership, index) => {
+      const playerMemberships = updatedMemberships.filter(
+        (membership) => membership.player
+      );
+      const updates = playerMemberships.filter((membership, index) => {
         const persistedMembership = memberships.find(
           (entry) => entry.id === membership.id
         );
@@ -461,14 +481,27 @@ function ManagementTeamsPage() {
 
     const previousMemberships = memberships;
 
-    setMemberships((current) =>
-      current
+    setMemberships((current) => {
+      let nextPlayerPosition = 1;
+
+      return current
         .filter((membershipEntry) => membershipEntry.id !== membershipId)
-        .map((membershipEntry, index) => ({
-          ...membershipEntry,
-          lineupPosition: index + 1,
-        }))
-    );
+        .map((membershipEntry) => {
+          if (!membershipEntry.player) {
+            return {
+              ...membershipEntry,
+              lineupPosition: null,
+            };
+          }
+
+          const normalizedMembership = {
+            ...membershipEntry,
+            lineupPosition: nextPlayerPosition,
+          };
+          nextPlayerPosition += 1;
+          return normalizedMembership;
+        });
+    });
 
     setIsMembershipSubmitting(true);
 

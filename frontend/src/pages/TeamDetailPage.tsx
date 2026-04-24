@@ -117,6 +117,8 @@ export default function TeamDetailPage() {
   }, [id]);
 
   const captain = team?.memberships.find((membership) => membership.captain);
+  const playerMemberships =
+    team?.memberships.filter((membership) => membership.player) ?? [];
 
   const backTarget = state?.fromManagementTeams ? "/management/teams" : "/teams";
   const backLabel = state?.fromManagementTeams
@@ -266,13 +268,13 @@ export default function TeamDetailPage() {
           <Card>
             <h2 style={cardTitleStyle}>Mannschaftsmitglieder</h2>
 
-            {team.memberships.length === 0 ? (
+            {playerMemberships.length === 0 ? (
               <div
                 style={{
                   color: colors.textMuted,
                 }}
               >
-                Dieser Mannschaft sind aktuell keine Mitglieder zugeordnet.
+                Dieser Mannschaft sind aktuell keine Spieler zugeordnet.
               </div>
             ) : (
               <div
@@ -281,7 +283,7 @@ export default function TeamDetailPage() {
                   gap: "0.9rem",
                 }}
               >
-                {team.memberships.map((membership) => {
+                {playerMemberships.map((membership) => {
                   const isRegistered = membership.userId != null;
 
                   return (

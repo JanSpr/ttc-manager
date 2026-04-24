@@ -98,7 +98,7 @@ function TeamMembershipEditorSection({
   } | null>(null);
 
   const sortedBaseMemberships = useMemo(
-    () => sortMemberships(memberships),
+    () => sortMemberships(memberships.filter((membership) => membership.player)),
     [memberships]
   );
 
@@ -116,8 +116,8 @@ function TeamMembershipEditorSection({
   const sortedMemberships = activeDraft?.memberships ?? sortedBaseMemberships;
 
   const assignedMemberIds = useMemo(
-    () => new Set(sortedMemberships.map((membership) => membership.memberId)),
-    [sortedMemberships]
+    () => new Set(memberships.map((membership) => membership.memberId)),
+    [memberships]
   );
 
   const availableMembers = useMemo(
@@ -440,7 +440,7 @@ function TeamMembershipEditorSection({
 
       {sortedMemberships.length === 0 ? (
         <StatusMessage variant="muted" marginTop="0">
-          Dieser Mannschaft sind aktuell keine Mitglieder zugeordnet.
+          Dieser Mannschaft sind aktuell keine Spieler zugeordnet.
         </StatusMessage>
       ) : (
         <>

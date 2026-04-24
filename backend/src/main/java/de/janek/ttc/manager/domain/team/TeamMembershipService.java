@@ -55,18 +55,19 @@ public class TeamMembershipService {
 					+ " existiert bereits eine Membership in Team mit ID " + teamId + ".");
 		}
 
-		// 🔥 NEU: Captain-Check
 		if (Boolean.TRUE.equals(request.getCaptain())
 				&& teamMembershipRepository.existsByTeamIdAndCaptainTrue(teamId)) {
 			throw new IllegalArgumentException(
 					"Dieses Team hat bereits einen Mannschaftsführer. Bitte entferne diesen zuerst.");
 		}
 
+		boolean isPlayer = Boolean.TRUE.equals(request.getPlayer());
+
 		TeamMembership membership = new TeamMembership();
 		membership.setTeam(team);
 		membership.setMember(member);
-		membership.setLineupPosition(request.getLineupPosition());
-		membership.setPlayer(Boolean.TRUE.equals(request.getPlayer()));
+		membership.setLineupPosition(isPlayer ? request.getLineupPosition() : null);
+		membership.setPlayer(isPlayer);
 		membership.setCaptain(Boolean.TRUE.equals(request.getCaptain()));
 		membership.setViceCaptain(Boolean.TRUE.equals(request.getViceCaptain()));
 
@@ -90,16 +91,17 @@ public class TeamMembershipService {
 					+ " existiert bereits eine Membership in Team mit ID " + teamId + ".");
 		}
 
-		// 🔥 NEU: Captain-Check (Update)
 		if (Boolean.TRUE.equals(request.getCaptain())
 				&& teamMembershipRepository.existsByTeamIdAndCaptainTrueAndIdNot(teamId, membershipId)) {
 			throw new IllegalArgumentException(
 					"Dieses Team hat bereits einen Mannschaftsführer. Bitte entferne diesen zuerst.");
 		}
 
+		boolean isPlayer = Boolean.TRUE.equals(request.getPlayer());
+
 		existingMembership.setMember(member);
-		existingMembership.setLineupPosition(request.getLineupPosition());
-		existingMembership.setPlayer(Boolean.TRUE.equals(request.getPlayer()));
+		existingMembership.setLineupPosition(isPlayer ? request.getLineupPosition() : null);
+		existingMembership.setPlayer(isPlayer);
 		existingMembership.setCaptain(Boolean.TRUE.equals(request.getCaptain()));
 		existingMembership.setViceCaptain(Boolean.TRUE.equals(request.getViceCaptain()));
 
