@@ -1,6 +1,7 @@
 package de.janek.ttc.manager.domain.member;
 
 import jakarta.validation.Valid;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,6 +23,11 @@ public class MemberController {
 	@GetMapping
 	public List<MemberResponse> getAllMembers() {
 		return memberService.findAll();
+	}
+
+	@GetMapping("/available-for-user")
+	public List<MemberResponse> getAvailableMembersForUser() {
+		return memberService.findAvailableForUser();
 	}
 
 	@GetMapping("/{id}")

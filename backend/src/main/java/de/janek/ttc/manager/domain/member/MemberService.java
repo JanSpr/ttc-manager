@@ -4,6 +4,7 @@ import de.janek.ttc.manager.domain.team.TeamMembership;
 import de.janek.ttc.manager.domain.user.User;
 import de.janek.ttc.manager.domain.user.UserRepository;
 import de.janek.ttc.manager.exception.ResourceNotFoundException;
+
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +36,11 @@ public class MemberService {
 	@Transactional(readOnly = true)
 	public MemberResponse findById(Long id) {
 		return toResponse(getMemberEntityById(id));
+	}
+
+	@Transactional(readOnly = true)
+	public List<MemberResponse> findAvailableForUser() {
+		return memberRepository.findByUserIsNull().stream().map(this::toResponse).toList();
 	}
 
 	public MemberResponse create(CreateMemberRequest request) {

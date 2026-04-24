@@ -1,11 +1,13 @@
 package de.janek.ttc.manager.domain.user;
 
+import de.janek.ttc.manager.domain.member.Member;
+import de.janek.ttc.manager.domain.member.MemberRepository;
+import de.janek.ttc.manager.exception.ResourceNotFoundException;
+
 import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import de.janek.ttc.manager.exception.ResourceNotFoundException;
 
 import java.text.Normalizer;
 import java.util.HashSet;
@@ -16,19 +18,23 @@ import java.util.Set;
 /**
  * Service für Benutzerverwaltung.
  *
- * Aktueller Zwischenstand: - verwaltet User / Login-Konten - keine direkte
- * Team-Zuordnung - globale Rollen statt alter Einzelrolle - Passwort wird beim
- * Speichern sicher gehasht - Username wird beim Erstellen automatisch erzeugt
+ * Aktueller Stand: - verwaltet User / Login-Konten - User müssen mit genau
+ * einem Member verknüpft werden - keine direkte Team-Zuordnung - globale Rollen
+ * statt alter Einzelrolle - Passwort wird beim Speichern sicher gehasht -
+ * Username wird beim Erstellen automatisch erzeugt
  */
 @Service
 @Transactional
 public class UserService {
 
 	private final UserRepository userRepository;
+	private final MemberRepository memberRepository;
 	private final PasswordEncoder passwordEncoder;
 
-	public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+	public UserService(UserRepository userRepository, MemberRepository memberRepository,
+			PasswordEncoder passwordEncoder) {
 		this.userRepository = userRepository;
+		this.memberRepository = memberRepository;
 		this.passwordEncoder = passwordEncoder;
 	}
 
@@ -85,6 +91,9 @@ public class UserService {
 	public UserResponse create(CreateUserRequest request) {
 		validateUniqueEmail(request.getEmail(), null);
 
+		Member member = resolveMember(request.getMemberId());
+		validateMemberWithoutUser(member, null);
+
 		String normalizedFirstName = request.getFirstName().trim();
 		String normalizedLastName = request.getLastName().trim();
 		String normalizedEmail = normalizeEmail(request.getEmail());
@@ -100,6 +109,10 @@ public class UserService {
 		user.setRoles(copyRoles(request.getRoles()));
 
 		User savedUser = userRepository.save(user);
+
+		member.setUser(savedUser);
+		savedUser.setMember(member);
+
 		return toResponse(savedUser);
 	}
 
@@ -107,6 +120,9 @@ public class UserService {
 		User existingUser = getUserEntityById(id);
 
 		validateUniqueEmail(request.getEmail(), id);
+
+		Member newMember = resolveMember(request.getMemberId());
+		validateMemberWithoutUser(newMember, id);
 
 		existingUser.setFirstName(request.getFirstName().trim());
 		existingUser.setLastName(request.getLastName().trim());
@@ -118,10 +134,8 @@ public class UserService {
 			existingUser.setPasswordHash(passwordEncoder.encode(request.getPassword().trim()));
 		}
 
-		/*
-		 * Username bleibt bei Updates bewusst stabil. Er wird nur bei der Erstellung
-		 * automatisch vergeben.
-		 */
+		updateMemberLink(existingUser, newMember);
+
 		User savedUser = userRepository.save(existingUser);
 		return toResponse(savedUser);
 	}
@@ -130,7 +144,8 @@ public class UserService {
 	 * Aktualisiert die eigenen Kontodaten des aktuell eingeloggten Benutzers.
 	 *
 	 * Regeln: - nur E-Mail und optional Passwort dürfen geändert werden - Vorname,
-	 * Nachname, Username, Rollen und Aktiv-Status bleiben unverändert
+	 * Nachname, Username, Rollen, Aktiv-Status und Member-Verknüpfung bleiben
+	 * unverändert
 	 *
 	 * @param loginIdentifier Username oder E-Mail aus dem Security-Kontext
 	 * @param request         neue Kontodaten des Benutzers
@@ -153,6 +168,13 @@ public class UserService {
 
 	public void delete(Long id) {
 		User user = getUserEntityById(id);
+
+		if (user.getMember() != null) {
+			Member member = user.getMember();
+			member.setUser(null);
+			user.setMember(null);
+		}
+
 		userRepository.delete(user);
 	}
 
@@ -160,6 +182,11 @@ public class UserService {
 	public User getUserEntityById(Long id) {
 		return userRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("User mit ID " + id + " wurde nicht gefunden."));
+	}
+
+	private Member resolveMember(Long memberId) {
+		return memberRepository.findById(memberId).orElseThrow(
+				() -> new ResourceNotFoundException("Member mit ID " + memberId + " wurde nicht gefunden."));
 	}
 
 	private void validateUniqueEmail(String email, Long currentUserId) {
@@ -173,6 +200,30 @@ public class UserService {
 						"Ein Benutzer mit der E-Mail-Adresse '" + normalizedEmail + "' existiert bereits.");
 			}
 		});
+	}
+
+	private void validateMemberWithoutUser(Member member, Long currentUserId) {
+		if (member.getUser() == null) {
+			return;
+		}
+
+		boolean isSameUser = currentUserId != null && member.getUser().getId().equals(currentUserId);
+
+		if (!isSameUser) {
+			throw new IllegalArgumentException(
+					"Das Mitglied '" + member.getFullName() + "' ist bereits mit einem Benutzerkonto verknüpft.");
+		}
+	}
+
+	private void updateMemberLink(User user, Member newMember) {
+		Member oldMember = user.getMember();
+
+		if (oldMember != null && !oldMember.equals(newMember)) {
+			oldMember.setUser(null);
+		}
+
+		newMember.setUser(user);
+		user.setMember(newMember);
 	}
 
 	private String normalizeEmail(String email) {
@@ -193,9 +244,11 @@ public class UserService {
 
 	private UserResponse toResponse(User user) {
 		Long memberId = user.getMember() != null ? user.getMember().getId() : null;
+		String memberFullName = user.getMember() != null ? user.getMember().getFullName() : null;
 
 		return new UserResponse(user.getId(), user.getFirstName(), user.getLastName(), user.getFullName(),
-				user.getUsername(), user.getEmail(), user.isActive(), Set.copyOf(user.getRoles()), memberId);
+				user.getUsername(), user.getEmail(), user.isActive(), Set.copyOf(user.getRoles()), memberId,
+				memberFullName);
 	}
 
 	/**

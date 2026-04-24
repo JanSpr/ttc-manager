@@ -11,9 +11,9 @@ import java.util.Set;
 /**
  * Request-DTO zum Aktualisieren eines Benutzers.
  *
- * Fachliche Regeln: - Vorname, Nachname, E-Mail, Aktiv-Status und Rollen werden
- * regulär aktualisiert - das Passwort ist optional - wenn kein Passwort
- * mitgegeben wird, bleibt das bestehende Passwort unverändert
+ * Fachliche Regeln: - Vorname, Nachname, E-Mail, Aktiv-Status, Rollen und
+ * Member-Verknüpfung werden aktualisiert - das Passwort ist optional - wenn
+ * kein Passwort mitgegeben wird, bleibt das bestehende Passwort unverändert
  */
 public class UpdateUserRequest {
 
@@ -35,6 +35,9 @@ public class UpdateUserRequest {
 
 	@NotNull(message = "Es muss angegeben werden, ob der Benutzer aktiv ist.")
 	private Boolean active;
+
+	@NotNull(message = "Ein Benutzerkonto muss mit einem Mitglied verknüpft werden.")
+	private Long memberId;
 
 	/**
 	 * Globale Rollen des Benutzers.
@@ -84,6 +87,14 @@ public class UpdateUserRequest {
 
 	public void setActive(Boolean active) {
 		this.active = active;
+	}
+
+	public Long getMemberId() {
+		return memberId;
+	}
+
+	public void setMemberId(Long memberId) {
+		this.memberId = memberId;
 	}
 
 	public Set<GlobalRole> getRoles() {

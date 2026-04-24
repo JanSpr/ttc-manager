@@ -11,9 +11,9 @@ import java.util.Set;
 /**
  * Request-DTO zum Erstellen eines Benutzers.
  *
- * Fachliche Regeln: - bei der Erstellung ist ein Passwort verpflichtend - das
- * Passwort kommt im Klartext aus dem Request - das Hashing erfolgt erst im
- * Service
+ * Fachliche Regeln: - bei der Erstellung ist ein Passwort verpflichtend - ein
+ * Benutzerkonto muss mit genau einem Member verknüpft werden - das Passwort
+ * kommt im Klartext aus dem Request - das Hashing erfolgt erst im Service
  */
 public class CreateUserRequest {
 
@@ -36,6 +36,9 @@ public class CreateUserRequest {
 
 	@NotNull(message = "Es muss angegeben werden, ob der Benutzer aktiv ist.")
 	private Boolean active;
+
+	@NotNull(message = "Ein Benutzerkonto muss mit einem Mitglied verknüpft werden.")
+	private Long memberId;
 
 	/**
 	 * Globale Rollen des Benutzers.
@@ -85,6 +88,14 @@ public class CreateUserRequest {
 
 	public void setActive(Boolean active) {
 		this.active = active;
+	}
+
+	public Long getMemberId() {
+		return memberId;
+	}
+
+	public void setMemberId(Long memberId) {
+		this.memberId = memberId;
 	}
 
 	public Set<GlobalRole> getRoles() {

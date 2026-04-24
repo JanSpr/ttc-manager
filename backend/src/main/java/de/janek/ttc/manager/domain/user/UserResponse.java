@@ -16,12 +16,13 @@ public class UserResponse {
 	private boolean active;
 	private Set<GlobalRole> roles;
 	private Long memberId;
+	private String memberFullName;
 
 	public UserResponse() {
 	}
 
 	public UserResponse(Long id, String firstName, String lastName, String fullName, String username, String email,
-			boolean active, Set<GlobalRole> roles, Long memberId) {
+			boolean active, Set<GlobalRole> roles, Long memberId, String memberFullName) {
 		this.id = id;
 		this.firstName = firstName;
 		this.lastName = lastName;
@@ -31,6 +32,7 @@ public class UserResponse {
 		this.active = active;
 		this.roles = roles;
 		this.memberId = memberId;
+		this.memberFullName = memberFullName;
 	}
 
 	public Long getId() {
@@ -67,5 +69,9 @@ public class UserResponse {
 
 	public Long getMemberId() {
 		return memberId;
+	}
+
+	public String getMemberFullName() {
+		return memberFullName;
 	}
 }
