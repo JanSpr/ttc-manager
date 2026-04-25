@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import type { Member } from "../../../types/member";
-import { colors } from "../../../styles/ui";
+import { badgeStyle, colors } from "../../../styles/ui";
 import MemberAvatar from "../../MemberAvatar";
 import { EditIcon, EyeIcon } from "../common/ManagementIcons";
 import {
@@ -24,6 +24,18 @@ function getMemberTypeLabel(type: Member["type"]): string {
   return type === "YOUTH" ? "Jugend" : "Erwachsene";
 }
 
+function getStatusBadgeStyle(isRegistered: boolean) {
+  return {
+    ...badgeStyle,
+    fontSize: "0.75rem",
+    padding: "0.2rem 0.5rem",
+    fontWeight: 600,
+    opacity: 1,
+    backgroundColor: isRegistered ? colors.primarySoft : colors.surfaceSoft,
+    color: isRegistered ? colors.primary : colors.textMuted,
+  };
+}
+
 function MemberListItem({
   member,
   isLast,
@@ -39,6 +51,8 @@ function MemberListItem({
   const showActionsInList = !isEditorOpen && isHovered;
   const showActionsInEditor =
     isEditorOpen && (isHovered || isEditingThisMember);
+
+  const hasAccount = member.userId != null;
 
   function handleOpenDetails() {
     navigate(`/members/${member.id}`, {
@@ -63,7 +77,12 @@ function MemberListItem({
           : colors.surface,
       }}
     >
-      <MemberAvatar member={member} size={38} fontSize="0.88rem" boxShadow="none" />
+      <MemberAvatar
+        member={member}
+        size={38}
+        fontSize="0.88rem"
+        boxShadow="none"
+      />
 
       <button
         type="button"
@@ -93,16 +112,20 @@ function MemberListItem({
 
         <div
           style={{
-            marginTop: "0.18rem",
+            marginTop: "0.26rem",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.45rem",
+            flexWrap: "wrap",
             color: colors.textMuted,
             fontSize: "0.84rem",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
           }}
         >
-          {getMemberTypeLabel(member.type)}
-          {member.userId != null ? ` · User-ID ${member.userId}` : ""}
+          <span>{getMemberTypeLabel(member.type)}</span>
+
+          <span style={getStatusBadgeStyle(hasAccount)}>
+            {hasAccount ? "Account aktiv" : "Kein Account"}
+          </span>
         </div>
       </button>
 
