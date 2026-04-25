@@ -24,9 +24,21 @@ public class CreateMemberRequest {
 	private MemberType type;
 
 	/**
-	 * Optional verknüpfter User. Nicht jedes Member braucht sofort ein Login-Konto.
+	 * Optional verknüpfter bestehender User.
+	 *
+	 * Nicht jedes Member braucht sofort ein Login-Konto.
 	 */
 	private Long userId;
+
+	/**
+	 * Wenn true, wird beim Erstellen eines Members direkt ein neues Benutzerkonto
+	 * vorbereitet.
+	 *
+	 * Wichtig: - Im Frontend soll diese Option beim Neuanlegen standardmäßig aktiv
+	 * sein. - Im Backend wird nur bei explizit true ein User erzeugt. - Dadurch
+	 * erzeugen Updates nicht versehentlich neue Benutzerkonten.
+	 */
+	private Boolean createUserAccount;
 
 	public CreateMemberRequest() {
 	}
@@ -69,5 +81,13 @@ public class CreateMemberRequest {
 
 	public void setUserId(Long userId) {
 		this.userId = userId;
+	}
+
+	public Boolean getCreateUserAccount() {
+		return createUserAccount;
+	}
+
+	public void setCreateUserAccount(Boolean createUserAccount) {
+		this.createUserAccount = createUserAccount;
 	}
 }

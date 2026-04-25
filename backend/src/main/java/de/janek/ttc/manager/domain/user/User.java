@@ -7,6 +7,13 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+/**
+ * Repräsentiert einen Benutzer (Login-Konto).
+ *
+ * WICHTIG: - Kein direkter Team-Bezug - Nur globale Rollen - Optional mit genau
+ * einem Member verknüpft - E-Mail und Passwort dürfen für vorbereitete Accounts
+ * zunächst leer sein
+ */
 @Entity
 @Table(name = "app_user", uniqueConstraints = { @UniqueConstraint(name = "uk_app_user_email", columnNames = "email"),
 		@UniqueConstraint(name = "uk_app_user_username", columnNames = "username") })
@@ -25,15 +32,9 @@ public class User {
 	@Column(name = "username", nullable = false, length = 100, unique = true)
 	private String username;
 
-	/**
-	 * 🔥 OPTIONAL
-	 */
 	@Column(name = "email", nullable = true, length = 255, unique = true)
 	private String email;
 
-	/**
-	 * 🔥 OPTIONAL
-	 */
 	@Column(name = "password_hash", nullable = true, length = 255)
 	private String passwordHash;
 
@@ -131,12 +132,21 @@ public class User {
 		this.roles = roles;
 	}
 
+	public void addRole(GlobalRole role) {
+		this.roles.add(role);
+	}
+
+	public void removeRole(GlobalRole role) {
+		this.roles.remove(role);
+	}
+
 	public void setActive(boolean active) {
 		this.active = active;
 	}
 
 	public void setMember(Member member) {
 		this.member = member;
+
 		if (member != null && member.getUser() != this) {
 			member.setUser(this);
 		}

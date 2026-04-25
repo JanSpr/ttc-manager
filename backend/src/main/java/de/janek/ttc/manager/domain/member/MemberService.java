@@ -9,7 +9,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.Normalizer;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -44,29 +46,51 @@ public class MemberService {
 	}
 
 	public MemberResponse create(CreateMemberRequest request) {
+		validateCreateUserAccountRequest(request);
 		validateUniqueUserAssignment(request.getUserId(), null);
 
 		Member member = new Member();
-		member.setFirstName(request.getFirstName());
-		member.setLastName(request.getLastName());
+		member.setFirstName(request.getFirstName().trim());
+		member.setLastName(request.getLastName().trim());
 		member.setActive(request.getActive());
 		member.setType(request.getType());
-		member.setUser(resolveUser(request.getUserId()));
+
+		if (request.getUserId() != null) {
+			member.setUser(resolveUser(request.getUserId()));
+		}
 
 		Member savedMember = memberRepository.save(member);
+
+		if (shouldCreateUserAccount(request)) {
+			User preparedUser = createPreparedUserForMember(savedMember);
+			savedMember.setUser(preparedUser);
+			savedMember = memberRepository.save(savedMember);
+		}
+
 		return toResponse(savedMember);
 	}
 
 	public MemberResponse update(Long id, CreateMemberRequest request) {
 		Member existingMember = getMemberEntityById(id);
 
+		validateCreateUserAccountRequest(request);
 		validateUniqueUserAssignment(request.getUserId(), id);
 
-		existingMember.setFirstName(request.getFirstName());
-		existingMember.setLastName(request.getLastName());
+		existingMember.setFirstName(request.getFirstName().trim());
+		existingMember.setLastName(request.getLastName().trim());
 		existingMember.setActive(request.getActive());
 		existingMember.setType(request.getType());
-		existingMember.setUser(resolveUser(request.getUserId()));
+
+		if (request.getUserId() != null) {
+			existingMember.setUser(resolveUser(request.getUserId()));
+		} else if (!shouldCreateUserAccount(request)) {
+			existingMember.setUser(null);
+		}
+
+		if (shouldCreateUserAccount(request) && existingMember.getUser() == null) {
+			User preparedUser = createPreparedUserForMember(existingMember);
+			existingMember.setUser(preparedUser);
+		}
 
 		Member savedMember = memberRepository.save(existingMember);
 		return toResponse(savedMember);
@@ -83,22 +107,34 @@ public class MemberService {
 				.orElseThrow(() -> new ResourceNotFoundException("Member mit ID " + id + " wurde nicht gefunden."));
 	}
 
-	private User resolveUser(Long userId) {
-		if (userId == null) {
-			return null;
+	private void validateCreateUserAccountRequest(CreateMemberRequest request) {
+		if (request.getUserId() != null && shouldCreateUserAccount(request)) {
+			throw new IllegalArgumentException(
+					"Ein Member kann nicht gleichzeitig mit einem bestehenden User verknüpft werden und ein neues Benutzerkonto vorbereiten.");
 		}
+	}
 
+	private boolean shouldCreateUserAccount(CreateMemberRequest request) {
+		return Boolean.TRUE.equals(request.getCreateUserAccount());
+	}
+
+	private User resolveUser(Long userId) {
 		return userRepository.findById(userId)
 				.orElseThrow(() -> new ResourceNotFoundException("User mit ID " + userId + " wurde nicht gefunden."));
 	}
 
-	/**
-	 * Stellt sicher, dass ein User nicht mehreren Members zugeordnet wird.
-	 *
-	 * @param userId          gewünschte User-ID; null erlaubt
-	 * @param currentMemberId ID des aktuell bearbeiteten Members; bei Neuanlage
-	 *                        null
-	 */
+	private User createPreparedUserForMember(Member member) {
+		User user = new User();
+		user.setFirstName(member.getFirstName());
+		user.setLastName(member.getLastName());
+		user.setUsername(generateUniqueUsername(member.getFirstName(), member.getLastName()));
+		user.setEmail(null);
+		user.setPasswordHash(null);
+		user.setActive(false);
+
+		return userRepository.save(user);
+	}
+
 	private void validateUniqueUserAssignment(Long userId, Long currentMemberId) {
 		if (userId == null) {
 			return;
@@ -122,5 +158,52 @@ public class MemberService {
 
 		return new MemberResponse(member.getId(), member.getFirstName(), member.getLastName(), member.getFullName(),
 				member.isActive(), member.getType(), userId, teamIds);
+	}
+
+	private String generateUniqueUsername(String firstName, String lastName) {
+		String firstPart = extractUsernamePart(firstName, 3);
+		String lastPart = extractUsernamePart(lastName, 3);
+
+		String baseUsername = (firstPart + lastPart).toLowerCase(Locale.ROOT);
+
+		if (baseUsername.isBlank()) {
+			baseUsername = "user";
+		}
+
+		String candidate = baseUsername;
+		int suffix = 2;
+
+		while (userRepository.existsByUsernameIgnoreCase(candidate)) {
+			candidate = baseUsername + suffix;
+			suffix++;
+		}
+
+		return candidate;
+	}
+
+	private String extractUsernamePart(String value, int maxLength) {
+		String normalized = normalizeNameForUsername(value);
+
+		if (normalized.isBlank()) {
+			return "";
+		}
+
+		return normalized.length() <= maxLength ? normalized : normalized.substring(0, maxLength);
+	}
+
+	private String normalizeNameForUsername(String input) {
+		if (input == null) {
+			return "";
+		}
+
+		String value = input.trim().toLowerCase(Locale.ROOT);
+
+		value = value.replace("ä", "ae").replace("ö", "oe").replace("ü", "ue").replace("ß", "ss");
+
+		value = Normalizer.normalize(value, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
+
+		value = value.replaceAll("[^a-z0-9]", "");
+
+		return value;
 	}
 }
