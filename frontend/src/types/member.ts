@@ -16,5 +16,6 @@ export type MemberUpsertRequest = {
   lastName: string;
   active: boolean;
   type: MemberType;
-  userId: number | null;
+  userId?: number | null;
+  createUserAccount?: boolean;
 };

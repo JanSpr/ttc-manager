@@ -47,6 +47,7 @@ type FormValues = {
   lastName: string;
   type: MemberType;
   userIdInput: string;
+  createUserAccount: boolean;
 };
 
 function createFormValues(member?: Member | null): FormValues {
@@ -56,6 +57,7 @@ function createFormValues(member?: Member | null): FormValues {
       lastName: "",
       type: "ADULT",
       userIdInput: "",
+      createUserAccount: true,
     };
   }
 
@@ -64,6 +66,7 @@ function createFormValues(member?: Member | null): FormValues {
     lastName: member.lastName,
     type: member.type,
     userIdInput: member.userId != null ? String(member.userId) : "",
+    createUserAccount: false,
   };
 }
 
@@ -80,16 +83,31 @@ function MemberForm({
   showHeader = true,
   showSelectedInfo = true,
 }: MemberFormProps) {
-  const [values, setValues] = useState<FormValues>(() => createFormValues(member));
+  const [values, setValues] = useState<FormValues>(() =>
+    createFormValues(member)
+  );
   const [errorMessage, setErrorMessage] = useState("");
 
   const isEditMode = Boolean(member);
   const title = isEditMode ? "Mitglied bearbeiten" : "Mitglied anlegen";
+  const canPrepareUserAccount = !isEditMode && values.userIdInput.trim() === "";
 
-  function updateField<K extends keyof FormValues>(key: K, value: FormValues[K]) {
+  function updateField<K extends keyof FormValues>(
+    key: K,
+    value: FormValues[K]
+  ) {
     setValues((current) => ({
       ...current,
       [key]: value,
+    }));
+  }
+
+  function handleUserIdInputChange(value: string) {
+    setValues((current) => ({
+      ...current,
+      userIdInput: value,
+      createUserAccount:
+        value.trim() === "" ? current.createUserAccount : false,
     }));
   }
 
@@ -120,6 +138,13 @@ function MemberForm({
       userId = parsedUserId;
     }
 
+    if (userId != null && values.createUserAccount) {
+      setErrorMessage(
+        "Bitte wähle entweder eine bestehende User-ID oder bereite ein neues Benutzerkonto vor."
+      );
+      return null;
+    }
+
     setErrorMessage("");
 
     return {
@@ -127,6 +152,9 @@ function MemberForm({
       lastName,
       type: values.type,
       userId,
+      createUserAccount: canPrepareUserAccount
+        ? values.createUserAccount
+        : false,
       active: member?.active ?? true,
     };
   }
@@ -155,7 +183,7 @@ function MemberForm({
             <p style={managementFormDescriptionStyle}>
               {isEditMode
                 ? "Passe hier Stammdaten und die optionale User-Verknüpfung des Mitglieds an."
-                : "Erfasse hier ein neues Vereinsmitglied und ordne es bei Bedarf direkt einem User zu."}
+                : "Erfasse hier ein neues Vereinsmitglied und bereite standardmäßig direkt ein Benutzerkonto vor."}
             </p>
           </div>
         </div>
@@ -163,7 +191,12 @@ function MemberForm({
 
       {isEditMode && member && showSelectedInfo ? (
         <div style={managementSelectedInfoStyle}>
-          <MemberAvatar member={member} size={42} fontSize="0.95rem" boxShadow="none" />
+          <MemberAvatar
+            member={member}
+            size={42}
+            fontSize="0.95rem"
+            boxShadow="none"
+          />
 
           <div style={{ minWidth: 0 }}>
             <div style={managementSelectedNameStyle}>{member.fullName}</div>
@@ -222,13 +255,44 @@ function MemberForm({
             id="member-user-id"
             type="text"
             value={values.userIdInput}
-            onChange={(event) => updateField("userIdInput", event.target.value)}
+            onChange={(event) => handleUserIdInputChange(event.target.value)}
             style={textInputStyle}
             placeholder="Optional"
             disabled={isSubmitting}
           />
         </FormField>
       </div>
+
+      {!isEditMode ? (
+        <label
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            gap: "0.6rem",
+            fontSize: "0.92rem",
+            lineHeight: 1.45,
+            cursor: isSubmitting || values.userIdInput.trim() !== "" ? "default" : "pointer",
+            opacity: values.userIdInput.trim() !== "" ? 0.65 : 1,
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={values.createUserAccount}
+            onChange={(event) =>
+              updateField("createUserAccount", event.target.checked)
+            }
+            disabled={isSubmitting || values.userIdInput.trim() !== ""}
+            style={{ marginTop: "0.2rem" }}
+          />
+          <span>
+            <strong>Benutzerkonto vorbereiten</strong>
+            <br />
+            Standardmäßig wird direkt ein Login-Konto ohne E-Mail und Passwort
+            angelegt. Der Zugriff wird später über einen Aktivierungscode
+            eingerichtet.
+          </span>
+        </label>
+      ) : null}
 
       <p style={managementFormHintStyle}>
         Über die User-ID kannst du ein Mitglied mit einem bestehenden Login
@@ -258,7 +322,9 @@ function MemberForm({
               }}
             >
               <SaveIcon />
-              <span>{isSubmitting ? "Speichern..." : "Änderungen speichern"}</span>
+              <span>
+                {isSubmitting ? "Speichern..." : "Änderungen speichern"}
+              </span>
             </button>
 
             <button
