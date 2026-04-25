@@ -67,15 +67,14 @@ public class UserService {
 
 		String normalizedFirstName = request.getFirstName().trim();
 		String normalizedLastName = request.getLastName().trim();
-		String normalizedEmail = normalizeEmail(request.getEmail());
 		String generatedUsername = generateUniqueUsername(normalizedFirstName, normalizedLastName);
 
 		User user = new User();
 		user.setFirstName(normalizedFirstName);
 		user.setLastName(normalizedLastName);
 		user.setUsername(generatedUsername);
-		user.setEmail(normalizedEmail);
-		user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+		user.setEmail(normalizeOptionalEmail(request.getEmail()));
+		user.setPasswordHash(encodeOptionalPassword(request.getPassword()));
 		user.setActive(request.getActive());
 		user.setRoles(copyRoles(request.getRoles()));
 
@@ -97,7 +96,7 @@ public class UserService {
 
 		existingUser.setFirstName(request.getFirstName().trim());
 		existingUser.setLastName(request.getLastName().trim());
-		existingUser.setEmail(normalizeEmail(request.getEmail()));
+		existingUser.setEmail(normalizeOptionalEmail(request.getEmail()));
 		existingUser.setActive(request.getActive());
 		existingUser.setRoles(copyRoles(request.getRoles()));
 
@@ -122,7 +121,7 @@ public class UserService {
 
 		validateUniqueEmail(request.getEmail(), existingUser.getId());
 
-		existingUser.setEmail(normalizeEmail(request.getEmail()));
+		existingUser.setEmail(normalizeOptionalEmail(request.getEmail()));
 
 		if (hasText(request.getPassword())) {
 			existingUser.setPasswordHash(passwordEncoder.encode(request.getPassword().trim()));
@@ -169,6 +168,10 @@ public class UserService {
 	}
 
 	private void validateUniqueEmail(String email, Long currentUserId) {
+		if (!hasText(email)) {
+			return;
+		}
+
 		String normalizedEmail = normalizeEmail(email);
 
 		userRepository.findByEmailIgnoreCase(normalizedEmail).ifPresent(existingUser -> {
@@ -185,8 +188,16 @@ public class UserService {
 		return email.trim().toLowerCase(Locale.ROOT);
 	}
 
+	private String normalizeOptionalEmail(String email) {
+		return hasText(email) ? normalizeEmail(email) : null;
+	}
+
 	private String normalizeLoginIdentifier(String identifier) {
 		return identifier.trim().toLowerCase(Locale.ROOT);
+	}
+
+	private String encodeOptionalPassword(String password) {
+		return hasText(password) ? passwordEncoder.encode(password.trim()) : null;
 	}
 
 	private Set<GlobalRole> copyRoles(Set<GlobalRole> roles) {

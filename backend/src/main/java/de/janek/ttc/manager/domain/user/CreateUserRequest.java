@@ -11,9 +11,9 @@ import java.util.Set;
 /**
  * Request-DTO zum Erstellen eines Benutzers.
  *
- * Fachliche Regeln: - bei der Erstellung ist ein Passwort verpflichtend - ein
- * Benutzerkonto muss mit genau einem Member verknüpft werden - das Passwort
- * kommt im Klartext aus dem Request - das Hashing erfolgt erst im Service
+ * Fachliche Regeln: - ein Benutzerkonto muss mit genau einem Member verknüpft
+ * werden - E-Mail ist optional - Passwort ist optional - ohne Passwort kann der
+ * Account später über einen Aktivierungsflow aktiviert werden
  */
 public class CreateUserRequest {
 
@@ -25,12 +25,10 @@ public class CreateUserRequest {
 	@Size(max = 100, message = "Der Nachname darf maximal 100 Zeichen lang sein.")
 	private String lastName;
 
-	@NotBlank(message = "Die E-Mail-Adresse darf nicht leer sein.")
 	@Email(message = "Die E-Mail-Adresse ist ungültig.")
 	@Size(max = 255, message = "Die E-Mail-Adresse darf maximal 255 Zeichen lang sein.")
 	private String email;
 
-	@NotBlank(message = "Das Passwort darf nicht leer sein.")
 	@Size(max = 255, message = "Das Passwort darf maximal 255 Zeichen lang sein.")
 	private String password;
 
@@ -40,11 +38,6 @@ public class CreateUserRequest {
 	@NotNull(message = "Ein Benutzerkonto muss mit einem Mitglied verknüpft werden.")
 	private Long memberId;
 
-	/**
-	 * Globale Rollen des Benutzers.
-	 *
-	 * Optional: Wenn nichts gesetzt wird, bleibt die Menge leer.
-	 */
 	private Set<GlobalRole> roles = new HashSet<>();
 
 	public CreateUserRequest() {

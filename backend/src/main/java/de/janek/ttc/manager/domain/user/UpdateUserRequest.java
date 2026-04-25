@@ -11,9 +11,10 @@ import java.util.Set;
 /**
  * Request-DTO zum Aktualisieren eines Benutzers.
  *
- * Fachliche Regeln: - Vorname, Nachname, E-Mail, Aktiv-Status, Rollen und
- * Member-Verknüpfung werden aktualisiert - das Passwort ist optional - wenn
- * kein Passwort mitgegeben wird, bleibt das bestehende Passwort unverändert
+ * Fachliche Regeln: - Vorname, Nachname, Aktiv-Status, Rollen und
+ * Member-Verknüpfung werden aktualisiert - E-Mail ist optional - Passwort ist
+ * optional - wenn kein Passwort mitgegeben wird, bleibt das bestehende Passwort
+ * unverändert
  */
 public class UpdateUserRequest {
 
@@ -25,7 +26,6 @@ public class UpdateUserRequest {
 	@Size(max = 100, message = "Der Nachname darf maximal 100 Zeichen lang sein.")
 	private String lastName;
 
-	@NotBlank(message = "Die E-Mail-Adresse darf nicht leer sein.")
 	@Email(message = "Die E-Mail-Adresse ist ungültig.")
 	@Size(max = 255, message = "Die E-Mail-Adresse darf maximal 255 Zeichen lang sein.")
 	private String email;
@@ -39,11 +39,6 @@ public class UpdateUserRequest {
 	@NotNull(message = "Ein Benutzerkonto muss mit einem Mitglied verknüpft werden.")
 	private Long memberId;
 
-	/**
-	 * Globale Rollen des Benutzers.
-	 *
-	 * Optional: Wenn nichts gesetzt wird, bleibt die Menge leer.
-	 */
 	private Set<GlobalRole> roles = new HashSet<>();
 
 	public UpdateUserRequest() {

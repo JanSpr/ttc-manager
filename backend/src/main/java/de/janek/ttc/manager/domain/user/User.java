@@ -7,12 +7,6 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-/**
- * Repräsentiert einen Benutzer (Login-Konto).
- *
- * WICHTIG: - Kein direkter Team-Bezug - Nur globale Rollen - Optional mit genau
- * einem Member verknüpft
- */
 @Entity
 @Table(name = "app_user", uniqueConstraints = { @UniqueConstraint(name = "uk_app_user_email", columnNames = "email"),
 		@UniqueConstraint(name = "uk_app_user_username", columnNames = "username") })
@@ -22,64 +16,36 @@ public class User {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	/**
-	 * Vorname des Benutzers.
-	 *
-	 * Hinweis: Diese Felder bleiben vorerst im User bestehen, auch wenn die
-	 * fachliche Person künftig primär über Member modelliert wird.
-	 */
 	@Column(name = "first_name", nullable = false, length = 100)
 	private String firstName;
 
-	/**
-	 * Nachname des Benutzers.
-	 */
 	@Column(name = "last_name", nullable = false, length = 100)
 	private String lastName;
 
-	/**
-	 * Automatisch erzeugter, eindeutiger Username.
-	 *
-	 * Beispiel: max + mus = maxmus
-	 */
 	@Column(name = "username", nullable = false, length = 100, unique = true)
 	private String username;
 
 	/**
-	 * E-Mail-Adresse.
-	 *
-	 * Darf weiterhin für den Login verwendet werden.
+	 * 🔥 OPTIONAL
 	 */
-	@Column(name = "email", nullable = false, length = 255, unique = true)
+	@Column(name = "email", nullable = true, length = 255, unique = true)
 	private String email;
 
 	/**
-	 * Passwort-Hash.
+	 * 🔥 OPTIONAL
 	 */
-	@Column(name = "password_hash", nullable = false, length = 255)
+	@Column(name = "password_hash", nullable = true, length = 255)
 	private String passwordHash;
 
-	/**
-	 * Globale Rollen.
-	 */
 	@ElementCollection(targetClass = GlobalRole.class)
 	@Enumerated(EnumType.STRING)
 	@CollectionTable(name = "user_global_role", joinColumns = @JoinColumn(name = "user_id"))
 	@Column(name = "role")
 	private Set<GlobalRole> roles = new HashSet<>();
 
-	/**
-	 * Konto aktiv / deaktiviert.
-	 */
 	@Column(name = "active", nullable = false)
 	private boolean active = true;
 
-	/**
-	 * Optional verknüpftes Member.
-	 *
-	 * Die fachliche Person liegt in der Member-Domäne. Die Join-Spalte liegt auf
-	 * der Member-Seite.
-	 */
 	@OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
 	private Member member;
 
@@ -165,21 +131,12 @@ public class User {
 		this.roles = roles;
 	}
 
-	public void addRole(GlobalRole role) {
-		this.roles.add(role);
-	}
-
-	public void removeRole(GlobalRole role) {
-		this.roles.remove(role);
-	}
-
 	public void setActive(boolean active) {
 		this.active = active;
 	}
 
 	public void setMember(Member member) {
 		this.member = member;
-
 		if (member != null && member.getUser() != this) {
 			member.setUser(this);
 		}
