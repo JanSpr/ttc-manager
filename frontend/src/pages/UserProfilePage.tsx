@@ -6,9 +6,9 @@ import { useToast } from "../context/useToast";
 import UserAvatar from "../components/UserAvatar";
 import PageIntro from "../components/layout/PageIntro";
 import Card from "../components/ui/Card";
+import Badge from "../components/ui/Badge";
 import DataField from "../components/ui/DataField";
 import {
-  badgeStyle,
   colors,
   primaryButtonStyle,
   secondaryButtonStyle,
@@ -145,7 +145,10 @@ function UserProfilePage() {
       setIsEditingProfile(false);
 
       if (emailChanged && passwordChanged) {
-        showToast("E-Mail-Adresse und Passwort erfolgreich aktualisiert.", "success");
+        showToast(
+          "E-Mail-Adresse und Passwort erfolgreich aktualisiert.",
+          "success",
+        );
       } else if (emailChanged) {
         showToast("E-Mail-Adresse erfolgreich aktualisiert.", "success");
       } else {
@@ -225,17 +228,9 @@ function UserProfilePage() {
               flexWrap: "wrap",
             }}
           >
-            <div
-              style={{
-                ...badgeStyle,
-                backgroundColor: currentUser.active
-                  ? colors.primarySoft
-                  : colors.dangerSoft,
-                color: currentUser.active ? colors.primary : colors.danger,
-              }}
-            >
+            <Badge variant={currentUser.active ? "primary" : "neutral"}>
               {currentUser.active ? "Aktiv" : "Inaktiv"}
-            </div>
+            </Badge>
           </div>
         </div>
 
@@ -386,7 +381,11 @@ function UserProfilePage() {
                       }}
                     >
                       <SaveIcon />
-                      <span>{isSavingProfile ? "Speichern..." : "Änderungen speichern"}</span>
+                      <span>
+                        {isSavingProfile
+                          ? "Speichern..."
+                          : "Änderungen speichern"}
+                      </span>
                     </button>
 
                     <button

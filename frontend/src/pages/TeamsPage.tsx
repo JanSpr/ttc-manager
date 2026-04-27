@@ -3,10 +3,11 @@ import { Link } from "react-router-dom";
 import { fetchTeams } from "../api/teamApi";
 import type { Team } from "../types/team";
 import PageIntro from "../components/layout/PageIntro";
+import Badge from "../components/ui/Badge";
 import ClickableCard from "../components/ui/ClickableCard";
 import StatusMessage from "../components/ui/StatusMessage";
 import TeamAvatar from "../components/ui/TeamAvatar";
-import { badgeStyle, colors } from "../styles/ui";
+import { colors } from "../styles/ui";
 
 function sortTeamsByName(a: Team, b: Team): number {
   return a.name.localeCompare(b.name, "de", {
@@ -24,24 +25,17 @@ function TeamSection({
 }) {
   const label = type === "YOUTH" ? "Jugend" : "Erwachsene";
 
-  const sectionBadgeStyle = {
-    ...badgeStyle,
-    fontSize: "0.9rem",
-    padding: "0.35rem 0.75rem",
-  };
-
-  const memberBadgeStyle = {
-    ...badgeStyle,
-    fontSize: "0.75rem",
-    padding: "0.2rem 0.5rem",
-    opacity: 0.8,
-    fontWeight: 500,
-  };
-
   return (
     <section style={{ display: "grid", gap: "0.85rem" }}>
       <div>
-        <span style={sectionBadgeStyle}>{label}</span>
+        <Badge
+          style={{
+            fontSize: "0.9rem",
+            padding: "0.35rem 0.75rem",
+          }}
+        >
+          {label}
+        </Badge>
       </div>
 
       <div
@@ -92,9 +86,15 @@ function TeamSection({
                       {team.name}
                     </h3>
 
-                    <span style={memberBadgeStyle}>
+                    <Badge
+                      size="sm"
+                      style={{
+                        opacity: 0.8,
+                        fontWeight: 500,
+                      }}
+                    >
                       {team.memberCount} Mitglieder
-                    </span>
+                    </Badge>
                   </div>
 
                   <p
@@ -138,7 +138,7 @@ export default function TeamsPage() {
         .filter((team) => team.type === "ADULT")
         .slice()
         .sort(sortTeamsByName),
-    [teams]
+    [teams],
   );
 
   const youthTeams = useMemo(
@@ -147,7 +147,7 @@ export default function TeamsPage() {
         .filter((team) => team.type === "YOUTH")
         .slice()
         .sort(sortTeamsByName),
-    [teams]
+    [teams],
   );
 
   return (
