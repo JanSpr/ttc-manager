@@ -12,8 +12,8 @@ import Card from "../components/ui/Card";
 import DataField from "../components/ui/DataField";
 import ClickableCard from "../components/ui/ClickableCard";
 import StatusMessage from "../components/ui/StatusMessage";
+import Badge from "../components/ui/Badge";
 import {
-  badgeStyle,
   cardTitleStyle,
   colors,
   contentCardStyle,
@@ -26,30 +26,6 @@ type LocationState = {
   fromTeamName?: string;
   fromManagement?: boolean;
 };
-
-function getAccountBadgeStyle(isRegistered: boolean) {
-  return {
-    ...badgeStyle,
-    fontSize: "0.75rem",
-    padding: "0.22rem 0.55rem",
-    fontWeight: 700,
-    backgroundColor: isRegistered ? colors.primarySoft : colors.surface,
-    color: isRegistered ? colors.primary : "#60a5fa",
-    border: `1px solid ${isRegistered ? colors.primarySoft : "#93c5fd"}`,
-  };
-}
-
-function getActivityBadgeStyle(isActive: boolean) {
-  return {
-    ...badgeStyle,
-    fontSize: "0.75rem",
-    padding: "0.22rem 0.55rem",
-    fontWeight: 700,
-    backgroundColor: isActive ? colors.primarySoft : colors.surfaceSoft,
-    color: isActive ? colors.primary : colors.textMuted,
-    border: `1px solid ${isActive ? colors.primarySoft : colors.border}`,
-  };
-}
 
 function getGlobalRoleLabels(user: User | null): string[] {
   if (!user) {
@@ -161,18 +137,18 @@ function MemberHeader({
           flexWrap: "wrap",
         }}
       >
-        <span style={getAccountBadgeStyle(isRegistered)}>
+        <Badge variant={isRegistered ? "primary" : "neutral"} size="sm">
           {isRegistered ? "Account aktiv" : "Kein Account"}
-        </span>
+        </Badge>
 
-        <span style={getActivityBadgeStyle(member.active)}>
+        <Badge variant={member.active ? "primary" : "neutral"} size="sm">
           {member.active ? "Aktives Mitglied" : "Inaktives Mitglied"}
-        </span>
+        </Badge>
 
         {globalRoleLabels.map((label) => (
-          <span key={label} style={badgeStyle}>
+          <Badge key={label} size="md">
             {label}
-          </span>
+          </Badge>
         ))}
       </div>
     </section>
@@ -398,11 +374,11 @@ export default function MemberDetailPage() {
                             </div>
                           </div>
 
-                          <div style={badgeStyle}>
+                          <Badge>
                             {team.memberCount === 1
                               ? "1 Mitglied"
                               : `${team.memberCount} Mitglieder`}
-                          </div>
+                          </Badge>
                         </div>
                       </ClickableCard>
                     </Link>

@@ -5,10 +5,11 @@ import type { Team, TeamMembershipSummary } from "../types/team";
 import PageIntro from "../components/layout/PageIntro";
 import MemberAvatar from "../components/MemberAvatar";
 import Card from "../components/ui/Card";
+import Badge from "../components/ui/Badge";
 import ClickableCard from "../components/ui/ClickableCard";
 import StatusMessage from "../components/ui/StatusMessage";
 import TeamAvatar from "../components/ui/TeamAvatar";
-import { badgeStyle, cardTitleStyle, colors } from "../styles/ui";
+import { cardTitleStyle, colors } from "../styles/ui";
 
 type LocationState = {
   fromManagementTeams?: boolean;
@@ -17,47 +18,16 @@ type LocationState = {
 function formatMembershipRole(membership: TeamMembershipSummary): string {
   const labels: string[] = [];
 
-  if (membership.captain) {
-    labels.push("Mannschaftsführer");
-  }
-
-  if (membership.viceCaptain) {
-    labels.push("Stellvertretung");
-  }
-
-  if (membership.player) {
-    labels.push("Spieler");
-  }
+  if (membership.captain) labels.push("Mannschaftsführer");
+  if (membership.viceCaptain) labels.push("Stellvertretung");
+  if (membership.player) labels.push("Spieler");
 
   return labels.length > 0 ? labels.join(" · ") : "Keine Teamfunktion";
 }
 
 function formatLineupPosition(position: number | null | undefined): string {
-  if (position == null) {
-    return "–";
-  }
-
-  return String(position);
+  return position == null ? "–" : String(position);
 }
-
-function getStatusBadgeStyle(isRegistered: boolean) {
-  return {
-    ...badgeStyle,
-    fontSize: "0.75rem",
-    padding: "0.2rem 0.5rem",
-    fontWeight: 600,
-    opacity: 1,
-    backgroundColor: isRegistered ? colors.primarySoft : colors.surfaceSoft,
-    color: isRegistered ? colors.primary : colors.textMuted,
-  };
-}
-
-const profileBadgeStyle = {
-  ...badgeStyle,
-  fontSize: "0.82rem",
-  padding: "0.28rem 0.62rem",
-  fontWeight: 700,
-};
 
 const lineupBadgeStyle = {
   minWidth: "38px",
@@ -228,11 +198,7 @@ export default function TeamDetailPage() {
                   }}
                   style={{ textDecoration: "none", display: "block" }}
                 >
-                  <ClickableCard
-                    style={{
-                      padding: "0.38rem 0.58rem",
-                    }}
-                  >
+                  <ClickableCard style={{ padding: "0.38rem 0.58rem" }}>
                     <div
                       style={{
                         display: "flex",
@@ -269,20 +235,11 @@ export default function TeamDetailPage() {
             <h2 style={cardTitleStyle}>Mannschaftsmitglieder</h2>
 
             {playerMemberships.length === 0 ? (
-              <div
-                style={{
-                  color: colors.textMuted,
-                }}
-              >
+              <div style={{ color: colors.textMuted }}>
                 Dieser Mannschaft sind aktuell keine Spieler zugeordnet.
               </div>
             ) : (
-              <div
-                style={{
-                  display: "grid",
-                  gap: "0.9rem",
-                }}
-              >
+              <div style={{ display: "grid", gap: "0.9rem" }}>
                 {playerMemberships.map((membership) => {
                   const isRegistered = membership.userId != null;
 
@@ -365,10 +322,14 @@ export default function TeamDetailPage() {
                                 flexWrap: "wrap",
                               }}
                             >
-                              <span style={getStatusBadgeStyle(isRegistered)}>
+                              <Badge
+                                variant={isRegistered ? "primary" : "neutral"}
+                                size="sm"
+                              >
                                 {isRegistered ? "Account aktiv" : "Kein Account"}
-                              </span>
-                              <span style={profileBadgeStyle}>Profil</span>
+                              </Badge>
+
+                              <Badge size="md">Profil</Badge>
                             </div>
                           </div>
                         </ClickableCard>
