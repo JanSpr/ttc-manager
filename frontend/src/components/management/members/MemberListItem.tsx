@@ -1,7 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import type { Member } from "../../../types/member";
-import { badgeStyle, colors } from "../../../styles/ui";
+import { colors } from "../../../styles/ui";
 import MemberAvatar from "../../MemberAvatar";
+import Badge from "../../ui/Badge";
 import { EditIcon, EyeIcon } from "../common/ManagementIcons";
 import {
   getManagementActionGroupStyle,
@@ -22,18 +23,6 @@ type MemberListItemProps = {
 
 function getMemberTypeLabel(type: Member["type"]): string {
   return type === "YOUTH" ? "Jugend" : "Erwachsene";
-}
-
-function getStatusBadgeStyle(isRegistered: boolean) {
-  return {
-    ...badgeStyle,
-    fontSize: "0.75rem",
-    padding: "0.2rem 0.5rem",
-    fontWeight: 600,
-    opacity: 1,
-    backgroundColor: isRegistered ? colors.primarySoft : colors.surfaceSoft,
-    color: isRegistered ? colors.primary : colors.textMuted,
-  };
 }
 
 function MemberListItem({
@@ -123,9 +112,9 @@ function MemberListItem({
         >
           <span>{getMemberTypeLabel(member.type)}</span>
 
-          <span style={getStatusBadgeStyle(hasAccount)}>
+          <Badge variant={hasAccount ? "primary" : "neutral"} size="sm">
             {hasAccount ? "Account aktiv" : "Kein Account"}
-          </span>
+          </Badge>
         </div>
       </button>
 
