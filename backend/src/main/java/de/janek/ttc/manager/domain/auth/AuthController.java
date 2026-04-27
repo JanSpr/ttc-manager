@@ -1,5 +1,6 @@
 package de.janek.ttc.manager.domain.auth;
 
+import de.janek.ttc.manager.domain.user.ActivateUserAccountRequest;
 import de.janek.ttc.manager.domain.user.UserResponse;
 import de.janek.ttc.manager.domain.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,10 +21,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
- * REST-Endpunkte für Login, Logout und aktuellen Benutzer.
+ * REST-Endpunkte für Login, Logout, Aktivierung und aktuellen Benutzer.
  *
  * Session-basierter Ablauf: - POST /api/auth/login authentifiziert Benutzer und
- * speichert den SecurityContext in der Session - GET /api/auth/me liefert den
+ * speichert den SecurityContext in der Session - POST /api/auth/activate
+ * aktiviert ein vorbereitetes Benutzerkonto - GET /api/auth/me liefert den
  * aktuell eingeloggten Benutzer - POST /api/auth/logout beendet die Session
  */
 @RestController
@@ -62,6 +64,14 @@ public class AuthController {
 		} catch (BadCredentialsException ex) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "E-Mail/Username oder Passwort ist falsch.");
 		}
+	}
+
+	/**
+	 * Aktiviert ein vorbereitetes Benutzerkonto per Aktivierungscode.
+	 */
+	@PostMapping("/activate")
+	public UserResponse activate(@Valid @RequestBody ActivateUserAccountRequest request) {
+		return userService.activatePreparedAccount(request);
 	}
 
 	/**

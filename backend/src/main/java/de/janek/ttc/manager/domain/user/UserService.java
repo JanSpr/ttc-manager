@@ -131,6 +131,27 @@ public class UserService {
 		return toResponse(savedUser);
 	}
 
+	public UserResponse activatePreparedAccount(ActivateUserAccountRequest request) {
+		String activationCode = request.getActivationCode().trim();
+
+		User user = userRepository.findByActivationCode(activationCode)
+				.orElseThrow(() -> new ResourceNotFoundException("Der Aktivierungscode ist ungültig."));
+
+		if (hasText(user.getPasswordHash())) {
+			throw new IllegalArgumentException("Dieses Benutzerkonto wurde bereits aktiviert.");
+		}
+
+		validateUniqueEmail(request.getEmail(), user.getId());
+
+		user.setEmail(normalizeOptionalEmail(request.getEmail()));
+		user.setPasswordHash(passwordEncoder.encode(request.getPassword().trim()));
+		user.setActivationCode(null);
+		user.setActive(true);
+
+		User savedUser = userRepository.save(user);
+		return toResponse(savedUser);
+	}
+
 	public void delete(Long id) {
 		User user = getUserEntityById(id);
 

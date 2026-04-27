@@ -13,6 +13,7 @@ import java.text.Normalizer;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -130,9 +131,14 @@ public class MemberService {
 		user.setUsername(generateUniqueUsername(member.getFirstName(), member.getLastName()));
 		user.setEmail(null);
 		user.setPasswordHash(null);
+		user.setActivationCode(generateActivationCode());
 		user.setActive(false);
 
 		return userRepository.save(user);
+	}
+
+	private String generateActivationCode() {
+		return UUID.randomUUID().toString().replace("-", "");
 	}
 
 	private void validateUniqueUserAssignment(Long userId, Long currentMemberId) {

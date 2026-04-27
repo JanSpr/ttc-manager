@@ -38,6 +38,9 @@ public class User {
 	@Column(name = "password_hash", nullable = true, length = 255)
 	private String passwordHash;
 
+	@Column(name = "activation_code", length = 255, unique = true)
+	private String activationCode;
+
 	@ElementCollection(targetClass = GlobalRole.class)
 	@Enumerated(EnumType.STRING)
 	@CollectionTable(name = "user_global_role", joinColumns = @JoinColumn(name = "user_id"))
@@ -96,6 +99,10 @@ public class User {
 		return passwordHash;
 	}
 
+	public String getActivationCode() {
+		return activationCode;
+	}
+
 	public Set<GlobalRole> getRoles() {
 		return roles;
 	}
@@ -126,6 +133,10 @@ public class User {
 
 	public void setPasswordHash(String passwordHash) {
 		this.passwordHash = passwordHash;
+	}
+
+	public void setActivationCode(String activationCode) {
+		this.activationCode = activationCode;
 	}
 
 	public void setRoles(Set<GlobalRole> roles) {

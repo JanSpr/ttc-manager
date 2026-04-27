@@ -83,6 +83,7 @@ public class SecurityConfig {
 						 * Öffentliche Auth-Endpunkte.
 						 */
 						.requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+						.requestMatchers(HttpMethod.POST, "/api/auth/activate").permitAll()
 						.requestMatchers(HttpMethod.POST, "/api/auth/logout").permitAll()
 						.requestMatchers(HttpMethod.GET, "/api/auth/me").permitAll()
 						.requestMatchers(HttpMethod.GET, "/api/test").permitAll()
