@@ -58,7 +58,7 @@ export default function LoginPage() {
       <div
         style={{
           width: "100%",
-          maxWidth: "440px",
+          maxWidth: "480px",
           backgroundColor: colors.surface,
           border: `1px solid ${colors.border}`,
           borderRadius: "22px",
