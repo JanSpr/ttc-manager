@@ -11,6 +11,7 @@ import TeamsPage from "./pages/TeamsPage";
 import TeamDetailPage from "./pages/TeamDetailPage";
 import MemberDetailPage from "./pages/MemberDetailPage";
 import LoginPage from "./pages/LoginPage";
+import ActivateAccountPage from "./pages/ActivateAccountPage";
 import UserProfilePage from "./pages/UserProfilePage";
 import ManagementMembersPage from "./pages/ManagementMembersPage";
 import ManagementTeamsPage from "./pages/ManagementTeamsPage";
@@ -53,6 +54,7 @@ function AppContent() {
       >
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/activate" element={<ActivateAccountPage />} />
 
           <Route
             path="/"

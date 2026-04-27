@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
 import { useToast } from "../context/useToast";
 import { colors, textInputStyle, primaryButtonStyle } from "../styles/ui";
@@ -38,7 +38,7 @@ export default function LoginPage() {
         error instanceof Error
           ? error.message
           : "Anmeldung fehlgeschlagen. Bitte überprüfe E-Mail oder Benutzername und Passwort.",
-        "error"
+        "error",
       );
     } finally {
       setIsSubmitting(false);
@@ -118,7 +118,8 @@ export default function LoginPage() {
               marginInline: "auto",
             }}
           >
-            Melde dich an, um deine Mannschaften, Spieler und Vereinsdaten zu verwalten.
+            Melde dich an, um deine Mannschaften, Spieler und Vereinsdaten zu
+            verwalten.
           </p>
         </div>
 
@@ -169,6 +170,30 @@ export default function LoginPage() {
               {isSubmitting ? "Anmeldung..." : "Anmelden"}
             </button>
           </form>
+
+          <div
+            style={{
+              marginTop: "22px",
+              paddingTop: "18px",
+              borderTop: `1px solid ${colors.border}`,
+              textAlign: "center",
+              color: colors.textMuted,
+              fontSize: "0.92rem",
+              lineHeight: 1.5,
+            }}
+          >
+            Du hast einen Aktivierungscode?{" "}
+            <Link
+              to="/activate"
+              style={{
+                color: colors.primary,
+                fontWeight: 700,
+                textDecoration: "none",
+              }}
+            >
+              Account aktivieren
+            </Link>
+          </div>
         </div>
       </div>
     </div>
