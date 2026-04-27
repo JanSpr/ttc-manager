@@ -1,5 +1,6 @@
 package de.janek.ttc.manager.domain.team;
 
+import de.janek.ttc.manager.domain.user.User;
 import de.janek.ttc.manager.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -81,13 +82,17 @@ public class TeamService {
 
 	private TeamResponse toResponse(Team team) {
 		List<TeamMembershipSummaryResponse> memberships = team.getMemberships().stream()
-				.sorted(teamMembershipComparator())
-				.map(membership -> new TeamMembershipSummaryResponse(membership.getId(), membership.getMember().getId(),
-						membership.getMember().getFullName(),
-						membership.getMember().getUser() != null ? membership.getMember().getUser().getId() : null,
-						membership.getLineupPosition(), membership.isPlayer(), membership.isCaptain(),
-						membership.isViceCaptain()))
-				.toList();
+				.sorted(teamMembershipComparator()).map(membership -> {
+					User user = membership.getMember().getUser();
+					Long userId = user != null ? user.getId() : null;
+					boolean accountActivated = user != null && user.getPasswordHash() != null
+							&& !user.getPasswordHash().isBlank();
+
+					return new TeamMembershipSummaryResponse(membership.getId(), membership.getMember().getId(),
+							membership.getMember().getFullName(), userId, accountActivated,
+							membership.getLineupPosition(), membership.isPlayer(), membership.isCaptain(),
+							membership.isViceCaptain());
+				}).toList();
 
 		return new TeamResponse(team.getId(), team.getName(), team.getDescription(), team.getType(), memberships.size(),
 				memberships);

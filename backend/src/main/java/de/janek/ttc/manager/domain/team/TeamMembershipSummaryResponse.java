@@ -9,6 +9,7 @@ public class TeamMembershipSummaryResponse {
 	private Long memberId;
 	private String memberFullName;
 	private Long userId;
+	private boolean accountActivated;
 	private Integer lineupPosition;
 	private boolean player;
 	private boolean captain;
@@ -18,11 +19,12 @@ public class TeamMembershipSummaryResponse {
 	}
 
 	public TeamMembershipSummaryResponse(Long membershipId, Long memberId, String memberFullName, Long userId,
-			Integer lineupPosition, boolean player, boolean captain, boolean viceCaptain) {
+			boolean accountActivated, Integer lineupPosition, boolean player, boolean captain, boolean viceCaptain) {
 		this.membershipId = membershipId;
 		this.memberId = memberId;
 		this.memberFullName = memberFullName;
 		this.userId = userId;
+		this.accountActivated = accountActivated;
 		this.lineupPosition = lineupPosition;
 		this.player = player;
 		this.captain = captain;
@@ -43,6 +45,10 @@ public class TeamMembershipSummaryResponse {
 
 	public Long getUserId() {
 		return userId;
+	}
+
+	public boolean isAccountActivated() {
+		return accountActivated;
 	}
 
 	public Integer getLineupPosition() {

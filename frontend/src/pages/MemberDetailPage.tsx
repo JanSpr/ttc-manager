@@ -84,7 +84,7 @@ function MemberHeader({
   member: Member;
   user: User | null;
 }) {
-  const isRegistered = member.userId != null;
+  const hasActiveAccount = member.accountActivated;
   const globalRoleLabels = getGlobalRoleLabels(user);
 
   return (
@@ -137,8 +137,8 @@ function MemberHeader({
           flexWrap: "wrap",
         }}
       >
-        <Badge variant={isRegistered ? "primary" : "neutral"} size="sm">
-          {isRegistered ? "Account aktiv" : "Kein Account"}
+        <Badge variant={hasActiveAccount ? "primary" : "neutral"} size="sm">
+          {hasActiveAccount ? "Account aktiv" : "Kein Account"}
         </Badge>
 
         <Badge variant={member.active ? "primary" : "neutral"} size="sm">
@@ -195,9 +195,10 @@ export default function MemberDetailPage() {
           memberData.teamIds.includes(team.id),
         );
 
-        const resolvedUser = memberData.userId
-          ? await fetchUserById(memberData.userId)
-          : null;
+        const resolvedUser =
+          memberData.accountActivated && memberData.userId
+            ? await fetchUserById(memberData.userId)
+            : null;
 
         setMember(memberData);
         setLinkedUser(resolvedUser);
@@ -294,7 +295,7 @@ export default function MemberDetailPage() {
               </div>
             ) : (
               <StatusMessage variant="muted" marginTop="0">
-                Diesem Mitglied ist aktuell kein Benutzerkonto zugeordnet.
+                Diesem Mitglied ist aktuell kein aktives Benutzerkonto zugeordnet.
               </StatusMessage>
             )}
           </Card>

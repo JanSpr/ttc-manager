@@ -5,6 +5,7 @@ export interface TeamMembershipSummary {
   memberId: number;
   memberFullName: string;
   userId?: number | null;
+  accountActivated: boolean;
   lineupPosition?: number | null;
   player: boolean;
   captain: boolean;

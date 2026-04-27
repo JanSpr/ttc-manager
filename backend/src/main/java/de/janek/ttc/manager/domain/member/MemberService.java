@@ -157,13 +157,15 @@ public class MemberService {
 	}
 
 	private MemberResponse toResponse(Member member) {
-		Long userId = member.getUser() != null ? member.getUser().getId() : null;
+		User user = member.getUser();
+		Long userId = user != null ? user.getId() : null;
+		boolean accountActivated = user != null && user.getPasswordHash() != null && !user.getPasswordHash().isBlank();
 
 		Set<Long> teamIds = member.getMemberships().stream().map(TeamMembership::getTeam).map(team -> team.getId())
 				.collect(Collectors.toSet());
 
 		return new MemberResponse(member.getId(), member.getFirstName(), member.getLastName(), member.getFullName(),
-				member.isActive(), member.getType(), userId, teamIds);
+				member.isActive(), member.getType(), userId, accountActivated, teamIds);
 	}
 
 	private String generateUniqueUsername(String firstName, String lastName) {

@@ -14,13 +14,14 @@ public class MemberResponse {
 	private boolean active;
 	private MemberType type;
 	private Long userId;
+	private boolean accountActivated;
 	private Set<Long> teamIds;
 
 	public MemberResponse() {
 	}
 
 	public MemberResponse(Long id, String firstName, String lastName, String fullName, boolean active, MemberType type,
-			Long userId, Set<Long> teamIds) {
+			Long userId, boolean accountActivated, Set<Long> teamIds) {
 		this.id = id;
 		this.firstName = firstName;
 		this.lastName = lastName;
@@ -28,6 +29,7 @@ public class MemberResponse {
 		this.active = active;
 		this.type = type;
 		this.userId = userId;
+		this.accountActivated = accountActivated;
 		this.teamIds = teamIds;
 	}
 
@@ -57,6 +59,10 @@ public class MemberResponse {
 
 	public Long getUserId() {
 		return userId;
+	}
+
+	public boolean isAccountActivated() {
+		return accountActivated;
 	}
 
 	public Set<Long> getTeamIds() {

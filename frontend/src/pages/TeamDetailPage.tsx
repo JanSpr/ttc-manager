@@ -208,7 +208,7 @@ export default function TeamDetailPage() {
                     >
                       <MemberAvatar
                         fullName={captain.memberFullName}
-                        isRegistered={captain.userId != null}
+                        isRegistered={captain.accountActivated}
                         size={30}
                         fontSize="0.78rem"
                         boxShadow="0 6px 16px rgba(15, 23, 42, 0.05)"
@@ -241,7 +241,7 @@ export default function TeamDetailPage() {
             ) : (
               <div style={{ display: "grid", gap: "0.9rem" }}>
                 {playerMemberships.map((membership) => {
-                  const isRegistered = membership.userId != null;
+                  const hasActiveAccount = membership.accountActivated;
 
                   return (
                     <div
@@ -286,7 +286,7 @@ export default function TeamDetailPage() {
                             >
                               <MemberAvatar
                                 fullName={membership.memberFullName}
-                                isRegistered={isRegistered}
+                                isRegistered={hasActiveAccount}
                                 size={46}
                                 fontSize="0.95rem"
                                 boxShadow="0 6px 16px rgba(15, 23, 42, 0.05)"
@@ -323,10 +323,14 @@ export default function TeamDetailPage() {
                               }}
                             >
                               <Badge
-                                variant={isRegistered ? "primary" : "neutral"}
+                                variant={
+                                  hasActiveAccount ? "primary" : "neutral"
+                                }
                                 size="sm"
                               >
-                                {isRegistered ? "Account aktiv" : "Kein Account"}
+                                {hasActiveAccount
+                                  ? "Account aktiv"
+                                  : "Kein Account"}
                               </Badge>
 
                               <Badge size="md">Profil</Badge>

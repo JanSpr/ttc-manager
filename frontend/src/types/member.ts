@@ -8,6 +8,7 @@ export type Member = {
   active: boolean;
   type: MemberType;
   userId: number | null;
+  accountActivated: boolean;
   teamIds: number[];
 };
 

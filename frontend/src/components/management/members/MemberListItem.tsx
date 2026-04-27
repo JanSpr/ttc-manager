@@ -41,7 +41,7 @@ function MemberListItem({
   const showActionsInEditor =
     isEditorOpen && (isHovered || isEditingThisMember);
 
-  const hasAccount = member.userId != null;
+  const hasActiveAccount = member.accountActivated;
 
   function handleOpenDetails() {
     navigate(`/members/${member.id}`, {
@@ -112,8 +112,8 @@ function MemberListItem({
         >
           <span>{getMemberTypeLabel(member.type)}</span>
 
-          <Badge variant={hasAccount ? "primary" : "neutral"} size="sm">
-            {hasAccount ? "Account aktiv" : "Kein Account"}
+          <Badge variant={hasActiveAccount ? "primary" : "neutral"} size="sm">
+            {hasActiveAccount ? "Account aktiv" : "Kein Account"}
           </Badge>
         </div>
       </button>
