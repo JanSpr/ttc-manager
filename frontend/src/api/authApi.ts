@@ -8,6 +8,11 @@ export type ActivateUserAccountRequest = {
   email?: string | null;
 };
 
+export type ActivationPreviewResponse = {
+  username: string;
+  fullName: string;
+};
+
 export function login(request: LoginRequest) {
   return apiPost<AuthResponse, LoginRequest>("/api/auth/login", request);
 }
@@ -18,6 +23,14 @@ export function logout() {
 
 export function fetchCurrentUser() {
   return apiGet<AuthResponse>("/api/auth/me");
+}
+
+export function fetchActivationPreview(activationCode: string) {
+  return apiGet<ActivationPreviewResponse>(
+    `/api/auth/activation-preview?activationCode=${encodeURIComponent(
+      activationCode,
+    )}`,
+  );
 }
 
 export function activateUserAccount(request: ActivateUserAccountRequest) {

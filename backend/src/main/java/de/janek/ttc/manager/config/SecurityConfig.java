@@ -22,13 +22,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
-/**
- * Zentrale Spring-Security-Konfiguration.
- *
- * Aktueller Ansatz: - session-basierte Authentifizierung - eigene
- * REST-Endpunkte für Login/Logout - öffentliche Read-Endpunkte für den
- * aktuellen MVP - eingeschränkte Write-Endpunkte für administrative Änderungen
- */
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfig {
@@ -42,17 +35,11 @@ public class SecurityConfig {
 		this.customUserDetailsService = customUserDetailsService;
 	}
 
-	/**
-	 * PasswordEncoder für sicheres Hashing von Passwörtern.
-	 */
 	@Bean
 	public PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
 	}
 
-	/**
-	 * AuthenticationProvider auf Basis unseres CustomUserDetailsService.
-	 */
 	@Bean
 	public DaoAuthenticationProvider authenticationProvider(PasswordEncoder passwordEncoder) {
 		DaoAuthenticationProvider provider = new DaoAuthenticationProvider(customUserDetailsService);
@@ -60,17 +47,11 @@ public class SecurityConfig {
 		return provider;
 	}
 
-	/**
-	 * AuthenticationManager von Spring.
-	 */
 	@Bean
 	public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
 		return configuration.getAuthenticationManager();
 	}
 
-	/**
-	 * Hauptkonfiguration der HTTP-Security.
-	 */
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http.cors(Customizer.withDefaults()).csrf(AbstractHttpConfigurer::disable)
@@ -79,75 +60,45 @@ public class SecurityConfig {
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
 				.authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-						/*
-						 * Öffentliche Auth-Endpunkte.
-						 */
 						.requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+						.requestMatchers(HttpMethod.GET, "/api/auth/activation-preview").permitAll() // 🔹 NEU
 						.requestMatchers(HttpMethod.POST, "/api/auth/activate").permitAll()
 						.requestMatchers(HttpMethod.POST, "/api/auth/logout").permitAll()
 						.requestMatchers(HttpMethod.GET, "/api/auth/me").permitAll()
-						.requestMatchers(HttpMethod.GET, "/api/test").permitAll()
 
-						/*
-						 * Öffentliche Registrierung bleibt vorerst offen.
-						 */
 						.requestMatchers(HttpMethod.POST, "/api/users").permitAll()
 
-						/*
-						 * Self-Service für eingeloggte Benutzer.
-						 */
 						.requestMatchers(HttpMethod.GET, "/api/users/me").authenticated()
 						.requestMatchers(HttpMethod.PUT, "/api/users/me").authenticated()
 
-						/*
-						 * Benutzerverwaltung außerhalb des Self-Service ist administrativ.
-						 */
 						.requestMatchers(HttpMethod.GET, "/api/users").hasAnyRole("ADMIN", "BOARD")
 						.requestMatchers(HttpMethod.GET, "/api/users/**").hasAnyRole("ADMIN", "BOARD")
 						.requestMatchers(HttpMethod.PUT, "/api/users/**").hasAnyRole("ADMIN", "BOARD")
 						.requestMatchers(HttpMethod.DELETE, "/api/users/**").hasAnyRole("ADMIN", "BOARD")
 
-						/*
-						 * Öffentliche Read-Endpunkte für den aktuellen MVP.
-						 */
 						.requestMatchers(HttpMethod.GET, "/api/teams").permitAll()
 						.requestMatchers(HttpMethod.GET, "/api/teams/*").permitAll()
 						.requestMatchers(HttpMethod.GET, "/api/teams/*/memberships").permitAll()
 						.requestMatchers(HttpMethod.GET, "/api/members").permitAll()
 						.requestMatchers(HttpMethod.GET, "/api/members/**").permitAll()
 
-						/*
-						 * Administrative Write-Zugriffe für Members.
-						 */
 						.requestMatchers(HttpMethod.POST, "/api/members").hasAnyRole("ADMIN", "BOARD")
 						.requestMatchers(HttpMethod.PUT, "/api/members/**").hasAnyRole("ADMIN", "BOARD")
 						.requestMatchers(HttpMethod.DELETE, "/api/members/**").hasAnyRole("ADMIN", "BOARD")
 
-						/*
-						 * Administrative Write-Zugriffe für Teams.
-						 */
 						.requestMatchers(HttpMethod.POST, "/api/teams").hasAnyRole("ADMIN", "BOARD")
 						.requestMatchers(HttpMethod.PUT, "/api/teams/*").hasAnyRole("ADMIN", "BOARD")
 						.requestMatchers(HttpMethod.DELETE, "/api/teams/*").hasAnyRole("ADMIN", "BOARD")
 
-						/*
-						 * TeamMembership-Änderungen sind ebenfalls administrativ.
-						 */
 						.requestMatchers(HttpMethod.POST, "/api/teams/*/memberships").hasAnyRole("ADMIN", "BOARD")
 						.requestMatchers(HttpMethod.PUT, "/api/teams/*/memberships/*").hasAnyRole("ADMIN", "BOARD")
 						.requestMatchers(HttpMethod.DELETE, "/api/teams/*/memberships/*").hasAnyRole("ADMIN", "BOARD")
 
-						/*
-						 * Alles andere benötigt Authentifizierung.
-						 */
 						.anyRequest().authenticated());
 
 		return http.build();
 	}
 
-	/**
-	 * Globale CORS-Konfiguration für das React-Frontend.
-	 */
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration configuration = new CorsConfiguration();

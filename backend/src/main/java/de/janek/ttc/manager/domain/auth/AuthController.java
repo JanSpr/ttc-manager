@@ -24,9 +24,11 @@ import org.springframework.web.server.ResponseStatusException;
  * REST-Endpunkte für Login, Logout, Aktivierung und aktuellen Benutzer.
  *
  * Session-basierter Ablauf: - POST /api/auth/login authentifiziert Benutzer und
- * speichert den SecurityContext in der Session - POST /api/auth/activate
- * aktiviert ein vorbereitetes Benutzerkonto - GET /api/auth/me liefert den
- * aktuell eingeloggten Benutzer - POST /api/auth/logout beendet die Session
+ * speichert den SecurityContext in der Session - GET
+ * /api/auth/activation-preview liefert Vorschau-Daten zu einem Aktivierungscode
+ * - POST /api/auth/activate aktiviert ein vorbereitetes Benutzerkonto - GET
+ * /api/auth/me liefert den aktuell eingeloggten Benutzer - POST
+ * /api/auth/logout beendet die Session
  */
 @RestController
 @RequestMapping("/api/auth")
@@ -41,9 +43,6 @@ public class AuthController {
 		this.userService = userService;
 	}
 
-	/**
-	 * Login mit E-Mail oder Username und Passwort.
-	 */
 	@PostMapping("/login")
 	public AuthResponse login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse) {
@@ -66,17 +65,16 @@ public class AuthController {
 		}
 	}
 
-	/**
-	 * Aktiviert ein vorbereitetes Benutzerkonto per Aktivierungscode.
-	 */
+	@GetMapping("/activation-preview")
+	public ActivationPreviewResponse activationPreview(@RequestParam String activationCode) {
+		return userService.getActivationPreview(activationCode);
+	}
+
 	@PostMapping("/activate")
 	public UserResponse activate(@Valid @RequestBody ActivateUserAccountRequest request) {
 		return userService.activatePreparedAccount(request);
 	}
 
-	/**
-	 * Gibt den aktuell eingeloggten Benutzer zurück.
-	 */
 	@GetMapping("/me")
 	public AuthResponse me(Authentication authentication) {
 		if (authentication == null || !authentication.isAuthenticated()
@@ -88,9 +86,6 @@ public class AuthController {
 		return AuthResponse.authenticated(user);
 	}
 
-	/**
-	 * Loggt den Benutzer aus und invalidiert die Session.
-	 */
 	@PostMapping("/logout")
 	@ResponseStatus(HttpStatus.OK)
 	public AuthResponse logout(HttpServletRequest request, HttpServletResponse response,

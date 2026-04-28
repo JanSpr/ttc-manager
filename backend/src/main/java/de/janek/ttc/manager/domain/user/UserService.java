@@ -1,5 +1,6 @@
 package de.janek.ttc.manager.domain.user;
 
+import de.janek.ttc.manager.domain.auth.ActivationPreviewResponse;
 import de.janek.ttc.manager.domain.member.Member;
 import de.janek.ttc.manager.domain.member.MemberRepository;
 import de.janek.ttc.manager.exception.ResourceNotFoundException;
@@ -57,6 +58,17 @@ public class UserService {
 		return userRepository.findByEmailIgnoreCaseOrUsernameIgnoreCase(normalizedIdentifier, normalizedIdentifier)
 				.orElseThrow(() -> new ResourceNotFoundException(
 						"User mit Login '" + identifier + "' wurde nicht gefunden."));
+	}
+
+	@Transactional(readOnly = true)
+	public ActivationPreviewResponse getActivationPreview(String activationCode) {
+		User user = getUserEntityByActivationCode(activationCode);
+
+		if (hasText(user.getPasswordHash())) {
+			throw new IllegalArgumentException("Dieses Benutzerkonto wurde bereits aktiviert.");
+		}
+
+		return new ActivationPreviewResponse(user.getUsername(), user.getFullName());
 	}
 
 	public UserResponse create(CreateUserRequest request) {
@@ -132,10 +144,7 @@ public class UserService {
 	}
 
 	public UserResponse activatePreparedAccount(ActivateUserAccountRequest request) {
-		String activationCode = request.getActivationCode().trim();
-
-		User user = userRepository.findByActivationCode(activationCode)
-				.orElseThrow(() -> new ResourceNotFoundException("Der Aktivierungscode ist ungültig."));
+		User user = getUserEntityByActivationCode(request.getActivationCode());
 
 		if (hasText(user.getPasswordHash())) {
 			throw new IllegalArgumentException("Dieses Benutzerkonto wurde bereits aktiviert.");
@@ -168,6 +177,13 @@ public class UserService {
 	public User getUserEntityById(Long id) {
 		return userRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("User mit ID " + id + " wurde nicht gefunden."));
+	}
+
+	private User getUserEntityByActivationCode(String activationCode) {
+		String normalizedActivationCode = normalizeActivationCode(activationCode);
+
+		return userRepository.findByActivationCode(normalizedActivationCode)
+				.orElseThrow(() -> new ResourceNotFoundException("Der Aktivierungscode ist ungültig."));
 	}
 
 	private Member resolveMember(Long memberId) {
@@ -215,6 +231,10 @@ public class UserService {
 
 	private String normalizeLoginIdentifier(String identifier) {
 		return identifier.trim().toLowerCase(Locale.ROOT);
+	}
+
+	private String normalizeActivationCode(String activationCode) {
+		return activationCode.trim().toUpperCase(Locale.ROOT);
 	}
 
 	private String encodeOptionalPassword(String password) {

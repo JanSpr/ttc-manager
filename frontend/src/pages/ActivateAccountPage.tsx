@@ -1,6 +1,10 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { activateUserAccount } from "../api/authApi";
+import {
+  activateUserAccount,
+  fetchActivationPreview,
+  type ActivationPreviewResponse,
+} from "../api/authApi";
 import { useAuth } from "../context/useAuth";
 import { useToast } from "../context/useToast";
 import {
@@ -34,7 +38,7 @@ function getStepDescription(step: ActivationStep): string {
     return "Wähle ein sicheres Passwort für deinen TTC-Manager Account.";
   }
 
-  return "Dein Benutzername wurde bereits automatisch vorbereitet. Eine E-Mail-Adresse kannst du optional ergänzen.";
+  return "Prüfe deinen automatisch vorbereiteten Benutzernamen und ergänze optional eine E-Mail-Adresse.";
 }
 
 export default function ActivateAccountPage() {
@@ -44,20 +48,42 @@ export default function ActivateAccountPage() {
 
   const [step, setStep] = useState<ActivationStep>("code");
   const [activationCode, setActivationCode] = useState("");
+  const [preview, setPreview] = useState<ActivationPreviewResponse | null>(null);
   const [password, setPassword] = useState("");
   const [passwordConfirmation, setPasswordConfirmation] = useState("");
   const [email, setEmail] = useState("");
+  const [isCheckingCode, setIsCheckingCode] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function handleCodeSubmit(event: FormEvent) {
+  async function handleCodeSubmit(event: FormEvent) {
     event.preventDefault();
 
-    if (!activationCode.trim()) {
+    const normalizedCode = activationCode.trim().toUpperCase();
+
+    if (!normalizedCode) {
       showToast("Bitte gib deinen Aktivierungscode ein.", "error");
       return;
     }
 
-    setStep("password");
+    try {
+      setIsCheckingCode(true);
+
+      const activationPreview = await fetchActivationPreview(normalizedCode);
+
+      setActivationCode(normalizedCode);
+      setPreview(activationPreview);
+      setStep("password");
+    } catch (error) {
+      console.error("Aktivierungscode konnte nicht geprüft werden", error);
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "Der Aktivierungscode konnte nicht geprüft werden.",
+        "error",
+      );
+    } finally {
+      setIsCheckingCode(false);
+    }
   }
 
   function handlePasswordSubmit(event: FormEvent) {
@@ -260,16 +286,32 @@ export default function ActivateAccountPage() {
                 <input
                   id="activationCode"
                   type="text"
-                  placeholder="Aktivierungscode eingeben"
+                  placeholder="z. B. A7K9-P2LM"
                   value={activationCode}
-                  onChange={(event) => setActivationCode(event.target.value)}
+                  onChange={(event) =>
+                    setActivationCode(event.target.value.toUpperCase())
+                  }
                   autoComplete="one-time-code"
-                  style={textInputStyle}
+                  disabled={isCheckingCode}
+                  style={{
+                    ...textInputStyle,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.08em",
+                    fontWeight: 700,
+                  }}
                 />
               </FormField>
 
-              <button type="submit" style={primaryButtonStyle}>
-                Weiter
+              <button
+                type="submit"
+                disabled={isCheckingCode}
+                style={{
+                  ...primaryButtonStyle,
+                  cursor: isCheckingCode ? "default" : "pointer",
+                  opacity: isCheckingCode ? 0.8 : 1,
+                }}
+              >
+                {isCheckingCode ? "Code prüfen..." : "Weiter"}
               </button>
             </form>
           ) : null}
@@ -282,6 +324,24 @@ export default function ActivateAccountPage() {
                 gap: "18px",
               }}
             >
+              {preview ? (
+                <div
+                  style={{
+                    padding: "14px 16px",
+                    borderRadius: "16px",
+                    border: `1px solid ${colors.border}`,
+                    backgroundColor: colors.primarySoft,
+                    color: colors.text,
+                    lineHeight: 1.55,
+                    fontSize: "0.93rem",
+                  }}
+                >
+                  Account für <strong>{preview.fullName}</strong>
+                  <br />
+                  Benutzername: <strong>{preview.username}</strong>
+                </div>
+              ) : null}
+
               <FormField label="Passwort" htmlFor="password">
                 <input
                   id="password"
@@ -361,8 +421,10 @@ export default function ActivateAccountPage() {
                   fontSize: "0.93rem",
                 }}
               >
-                Dein Benutzername wurde automatisch aus deinem Namen vorbereitet.
-                Nach der Aktivierung wirst du direkt eingeloggt.
+                Dein Benutzername lautet:{" "}
+                <strong>{preview?.username ?? "wird vorbereitet"}</strong>
+                <br />
+                Du kannst dich später damit oder mit deiner E-Mail anmelden.
               </div>
 
               <FormField label="E-Mail-Adresse optional" htmlFor="email">

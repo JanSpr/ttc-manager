@@ -13,7 +13,6 @@ import java.text.Normalizer;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -138,7 +137,19 @@ public class MemberService {
 	}
 
 	private String generateActivationCode() {
-		return UUID.randomUUID().toString().replace("-", "");
+		String chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // ohne 0/O/1/I
+		StringBuilder code = new StringBuilder();
+
+		for (int i = 0; i < 8; i++) {
+			int index = (int) (Math.random() * chars.length());
+			code.append(chars.charAt(index));
+
+			if (i == 3) {
+				code.append("-");
+			}
+		}
+
+		return code.toString();
 	}
 
 	private void validateUniqueUserAssignment(Long userId, Long currentMemberId) {
