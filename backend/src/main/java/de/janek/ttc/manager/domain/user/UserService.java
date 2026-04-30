@@ -255,7 +255,7 @@ public class UserService {
 
 		return new UserResponse(user.getId(), user.getFirstName(), user.getLastName(), user.getFullName(),
 				user.getUsername(), user.getEmail(), user.isActive(), Set.copyOf(user.getRoles()), memberId,
-				memberFullName);
+				memberFullName, user.getActivationCode());
 	}
 
 	private String generateUniqueUsername(String firstName, String lastName) {

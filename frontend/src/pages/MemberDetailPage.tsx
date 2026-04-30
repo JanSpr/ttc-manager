@@ -27,6 +27,33 @@ type LocationState = {
   fromManagement?: boolean;
 };
 
+function ClipboardIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M9 5H7.8C6.7 5 6 5.7 6 6.8V19.2C6 20.3 6.7 21 7.8 21H16.2C17.3 21 18 20.3 18 19.2V6.8C18 5.7 17.3 5 16.2 5H15"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M9 5.5C9 4.7 9.7 4 10.5 4H13.5C14.3 4 15 4.7 15 5.5C15 6.3 14.3 7 13.5 7H10.5C9.7 7 9 6.3 9 5.5Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function getGlobalRoleLabels(user: User | null): string[] {
   if (!user) {
     return [];
@@ -165,6 +192,8 @@ export default function MemberDetailPage() {
   const [memberTeams, setMemberTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [copyMessage, setCopyMessage] = useState<string | null>(null);
+  const [isCopyHovered, setIsCopyHovered] = useState(false);
 
   useEffect(() => {
     async function loadMember() {
@@ -185,6 +214,7 @@ export default function MemberDetailPage() {
       try {
         setLoading(true);
         setError(null);
+        setCopyMessage(null);
 
         const [memberData, teamsData] = await Promise.all([
           fetchMemberById(memberId),
@@ -195,10 +225,9 @@ export default function MemberDetailPage() {
           memberData.teamIds.includes(team.id),
         );
 
-        const resolvedUser =
-          memberData.accountActivated && memberData.userId
-            ? await fetchUserById(memberData.userId)
-            : null;
+        const resolvedUser = memberData.userId
+          ? await fetchUserById(memberData.userId)
+          : null;
 
         setMember(memberData);
         setLinkedUser(resolvedUser);
@@ -213,6 +242,28 @@ export default function MemberDetailPage() {
 
     void loadMember();
   }, [id]);
+
+  useEffect(() => {
+    if (!copyMessage) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setCopyMessage(null);
+    }, 3000);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [copyMessage]);
+
+  async function copyActivationCode(code: string) {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopyMessage("Aktivierungscode wurde kopiert.");
+    } catch (err) {
+      console.error("Aktivierungscode konnte nicht kopiert werden:", err);
+      setCopyMessage("Aktivierungscode konnte nicht kopiert werden.");
+    }
+  }
 
   let backTarget = "/teams";
   let backLabel = "← Zurück zur Mannschaftsübersicht";
@@ -279,20 +330,77 @@ export default function MemberDetailPage() {
             <h2 style={cardTitleStyle}>Verknüpftes Benutzerkonto</h2>
 
             {linkedUser ? (
-              <div
-                style={{
-                  display: "grid",
-                  gap: "1rem",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-                }}
-              >
-                <DataField label="Benutzername" value={linkedUser.username} />
-                <DataField label="E-Mail" value={linkedUser.email} />
-                <DataField
-                  label="Globale Rolle"
-                  value={getGlobalRoleLabels(linkedUser).join(", ")}
-                />
-              </div>
+              <>
+                <div
+                  style={{
+                    display: "grid",
+                    gap: "1rem",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+                  }}
+                >
+                  <DataField label="Benutzername" value={linkedUser.username} />
+                  <DataField label="E-Mail" value={linkedUser.email} />
+                  <DataField
+                    label="Globale Rolle"
+                    value={getGlobalRoleLabels(linkedUser).join(", ")}
+                  />
+
+                  {linkedUser.activationCode && (
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.45rem",
+                      }}
+                    >
+                      <DataField
+                        label="Aktivierungscode"
+                        value={linkedUser.activationCode}
+                      />
+
+                      <button
+                        type="button"
+                        title="Code kopieren"
+                        aria-label="Aktivierungscode kopieren"
+                        onClick={() =>
+                          void copyActivationCode(linkedUser.activationCode!)
+                        }
+                        onMouseEnter={() => setIsCopyHovered(true)}
+                        onMouseLeave={() => setIsCopyHovered(false)}
+                        style={{
+                          width: "36px",
+                          height: "36px",
+                          borderRadius: "10px",
+                          border: `1px solid ${
+                            isCopyHovered ? colors.borderStrong : colors.border
+                          }`,
+                          backgroundColor: isCopyHovered
+                            ? colors.surfaceSoft
+                            : colors.surface,
+                          color: isCopyHovered
+                            ? colors.primary
+                            : colors.textMuted,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          cursor: "pointer",
+                          transition:
+                            "background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease",
+                          flexShrink: 0,
+                        }}
+                      >
+                        <ClipboardIcon />
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {copyMessage && (
+                  <StatusMessage variant="muted" marginTop="1rem">
+                    {copyMessage}
+                  </StatusMessage>
+                )}
+              </>
             ) : (
               <StatusMessage variant="muted" marginTop="0">
                 Diesem Mitglied ist aktuell kein aktives Benutzerkonto zugeordnet.
@@ -308,12 +416,7 @@ export default function MemberDetailPage() {
                 Dieses Mitglied ist aktuell keiner Mannschaft zugeordnet.
               </StatusMessage>
             ) : (
-              <div
-                style={{
-                  display: "grid",
-                  gap: "0.85rem",
-                }}
-              >
+              <div style={{ display: "grid", gap: "0.85rem" }}>
                 {memberTeams.map((team) => {
                   const membership = team.memberships.find(
                     (teamMembership) => teamMembership.memberId === member.id,

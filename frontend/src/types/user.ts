@@ -11,6 +11,9 @@ export type User = {
   roles: GlobalRole[];
   memberId: number | null;
   memberFullName: string | null;
+
+  // ✅ NEU
+  activationCode: string | null;
 };
 
 export type UserUpsertRequest = {
