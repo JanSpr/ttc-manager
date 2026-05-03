@@ -78,15 +78,7 @@ function getGlobalRoleLabels(user: User | null): string[] {
 }
 
 function getAccountStatusLabel(member: Member): string {
-  if (member.accountActivated) {
-    return "Account aktiv";
-  }
-
-  if (member.userId != null) {
-    return "Account vorbereitet";
-  }
-
-  return "Kein Account";
+  return member.accountActivated ? "registriert" : "nicht registriert";
 }
 
 function getMembershipRoleLabel(

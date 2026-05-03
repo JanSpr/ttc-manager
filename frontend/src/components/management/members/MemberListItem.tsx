@@ -26,16 +26,9 @@ function getMemberTypeLabel(type: Member["type"]): string {
   return type === "YOUTH" ? "Jugend" : "Erwachsene";
 }
 
+// ✅ NEU: nur noch 2 Zustände
 function getAccountStatusLabel(member: Member): string {
-  if (member.accountActivated) {
-    return "Account aktiv";
-  }
-
-  if (member.userId != null) {
-    return "Account vorbereitet";
-  }
-
-  return "Kein Account";
+  return member.accountActivated ? "registriert" : "nicht registriert";
 }
 
 function MemberListItem({
@@ -54,7 +47,7 @@ function MemberListItem({
   const showActionsInEditor =
     isEditorOpen && (isHovered || isEditingThisMember);
 
-  const hasActiveAccount = member.accountActivated;
+  const isRegistered = member.accountActivated;
   const accountStatusLabel = getAccountStatusLabel(member);
 
   function handleOpenDetails() {
@@ -126,7 +119,7 @@ function MemberListItem({
         >
           <span>{getMemberTypeLabel(member.type)}</span>
 
-          <Badge variant={hasActiveAccount ? "primary" : "neutral"} size="sm">
+          <Badge variant={isRegistered ? "primary" : "neutral"} size="sm">
             {accountStatusLabel}
           </Badge>
         </div>
