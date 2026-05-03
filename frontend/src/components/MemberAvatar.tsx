@@ -2,7 +2,10 @@ import type { Member } from "../types/member";
 import AvatarBase from "./ui/AvatarBase";
 
 type MemberAvatarProps = {
-  member?: Pick<Member, "firstName" | "lastName" | "fullName" | "userId">;
+  member?: Pick<
+    Member,
+    "firstName" | "lastName" | "fullName" | "userId" | "accountActivated"
+  >;
   fullName?: string;
   isRegistered?: boolean;
   size?: number;
@@ -27,7 +30,10 @@ function getInitialsFromName(fullName: string): string {
 }
 
 function getMemberDisplayName(
-  member?: Pick<Member, "firstName" | "lastName" | "fullName" | "userId">,
+  member?: Pick<
+    Member,
+    "firstName" | "lastName" | "fullName" | "userId" | "accountActivated"
+  >,
   fullName?: string
 ): string {
   if (member?.fullName?.trim()) {
@@ -54,7 +60,11 @@ function MemberAvatar({
   boxShadow = "0 10px 24px rgba(15, 23, 42, 0.06)",
 }: MemberAvatarProps) {
   const displayName = getMemberDisplayName(member, fullName);
-  const resolvedIsRegistered = isRegistered ?? member?.userId != null;
+
+  // ✅ NEUE, korrekte Logik
+  const resolvedIsRegistered =
+    isRegistered ??
+    (member?.accountActivated === true);
 
   return (
     <AvatarBase
