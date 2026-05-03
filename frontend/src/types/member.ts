@@ -7,8 +7,10 @@ export type Member = {
   fullName: string;
   active: boolean;
   type: MemberType;
+
   userId: number | null;
   accountActivated: boolean;
+
   teamIds: number[];
 };
 
@@ -17,6 +19,7 @@ export type MemberUpsertRequest = {
   lastName: string;
   active: boolean;
   type: MemberType;
+
   userId?: number | null;
   createUserAccount?: boolean;
 };

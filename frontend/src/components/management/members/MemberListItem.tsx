@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+
 import type { Member } from "../../../types/member";
 import { colors } from "../../../styles/ui";
 import MemberAvatar from "../../MemberAvatar";
@@ -25,6 +26,18 @@ function getMemberTypeLabel(type: Member["type"]): string {
   return type === "YOUTH" ? "Jugend" : "Erwachsene";
 }
 
+function getAccountStatusLabel(member: Member): string {
+  if (member.accountActivated) {
+    return "Account aktiv";
+  }
+
+  if (member.userId != null) {
+    return "Account vorbereitet";
+  }
+
+  return "Kein Account";
+}
+
 function MemberListItem({
   member,
   isLast,
@@ -42,6 +55,7 @@ function MemberListItem({
     isEditorOpen && (isHovered || isEditingThisMember);
 
   const hasActiveAccount = member.accountActivated;
+  const accountStatusLabel = getAccountStatusLabel(member);
 
   function handleOpenDetails() {
     navigate(`/members/${member.id}`, {
@@ -113,7 +127,7 @@ function MemberListItem({
           <span>{getMemberTypeLabel(member.type)}</span>
 
           <Badge variant={hasActiveAccount ? "primary" : "neutral"} size="sm">
-            {hasActiveAccount ? "Account aktiv" : "Kein Account"}
+            {accountStatusLabel}
           </Badge>
         </div>
       </button>

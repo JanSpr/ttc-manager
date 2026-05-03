@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
+
 import { Link, useLocation, useParams } from "react-router-dom";
+
 import { fetchMemberById } from "../api/memberApi";
 import { fetchTeams } from "../api/teamApi";
 import { fetchUserById } from "../api/userApi";
+
 import type { Member } from "../types/member";
 import type { Team, TeamMembershipSummary } from "../types/team";
 import type { User } from "../types/user";
+
 import MemberAvatar from "../components/MemberAvatar";
 import TeamAvatar from "../components/ui/TeamAvatar";
 import Card from "../components/ui/Card";
@@ -13,6 +17,7 @@ import DataField from "../components/ui/DataField";
 import ClickableCard from "../components/ui/ClickableCard";
 import StatusMessage from "../components/ui/StatusMessage";
 import Badge from "../components/ui/Badge";
+
 import {
   cardTitleStyle,
   colors,
@@ -72,6 +77,18 @@ function getGlobalRoleLabels(user: User | null): string[] {
   return labels.length > 0 ? labels : ["Spieler"];
 }
 
+function getAccountStatusLabel(member: Member): string {
+  if (member.accountActivated) {
+    return "Account aktiv";
+  }
+
+  if (member.userId != null) {
+    return "Account vorbereitet";
+  }
+
+  return "Kein Account";
+}
+
 function getMembershipRoleLabel(
   membership: TeamMembershipSummary | undefined,
 ): string {
@@ -112,6 +129,7 @@ function MemberHeader({
   user: User | null;
 }) {
   const hasActiveAccount = member.accountActivated;
+  const accountStatusLabel = getAccountStatusLabel(member);
   const globalRoleLabels = getGlobalRoleLabels(user);
 
   return (
@@ -165,7 +183,7 @@ function MemberHeader({
         }}
       >
         <Badge variant={hasActiveAccount ? "primary" : "neutral"} size="sm">
-          {hasActiveAccount ? "Account aktiv" : "Kein Account"}
+          {accountStatusLabel}
         </Badge>
 
         <Badge variant={member.active ? "primary" : "neutral"} size="sm">
@@ -185,6 +203,7 @@ function MemberHeader({
 export default function MemberDetailPage() {
   const { id } = useParams();
   const location = useLocation();
+
   const state = (location.state as LocationState | null) ?? null;
 
   const [member, setMember] = useState<Member | null>(null);
@@ -304,6 +323,7 @@ export default function MemberDetailPage() {
       </Link>
 
       {loading && <StatusMessage>Mitglied wird geladen...</StatusMessage>}
+
       {error && <StatusMessage variant="error">{error}</StatusMessage>}
 
       {!loading && !error && member && (
@@ -340,6 +360,7 @@ export default function MemberDetailPage() {
                 >
                   <DataField label="Benutzername" value={linkedUser.username} />
                   <DataField label="E-Mail" value={linkedUser.email} />
+
                   <DataField
                     label="Globale Rolle"
                     value={getGlobalRoleLabels(linkedUser).join(", ")}
@@ -403,7 +424,7 @@ export default function MemberDetailPage() {
               </>
             ) : (
               <StatusMessage variant="muted" marginTop="0">
-                Diesem Mitglied ist aktuell kein aktives Benutzerkonto zugeordnet.
+                Diesem Mitglied ist aktuell kein Benutzerkonto zugeordnet.
               </StatusMessage>
             )}
           </Card>
