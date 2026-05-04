@@ -98,6 +98,15 @@ public class MemberService {
 
 	public void delete(Long id) {
 		Member member = getMemberEntityById(id);
+		User user = member.getUser();
+
+		// 🔥 WICHTIG: Beziehung sauber lösen
+		if (user != null) {
+			member.setUser(null);
+			user.setMember(null);
+			userRepository.delete(user);
+		}
+
 		memberRepository.delete(member);
 	}
 
@@ -137,7 +146,7 @@ public class MemberService {
 	}
 
 	private String generateActivationCode() {
-		String chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // ohne 0/O/1/I
+		String chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 		StringBuilder code = new StringBuilder();
 
 		for (int i = 0; i < 8; i++) {
@@ -218,9 +227,7 @@ public class MemberService {
 		String value = input.trim().toLowerCase(Locale.ROOT);
 
 		value = value.replace("ä", "ae").replace("ö", "oe").replace("ü", "ue").replace("ß", "ss");
-
 		value = Normalizer.normalize(value, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
-
 		value = value.replaceAll("[^a-z0-9]", "");
 
 		return value;
