@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import type { User } from "../types/user";
 import { colors } from "../styles/ui";
 import UserAvatar from "./UserAvatar";
@@ -286,22 +286,27 @@ function Header({ user, onLogout }: HeaderProps) {
                   </div>
                 </div>
 
-                <DropdownActionItem
-                  label="Mein Profil"
-                  onClick={handleNavigateToProfile}
-                />
-
-                {isManagementVisible ? (
+                <div style={{ padding: "6px" }}>
                   <DropdownActionItem
-                    label="Administration"
-                    onClick={handleNavigateToManagement}
+                    label="Mein Profil"
+                    icon={<ProfileIcon />}
+                    onClick={handleNavigateToProfile}
                   />
-                ) : null}
 
-                <DropdownActionItem
-                  label="Abmelden"
-                  onClick={handleLogoutClick}
-                />
+                  {isManagementVisible ? (
+                    <DropdownActionItem
+                      label="Administration"
+                      icon={<AdministrationIcon />}
+                      onClick={handleNavigateToManagement}
+                    />
+                  ) : null}
+
+                  <DropdownActionItem
+                    label="Abmelden"
+                    icon={<LogoutIcon />}
+                    onClick={handleLogoutClick}
+                  />
+                </div>
               </div>
             </div>
           )}
@@ -339,9 +344,11 @@ function HeaderNavLink({
 
 function DropdownActionItem({
   label,
+  icon,
   onClick,
 }: {
   label: string;
+  icon: ReactNode;
   onClick: () => void | Promise<void>;
 }) {
   const [isHovered, setIsHovered] = useState(false);
@@ -354,7 +361,8 @@ function DropdownActionItem({
       onMouseLeave={() => setIsHovered(false)}
       style={menuItemStyle(isHovered)}
     >
-      {label}
+      <span style={dropdownIconWrapperStyle}>{icon}</span>
+      <span style={dropdownLabelStyle}>{label}</span>
     </button>
   );
 }
@@ -382,15 +390,94 @@ function navLinkStyle(isActive: boolean, isHovered: boolean): CSSProperties {
 function menuItemStyle(isHovered: boolean): CSSProperties {
   return {
     width: "100%",
-    padding: "12px 14px",
+    padding: "11px 12px",
     border: "none",
+    borderRadius: "10px",
     backgroundColor: isHovered ? colors.surfaceSoft : "transparent",
     color: colors.text,
     textAlign: "left",
     fontWeight: 600,
     cursor: "pointer",
     transition: "background-color 0.15s ease, color 0.15s ease",
+    display: "grid",
+    gridTemplateColumns: "28px 1fr 28px",
+    alignItems: "center",
+    columnGap: "8px",
   };
+}
+
+const dropdownIconWrapperStyle: CSSProperties = {
+  width: "28px",
+  height: "28px",
+  borderRadius: "9px",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  color: colors.textMuted,
+  backgroundColor: colors.surfaceSoft,
+};
+
+const dropdownLabelStyle: CSSProperties = {
+  justifySelf: "center",
+  fontSize: "0.94rem",
+};
+
+const iconStyle: CSSProperties = {
+  width: "17px",
+  height: "17px",
+  strokeWidth: 1.9,
+};
+
+function ProfileIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={iconStyle}
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 20c1.8-4 14.2-4 16 0" />
+    </svg>
+  );
+}
+
+function AdministrationIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={iconStyle}
+      aria-hidden="true"
+    >
+      <path d="M12 3l7 4v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V7l7-4Z" />
+      <path d="M9.5 12.5l1.7 1.7 3.8-4" />
+    </svg>
+  );
+}
+
+function LogoutIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={iconStyle}
+      aria-hidden="true"
+    >
+      <path d="M10 17l5-5-5-5" />
+      <path d="M15 12H3" />
+      <path d="M15 5h3a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-3" />
+    </svg>
+  );
 }
 
 export default Header;
