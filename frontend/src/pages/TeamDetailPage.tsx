@@ -29,6 +29,10 @@ function formatLineupPosition(position: number | null | undefined): string {
   return position == null ? "–" : String(position);
 }
 
+function getAccountStatusLabel(accountActivated: boolean): string {
+  return accountActivated ? "registriert" : "nicht registriert";
+}
+
 const lineupBadgeStyle = {
   minWidth: "38px",
   height: "38px",
@@ -328,9 +332,7 @@ export default function TeamDetailPage() {
                                 }
                                 size="sm"
                               >
-                                {hasActiveAccount
-                                  ? "Account aktiv"
-                                  : "Kein Account"}
+                                {getAccountStatusLabel(hasActiveAccount)}
                               </Badge>
 
                               <Badge size="md">Profil</Badge>
