@@ -34,7 +34,6 @@ function Header({ user, onLogout }: HeaderProps) {
   const isManagementActive = location.pathname.startsWith("/management");
   const isMembersActive = location.pathname.startsWith("/management/members");
   const isTeamsActive = location.pathname.startsWith("/management/teams");
-  const isUsersActive = location.pathname.startsWith("/management/users");
 
   useEffect(() => {
     if (!menuOpen && !managementMenuOpen) return;
@@ -93,11 +92,6 @@ function Header({ user, onLogout }: HeaderProps) {
   function handleNavigateToManagementTeams() {
     setManagementMenuOpen(false);
     navigate("/management/teams");
-  }
-
-  function handleNavigateToManagementUsers() {
-    setManagementMenuOpen(false);
-    navigate("/management/users");
   }
 
   async function handleLogoutClick() {
@@ -290,12 +284,6 @@ function Header({ user, onLogout }: HeaderProps) {
                         label="Mannschaften"
                         isActive={isTeamsActive}
                         onClick={handleNavigateToManagementTeams}
-                      />
-
-                      <ManagementMenuItem
-                        label="Benutzer"
-                        isActive={isUsersActive}
-                        onClick={handleNavigateToManagementUsers}
                       />
                     </div>
                   </div>
