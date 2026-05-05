@@ -10,7 +10,7 @@ import java.util.Objects;
  * Repräsentiert ein Spiel einer Mannschaft.
  *
  * MVP-Fokus: - Welches Team spielt? - Wann findet das Spiel statt? - Gegen wen?
- * - Wo? - Heim/Auswärts - Status
+ * - In welchem Wettbewerb? - Wo? - Heim/Auswärts - Status
  */
 @Entity
 @Table(name = "match_event")
@@ -33,6 +33,13 @@ public class Match {
 	 */
 	@Column(name = "opponent_name", nullable = false, length = 150)
 	private String opponentName;
+
+	/**
+	 * Wettbewerb oder Liga, z. B. Bezirksliga, Kreisliga, Pokal oder
+	 * Freundschaftsspiel.
+	 */
+	@Column(name = "competition", length = 150)
+	private String competition;
 
 	/**
 	 * Zeitpunkt des Spiels.
@@ -95,6 +102,14 @@ public class Match {
 
 	public void setOpponentName(String opponentName) {
 		this.opponentName = opponentName;
+	}
+
+	public String getCompetition() {
+		return competition;
+	}
+
+	public void setCompetition(String competition) {
+		this.competition = competition;
 	}
 
 	public LocalDateTime getMatchDateTime() {

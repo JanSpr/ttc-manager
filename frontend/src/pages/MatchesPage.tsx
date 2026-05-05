@@ -104,7 +104,8 @@ function MatchCard({ match }: { match: Match }) {
           fontSize: "0.95rem",
         }}
       >
-        <span>{formatMatchType(match)}</span>
+        {match.competition ? <span>{match.competition}</span> : null}
+        <span>{match.competition ? "· " : ""}{formatMatchType(match)}</span>
         {match.location ? <span>· {match.location}</span> : null}
       </div>
 

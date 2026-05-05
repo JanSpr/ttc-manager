@@ -11,6 +11,7 @@ public class MatchResponse {
 	private Long teamId;
 	private String teamName;
 	private String opponentName;
+	private String competition;
 	private LocalDateTime matchDateTime;
 	private String location;
 	private boolean homeMatch;
@@ -20,12 +21,13 @@ public class MatchResponse {
 	public MatchResponse() {
 	}
 
-	public MatchResponse(Long id, Long teamId, String teamName, String opponentName, LocalDateTime matchDateTime,
-			String location, boolean homeMatch, MatchStatus status, String notes) {
+	public MatchResponse(Long id, Long teamId, String teamName, String opponentName, String competition,
+			LocalDateTime matchDateTime, String location, boolean homeMatch, MatchStatus status, String notes) {
 		this.id = id;
 		this.teamId = teamId;
 		this.teamName = teamName;
 		this.opponentName = opponentName;
+		this.competition = competition;
 		this.matchDateTime = matchDateTime;
 		this.location = location;
 		this.homeMatch = homeMatch;
@@ -47,6 +49,10 @@ public class MatchResponse {
 
 	public String getOpponentName() {
 		return opponentName;
+	}
+
+	public String getCompetition() {
+		return competition;
 	}
 
 	public LocalDateTime getMatchDateTime() {

@@ -5,6 +5,7 @@ export type Match = {
   teamId: number;
   teamName: string;
   opponentName: string;
+  competition: string | null;
   matchDateTime: string;
   location: string | null;
   homeMatch: boolean;

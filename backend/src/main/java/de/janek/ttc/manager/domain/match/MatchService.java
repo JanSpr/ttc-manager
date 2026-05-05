@@ -41,10 +41,11 @@ public class MatchService {
 		Match match = new Match();
 		match.setTeam(team);
 		match.setOpponentName(request.getOpponentName());
+		match.setCompetition(normalizeOptionalText(request.getCompetition()));
 		match.setMatchDateTime(request.getMatchDateTime());
-		match.setLocation(request.getLocation());
+		match.setLocation(normalizeOptionalText(request.getLocation()));
 		match.setHomeMatch(request.getHomeMatch());
-		match.setNotes(request.getNotes());
+		match.setNotes(normalizeOptionalText(request.getNotes()));
 		match.setStatus(MatchStatus.PLANNED);
 
 		Match savedMatch = matchRepository.save(match);
@@ -57,10 +58,11 @@ public class MatchService {
 
 		existingMatch.setTeam(team);
 		existingMatch.setOpponentName(request.getOpponentName());
+		existingMatch.setCompetition(normalizeOptionalText(request.getCompetition()));
 		existingMatch.setMatchDateTime(request.getMatchDateTime());
-		existingMatch.setLocation(request.getLocation());
+		existingMatch.setLocation(normalizeOptionalText(request.getLocation()));
 		existingMatch.setHomeMatch(request.getHomeMatch());
-		existingMatch.setNotes(request.getNotes());
+		existingMatch.setNotes(normalizeOptionalText(request.getNotes()));
 
 		Match savedMatch = matchRepository.save(existingMatch);
 		return toResponse(savedMatch);
@@ -70,10 +72,6 @@ public class MatchService {
 		Match match = getMatchEntityById(id);
 		matchRepository.delete(match);
 	}
-
-	// =========================
-	// 🔹 NEU: UPCOMING MATCHES
-	// =========================
 
 	@Transactional(readOnly = true)
 	public List<MatchResponse> findUpcoming() {
@@ -88,8 +86,6 @@ public class MatchService {
 				.toList();
 	}
 
-	// =========================
-
 	private Match getMatchEntityById(Long id) {
 		return matchRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Match mit ID " + id + " wurde nicht gefunden."));
@@ -100,9 +96,13 @@ public class MatchService {
 				.orElseThrow(() -> new ResourceNotFoundException("Team mit ID " + teamId + " wurde nicht gefunden."));
 	}
 
+	private String normalizeOptionalText(String value) {
+		return value != null && !value.trim().isEmpty() ? value.trim() : null;
+	}
+
 	private MatchResponse toResponse(Match match) {
 		return new MatchResponse(match.getId(), match.getTeam().getId(), match.getTeam().getName(),
-				match.getOpponentName(), match.getMatchDateTime(), match.getLocation(), match.isHomeMatch(),
-				match.getStatus(), match.getNotes());
+				match.getOpponentName(), match.getCompetition(), match.getMatchDateTime(), match.getLocation(),
+				match.isHomeMatch(), match.getStatus(), match.getNotes());
 	}
 }

@@ -8,7 +8,7 @@ import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 
 /**
- * Request-DTO zum Erstellen eines Spiels.
+ * Request-DTO zum Erstellen und Aktualisieren eines Spiels.
  */
 public class CreateMatchRequest {
 
@@ -18,6 +18,9 @@ public class CreateMatchRequest {
 	@NotBlank(message = "Der Gegnername darf nicht leer sein.")
 	@Size(max = 150, message = "Der Gegnername darf maximal 150 Zeichen lang sein.")
 	private String opponentName;
+
+	@Size(max = 150, message = "Der Wettbewerb darf maximal 150 Zeichen lang sein.")
+	private String competition;
 
 	@NotNull(message = "Das Spieldatum ist erforderlich.")
 	@Future(message = "Das Spieldatum muss in der Zukunft liegen.")
@@ -49,6 +52,14 @@ public class CreateMatchRequest {
 
 	public void setOpponentName(String opponentName) {
 		this.opponentName = opponentName;
+	}
+
+	public String getCompetition() {
+		return competition;
+	}
+
+	public void setCompetition(String competition) {
+		this.competition = competition;
 	}
 
 	public LocalDateTime getMatchDateTime() {
