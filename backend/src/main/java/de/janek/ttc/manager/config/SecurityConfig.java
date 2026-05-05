@@ -58,14 +58,18 @@ public class SecurityConfig {
 				.httpBasic(AbstractHttpConfigurer::disable).formLogin(AbstractHttpConfigurer::disable)
 				.logout(AbstractHttpConfigurer::disable)
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
-				.authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+				.authorizeHttpRequests(auth -> auth
 
+						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+						// 🔐 AUTH
 						.requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
-						.requestMatchers(HttpMethod.GET, "/api/auth/activation-preview").permitAll() // 🔹 NEU
+						.requestMatchers(HttpMethod.GET, "/api/auth/activation-preview").permitAll()
 						.requestMatchers(HttpMethod.POST, "/api/auth/activate").permitAll()
 						.requestMatchers(HttpMethod.POST, "/api/auth/logout").permitAll()
 						.requestMatchers(HttpMethod.GET, "/api/auth/me").permitAll()
 
+						// 👤 USERS
 						.requestMatchers(HttpMethod.POST, "/api/users").permitAll()
 
 						.requestMatchers(HttpMethod.GET, "/api/users/me").authenticated()
@@ -76,15 +80,18 @@ public class SecurityConfig {
 						.requestMatchers(HttpMethod.PUT, "/api/users/**").hasAnyRole("ADMIN", "BOARD")
 						.requestMatchers(HttpMethod.DELETE, "/api/users/**").hasAnyRole("ADMIN", "BOARD")
 
-						.requestMatchers(HttpMethod.GET, "/api/teams").permitAll()
-						.requestMatchers(HttpMethod.GET, "/api/teams/*").permitAll()
-						.requestMatchers(HttpMethod.GET, "/api/teams/*/memberships").permitAll()
+						// 👥 MEMBERS
 						.requestMatchers(HttpMethod.GET, "/api/members").permitAll()
 						.requestMatchers(HttpMethod.GET, "/api/members/**").permitAll()
 
 						.requestMatchers(HttpMethod.POST, "/api/members").hasAnyRole("ADMIN", "BOARD")
 						.requestMatchers(HttpMethod.PUT, "/api/members/**").hasAnyRole("ADMIN", "BOARD")
 						.requestMatchers(HttpMethod.DELETE, "/api/members/**").hasAnyRole("ADMIN", "BOARD")
+
+						// 🏓 TEAMS
+						.requestMatchers(HttpMethod.GET, "/api/teams").permitAll()
+						.requestMatchers(HttpMethod.GET, "/api/teams/*").permitAll()
+						.requestMatchers(HttpMethod.GET, "/api/teams/*/memberships").permitAll()
 
 						.requestMatchers(HttpMethod.POST, "/api/teams").hasAnyRole("ADMIN", "BOARD")
 						.requestMatchers(HttpMethod.PUT, "/api/teams/*").hasAnyRole("ADMIN", "BOARD")
@@ -94,6 +101,15 @@ public class SecurityConfig {
 						.requestMatchers(HttpMethod.PUT, "/api/teams/*/memberships/*").hasAnyRole("ADMIN", "BOARD")
 						.requestMatchers(HttpMethod.DELETE, "/api/teams/*/memberships/*").hasAnyRole("ADMIN", "BOARD")
 
+						// 🆕 MATCHES (NEU)
+						.requestMatchers(HttpMethod.GET, "/api/matches").permitAll()
+						.requestMatchers(HttpMethod.GET, "/api/matches/**").permitAll()
+
+						.requestMatchers(HttpMethod.POST, "/api/matches").hasAnyRole("ADMIN", "BOARD")
+						.requestMatchers(HttpMethod.PUT, "/api/matches/**").hasAnyRole("ADMIN", "BOARD")
+						.requestMatchers(HttpMethod.DELETE, "/api/matches/**").hasAnyRole("ADMIN", "BOARD")
+
+						// 🔒 DEFAULT
 						.anyRequest().authenticated());
 
 		return http.build();

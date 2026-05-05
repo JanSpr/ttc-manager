@@ -11,13 +11,21 @@ import java.util.List;
  */
 public interface MatchRepository extends JpaRepository<Match, Long> {
 
-    List<Match> findAllByTeamOrderByMatchDateTimeAsc(Team team);
+	List<Match> findAllByTeamOrderByMatchDateTimeAsc(Team team);
 
-    List<Match> findAllByTeamIdOrderByMatchDateTimeAsc(Long teamId);
+	List<Match> findAllByTeamIdOrderByMatchDateTimeAsc(Long teamId);
 
-    List<Match> findAllByMatchDateTimeAfterOrderByMatchDateTimeAsc(LocalDateTime from);
+	List<Match> findAllByMatchDateTimeAfterOrderByMatchDateTimeAsc(LocalDateTime from);
 
-    List<Match> findAllByTeamIdAndMatchDateTimeAfterOrderByMatchDateTimeAsc(Long teamId, LocalDateTime from);
+	List<Match> findAllByTeamIdAndMatchDateTimeAfterOrderByMatchDateTimeAsc(Long teamId, LocalDateTime from);
 
-    List<Match> findAllByStatusOrderByMatchDateTimeAsc(MatchStatus status);
+	List<Match> findAllByStatusOrderByMatchDateTimeAsc(MatchStatus status);
+
+	// 🔹 NEU – kommende Spiele (nur geplante & bestätigte)
+	List<Match> findAllByMatchDateTimeAfterAndStatusInOrderByMatchDateTimeAsc(LocalDateTime from,
+			List<MatchStatus> statuses);
+
+	// 🔹 NEU – kommende Spiele eines Teams
+	List<Match> findAllByTeamIdAndMatchDateTimeAfterAndStatusInOrderByMatchDateTimeAsc(Long teamId, LocalDateTime from,
+			List<MatchStatus> statuses);
 }

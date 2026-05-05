@@ -8,73 +8,53 @@ import java.util.List;
 
 /**
  * REST-Controller für Spiele.
- *
- * Der Controller arbeitet ausschließlich mit Request-/Response-DTOs
- * und gibt keine JPA-Entities direkt nach außen zurück.
  */
 @RestController
 @RequestMapping("/api/matches")
 public class MatchController {
 
-    private final MatchService matchService;
+	private final MatchService matchService;
 
-    public MatchController(MatchService matchService) {
-        this.matchService = matchService;
-    }
+	public MatchController(MatchService matchService) {
+		this.matchService = matchService;
+	}
 
-    /**
-     * Gibt alle Spiele zurück.
-     *
-     * @return Liste aller Spiele als Response-DTOs
-     */
-    @GetMapping
-    public List<MatchResponse> getAllMatches() {
-        return matchService.findAll();
-    }
+	@GetMapping
+	public List<MatchResponse> getAllMatches() {
+		return matchService.findAll();
+	}
 
-    /**
-     * Gibt ein Spiel anhand seiner ID zurück.
-     *
-     * @param id Match-ID
-     * @return Spiel als Response-DTO
-     */
-    @GetMapping("/{id}")
-    public MatchResponse getMatchById(@PathVariable Long id) {
-        return matchService.findById(id);
-    }
+	@GetMapping("/{id}")
+	public MatchResponse getMatchById(@PathVariable Long id) {
+		return matchService.findById(id);
+	}
 
-    /**
-     * Erstellt ein neues Spiel.
-     *
-     * @param request Request-Daten für das neue Spiel
-     * @return erstelltes Spiel als Response-DTO
-     */
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public MatchResponse createMatch(@Valid @RequestBody CreateMatchRequest request) {
-        return matchService.create(request);
-    }
+	// 🔹 NEU
+	@GetMapping("/upcoming")
+	public List<MatchResponse> getUpcomingMatches() {
+		return matchService.findUpcoming();
+	}
 
-    /**
-     * Aktualisiert ein bestehendes Spiel.
-     *
-     * @param id Match-ID
-     * @param request neue Spiel-Daten
-     * @return aktualisiertes Spiel als Response-DTO
-     */
-    @PutMapping("/{id}")
-    public MatchResponse updateMatch(@PathVariable Long id, @Valid @RequestBody CreateMatchRequest request) {
-        return matchService.update(id, request);
-    }
+	// 🔹 NEU
+	@GetMapping("/upcoming/team/{teamId}")
+	public List<MatchResponse> getUpcomingMatchesByTeam(@PathVariable Long teamId) {
+		return matchService.findUpcomingByTeam(teamId);
+	}
 
-    /**
-     * Löscht ein Spiel.
-     *
-     * @param id Match-ID
-     */
-    @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteMatch(@PathVariable Long id) {
-        matchService.delete(id);
-    }
+	@PostMapping
+	@ResponseStatus(HttpStatus.CREATED)
+	public MatchResponse createMatch(@Valid @RequestBody CreateMatchRequest request) {
+		return matchService.create(request);
+	}
+
+	@PutMapping("/{id}")
+	public MatchResponse updateMatch(@PathVariable Long id, @Valid @RequestBody CreateMatchRequest request) {
+		return matchService.update(id, request);
+	}
+
+	@DeleteMapping("/{id}")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void deleteMatch(@PathVariable Long id) {
+		matchService.delete(id);
+	}
 }
