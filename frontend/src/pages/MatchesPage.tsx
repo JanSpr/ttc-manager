@@ -181,16 +181,27 @@ export default function MatchesPage({ user }: MatchesPageProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const ownTeamMatches = useMemo(() => {
-    if (!user.memberId) return [];
+  const ownTeamIds = useMemo(() => new Set(user.teamIds ?? []), [user.teamIds]);
 
-    // bewusst leer, da Mapping noch nicht korrekt möglich
-    return [];
-  }, [user.memberId]);
+  const ownTeamMatches = useMemo(() => {
+    if (ownTeamIds.size === 0) return [];
+
+    return matches
+      .filter((match) => ownTeamIds.has(match.teamId))
+      .slice()
+      .sort(sortByDate);
+  }, [matches, ownTeamIds]);
 
   const otherMatches = useMemo(() => {
-    return matches.slice().sort(sortByDate);
-  }, [matches]);
+    if (ownTeamIds.size === 0) {
+      return matches.slice().sort(sortByDate);
+    }
+
+    return matches
+      .filter((match) => !ownTeamIds.has(match.teamId))
+      .slice()
+      .sort(sortByDate);
+  }, [matches, ownTeamIds]);
 
   useEffect(() => {
     let isMounted = true;
@@ -244,13 +255,13 @@ export default function MatchesPage({ user }: MatchesPageProps) {
 
       <MatchSection
         title="Deine nächsten Spiele"
-        description="Wird verfügbar, sobald deine Mannschaft korrekt zugeordnet ist."
+        description="Spiele deiner zugeordneten Mannschaften."
         matches={ownTeamMatches}
       />
 
       <MatchSection
         title="Weitere anstehende Spiele"
-        description="Alle geplanten und bestätigten Mannschaftsspiele."
+        description="Alle weiteren geplanten und bestätigten Mannschaftsspiele."
         matches={otherMatches}
       />
     </>

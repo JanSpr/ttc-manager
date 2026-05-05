@@ -15,6 +15,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -250,12 +251,20 @@ public class UserService {
 	}
 
 	private UserResponse toResponse(User user) {
+
 		Long memberId = user.getMember() != null ? user.getMember().getId() : null;
 		String memberFullName = user.getMember() != null ? user.getMember().getFullName() : null;
 
+		Set<Long> teamIds = null;
+
+		if (user.getMember() != null && user.getMember().getMemberships() != null) {
+			teamIds = user.getMember().getMemberships().stream().map(m -> m.getTeam().getId())
+					.collect(Collectors.toSet());
+		}
+
 		return new UserResponse(user.getId(), user.getFirstName(), user.getLastName(), user.getFullName(),
 				user.getUsername(), user.getEmail(), user.isActive(), Set.copyOf(user.getRoles()), memberId,
-				memberFullName, user.getActivationCode());
+				memberFullName, user.getActivationCode(), teamIds);
 	}
 
 	private String generateUniqueUsername(String firstName, String lastName) {
