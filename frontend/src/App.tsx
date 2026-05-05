@@ -10,6 +10,7 @@ import HomePage from "./pages/HomePage";
 import TeamsPage from "./pages/TeamsPage";
 import TeamDetailPage from "./pages/TeamDetailPage";
 import MemberDetailPage from "./pages/MemberDetailPage";
+import MatchesPage from "./pages/MatchesPage";
 import LoginPage from "./pages/LoginPage";
 import ActivateAccountPage from "./pages/ActivateAccountPage";
 import UserProfilePage from "./pages/UserProfilePage";
@@ -79,6 +80,15 @@ function AppContent() {
             element={
               <ProtectedRoute>
                 <TeamDetailPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/matches"
+            element={
+              <ProtectedRoute>
+                {user ? <MatchesPage user={user} /> : null}
               </ProtectedRoute>
             }
           />

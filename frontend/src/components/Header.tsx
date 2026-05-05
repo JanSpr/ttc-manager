@@ -166,6 +166,7 @@ function Header({ user, onLogout }: HeaderProps) {
           <nav style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
             <HeaderNavLink to="/" label="Start" end />
             <HeaderNavLink to="/teams" label="Mannschaften" />
+            <HeaderNavLink to="/matches" label="Termine" />
           </nav>
         </div>
 
