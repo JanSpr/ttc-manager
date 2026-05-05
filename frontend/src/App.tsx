@@ -17,6 +17,7 @@ import UserProfilePage from "./pages/UserProfilePage";
 import ManagementPage from "./pages/ManagementPage";
 import ManagementMembersPage from "./pages/ManagementMembersPage";
 import ManagementTeamsPage from "./pages/ManagementTeamsPage";
+import ManagementMatchesPage from "./pages/ManagementMatchesPage";
 
 function AppContent() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -134,6 +135,15 @@ function AppContent() {
             element={
               <ProtectedRoute allowedRoles={["ADMIN", "BOARD"]}>
                 <ManagementTeamsPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/management/matches"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN", "BOARD"]}>
+                <ManagementMatchesPage />
               </ProtectedRoute>
             }
           />

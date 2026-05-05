@@ -27,6 +27,13 @@ const adminAreas: AdminArea[] = [
     to: "/management/teams",
     badge: "Teams",
   },
+  {
+    title: "Spieltermine",
+    description:
+      "Spiele anlegen, Gegner, Wettbewerb, Spielort und weitere Hinweise verwalten.",
+    to: "/management/matches",
+    badge: "Termine",
+  },
 ];
 
 export default function ManagementPage() {
