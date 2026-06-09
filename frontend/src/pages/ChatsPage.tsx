@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { fetchChatConversations } from "../api/chatApi";
-import type { ChatConversation } from "../types/chat";
+import { fetchChatConversations, fetchChatMessages } from "../api/chatApi";
+import type { ChatConversation, ChatMessage } from "../types/chat";
 import PageIntro from "../components/layout/PageIntro";
 import Badge from "../components/ui/Badge";
 import Card from "../components/ui/Card";
@@ -27,6 +27,16 @@ function formatConversationType(type: ChatConversation["type"]): string {
     default:
       return type;
   }
+}
+
+function formatMessageTime(value: string): string {
+  return new Intl.DateTimeFormat("de-DE", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value));
 }
 
 function ChatListItem({
@@ -75,14 +85,7 @@ function ChatListItem({
     >
       <TeamAvatar teamName={conversation.title} />
 
-      <div
-        style={{
-          flex: 1,
-          minWidth: 0,
-          display: "grid",
-          gap: "0.3rem",
-        }}
-      >
+      <div style={{ flex: 1, minWidth: 0, display: "grid", gap: "0.3rem" }}>
         <div
           style={{
             display: "flex",
@@ -104,13 +107,7 @@ function ChatListItem({
             {conversation.title}
           </h3>
 
-          <Badge
-            size="sm"
-            style={{
-              opacity: 0.85,
-              fontWeight: 500,
-            }}
-          >
+          <Badge size="sm" style={{ opacity: 0.85, fontWeight: 500 }}>
             {formatConversationType(conversation.type)}
           </Badge>
         </div>
@@ -125,10 +122,61 @@ function ChatListItem({
             textOverflow: "ellipsis",
           }}
         >
-          Noch keine Vorschau verfügbar.
+          Nachrichten anzeigen
         </p>
       </div>
     </button>
+  );
+}
+
+function ChatMessageItem({ message }: { message: ChatMessage }) {
+  return (
+    <article
+      style={{
+        padding: "0.95rem 1rem",
+        borderRadius: "16px",
+        backgroundColor: colors.surface,
+        border: `1px solid ${colors.border}`,
+        boxShadow: "0 2px 8px rgba(15, 23, 42, 0.04)",
+        display: "grid",
+        gap: "0.45rem",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "baseline",
+          gap: "1rem",
+        }}
+      >
+        <strong style={{ color: colors.text, fontSize: "0.95rem" }}>
+          {message.senderName}
+        </strong>
+
+        <span
+          style={{
+            color: colors.textMuted,
+            fontSize: "0.78rem",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {formatMessageTime(message.createdAt)}
+        </span>
+      </div>
+
+      <p
+        style={{
+          margin: 0,
+          color: colors.text,
+          lineHeight: 1.55,
+          whiteSpace: "pre-wrap",
+          overflowWrap: "break-word",
+        }}
+      >
+        {message.content}
+      </p>
+    </article>
   );
 }
 
@@ -137,8 +185,13 @@ export default function ChatsPage() {
   const [selectedConversationId, setSelectedConversationId] = useState<
     number | null
   >(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [isLoadingConversations, setIsLoadingConversations] = useState(true);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const [conversationError, setConversationError] = useState<string | null>(
+    null
+  );
+  const [messageError, setMessageError] = useState<string | null>(null);
 
   const sortedConversations = useMemo(
     () => conversations.slice().sort(sortConversationsByTitle),
@@ -148,7 +201,14 @@ export default function ChatsPage() {
   const selectedConversation =
     sortedConversations.find(
       (conversation) => conversation.id === selectedConversationId
-    ) ?? sortedConversations[0];
+    ) ?? null;
+
+  function handleSelectConversation(conversation: ChatConversation) {
+    setSelectedConversationId(conversation.id);
+    setMessages([]);
+    setIsLoadingMessages(true);
+    setMessageError(null);
+  }
 
   useEffect(() => {
     let isMounted = true;
@@ -157,25 +217,65 @@ export default function ChatsPage() {
       .then((loadedConversations) => {
         if (!isMounted) return;
 
+        const sortedLoadedConversations = loadedConversations
+          .slice()
+          .sort(sortConversationsByTitle);
+
         setConversations(loadedConversations);
-        setError(null);
+        setConversationError(null);
+
+        if (sortedLoadedConversations.length > 0) {
+          setSelectedConversationId(sortedLoadedConversations[0].id);
+          setIsLoadingMessages(true);
+        }
       })
       .catch((err) => {
         if (!isMounted) return;
 
         console.error("Fehler beim Laden der Chats:", err);
-        setError("Chats konnten nicht geladen werden.");
+        setConversationError("Chats konnten nicht geladen werden.");
       })
       .finally(() => {
         if (!isMounted) return;
 
-        setIsLoading(false);
+        setIsLoadingConversations(false);
       });
 
     return () => {
       isMounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!selectedConversationId) {
+      return;
+    }
+
+    let isMounted = true;
+
+    fetchChatMessages(selectedConversationId)
+      .then((loadedMessages) => {
+        if (!isMounted) return;
+
+        setMessages(loadedMessages);
+        setMessageError(null);
+      })
+      .catch((err) => {
+        if (!isMounted) return;
+
+        console.error("Fehler beim Laden der Nachrichten:", err);
+        setMessageError("Nachrichten konnten nicht geladen werden.");
+      })
+      .finally(() => {
+        if (!isMounted) return;
+
+        setIsLoadingMessages(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedConversationId]);
 
   return (
     <>
@@ -186,19 +286,25 @@ export default function ChatsPage() {
         accent
       />
 
-      {error ? <StatusMessage variant="error">{error}</StatusMessage> : null}
+      {conversationError ? (
+        <StatusMessage variant="error">{conversationError}</StatusMessage>
+      ) : null}
 
-      {isLoading ? (
+      {isLoadingConversations ? (
         <StatusMessage variant="muted">Chats werden geladen...</StatusMessage>
       ) : null}
 
-      {!isLoading && !error && conversations.length === 0 ? (
+      {!isLoadingConversations &&
+      !conversationError &&
+      conversations.length === 0 ? (
         <StatusMessage variant="muted">
           Aktuell sind keine Chats verfügbar.
         </StatusMessage>
       ) : null}
 
-      {!isLoading && !error && conversations.length > 0 ? (
+      {!isLoadingConversations &&
+      !conversationError &&
+      conversations.length > 0 ? (
         <Card>
           <div
             style={{
@@ -235,20 +341,13 @@ export default function ChatsPage() {
                 <Badge>{sortedConversations.length}</Badge>
               </div>
 
-              <div
-                style={{
-                  display: "grid",
-                  gap: "0.85rem",
-                }}
-              >
+              <div style={{ display: "grid", gap: "0.85rem" }}>
                 {sortedConversations.map((conversation) => (
                   <ChatListItem
                     key={conversation.id}
                     conversation={conversation}
                     isSelected={conversation.id === selectedConversation?.id}
-                    onSelect={(nextConversation) =>
-                      setSelectedConversationId(nextConversation.id)
-                    }
+                    onSelect={handleSelectConversation}
                   />
                 ))}
               </div>
@@ -260,46 +359,98 @@ export default function ChatsPage() {
                 borderRadius: "18px",
                 backgroundColor: colors.surfaceSoft,
                 padding: "1.25rem",
-                minHeight: "320px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                textAlign: "center",
+                minHeight: "420px",
+                display: "grid",
+                gridTemplateRows: "auto 1fr",
+                gap: "1rem",
               }}
             >
               <div
                 style={{
-                  maxWidth: "420px",
-                  display: "grid",
-                  gap: "0.65rem",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  gap: "1rem",
+                  paddingBottom: "1rem",
+                  borderBottom: `1px solid ${colors.border}`,
                 }}
               >
-                <Badge style={{ justifySelf: "center" }}>
-                  {selectedConversation
-                    ? formatConversationType(selectedConversation.type)
-                    : "Chat"}
-                </Badge>
-
-                <h2
+                <div
                   style={{
-                    margin: 0,
-                    fontSize: "1.35rem",
-                    color: colors.text,
+                    display: "flex",
+                    gap: "0.85rem",
+                    alignItems: "center",
+                    minWidth: 0,
                   }}
                 >
-                  {selectedConversation?.title ?? "Kein Chat ausgewählt"}
-                </h2>
+                  {selectedConversation ? (
+                    <TeamAvatar teamName={selectedConversation.title} />
+                  ) : null}
 
-                <p
-                  style={{
-                    margin: 0,
-                    color: colors.textMuted,
-                    lineHeight: 1.6,
-                  }}
-                >
-                  Im nächsten Schritt zeigen wir hier die Nachrichten an und
-                  ergänzen das Eingabefeld zum Schreiben.
-                </p>
+                  <div style={{ minWidth: 0 }}>
+                    <h2
+                      style={{
+                        margin: 0,
+                        fontSize: "1.25rem",
+                        color: colors.text,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {selectedConversation?.title ?? "Kein Chat ausgewählt"}
+                    </h2>
+
+                    <p
+                      style={{
+                        margin: "0.25rem 0 0",
+                        color: colors.textMuted,
+                        fontSize: "0.9rem",
+                      }}
+                    >
+                      Nachrichtenverlauf
+                    </p>
+                  </div>
+                </div>
+
+                {selectedConversation ? (
+                  <Badge>
+                    {formatConversationType(selectedConversation.type)}
+                  </Badge>
+                ) : null}
+              </div>
+
+              <div
+                style={{
+                  minHeight: 0,
+                  overflowY: "auto",
+                  display: "grid",
+                  alignContent: "start",
+                  gap: "0.85rem",
+                  paddingRight: "0.25rem",
+                }}
+              >
+                {messageError ? (
+                  <StatusMessage variant="error">{messageError}</StatusMessage>
+                ) : null}
+
+                {isLoadingMessages ? (
+                  <StatusMessage variant="muted">
+                    Nachrichten werden geladen...
+                  </StatusMessage>
+                ) : null}
+
+                {!isLoadingMessages && !messageError && messages.length === 0 ? (
+                  <StatusMessage variant="muted">
+                    In diesem Chat gibt es noch keine Nachrichten.
+                  </StatusMessage>
+                ) : null}
+
+                {!isLoadingMessages && !messageError
+                  ? messages.map((message) => (
+                      <ChatMessageItem key={message.id} message={message} />
+                    ))
+                  : null}
               </div>
             </section>
           </div>
