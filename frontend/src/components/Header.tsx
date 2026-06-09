@@ -167,6 +167,7 @@ function Header({ user, onLogout }: HeaderProps) {
             <HeaderNavLink to="/" label="Start" end />
             <HeaderNavLink to="/teams" label="Mannschaften" />
             <HeaderNavLink to="/matches" label="Termine" />
+            <HeaderNavLink to="/chats" label="Chats" />
           </nav>
         </div>
 

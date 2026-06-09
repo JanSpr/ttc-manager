@@ -101,13 +101,18 @@ public class SecurityConfig {
 						.requestMatchers(HttpMethod.PUT, "/api/teams/*/memberships/*").hasAnyRole("ADMIN", "BOARD")
 						.requestMatchers(HttpMethod.DELETE, "/api/teams/*/memberships/*").hasAnyRole("ADMIN", "BOARD")
 
-						// 🆕 MATCHES (NEU)
+						// 🏓 MATCHES
 						.requestMatchers(HttpMethod.GET, "/api/matches").permitAll()
 						.requestMatchers(HttpMethod.GET, "/api/matches/**").permitAll()
 
 						.requestMatchers(HttpMethod.POST, "/api/matches").hasAnyRole("ADMIN", "BOARD")
 						.requestMatchers(HttpMethod.PUT, "/api/matches/**").hasAnyRole("ADMIN", "BOARD")
 						.requestMatchers(HttpMethod.DELETE, "/api/matches/**").hasAnyRole("ADMIN", "BOARD")
+
+						// 💬 CHATS
+						.requestMatchers(HttpMethod.GET, "/api/chats").authenticated()
+						.requestMatchers(HttpMethod.GET, "/api/chats/**").authenticated()
+						.requestMatchers(HttpMethod.POST, "/api/chats/**").authenticated()
 
 						// 🔒 DEFAULT
 						.anyRequest().authenticated());
