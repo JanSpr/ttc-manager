@@ -1,5 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { fetchChatConversations, fetchChatMessages } from "../api/chatApi";
+import {
+  createChatMessage,
+  fetchChatConversations,
+  fetchChatMessages,
+} from "../api/chatApi";
 import type { ChatConversation, ChatMessage } from "../types/chat";
 import PageIntro from "../components/layout/PageIntro";
 import Badge from "../components/ui/Badge";
@@ -186,12 +190,15 @@ export default function ChatsPage() {
     number | null
   >(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messageText, setMessageText] = useState("");
   const [isLoadingConversations, setIsLoadingConversations] = useState(true);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [conversationError, setConversationError] = useState<string | null>(
     null
   );
   const [messageError, setMessageError] = useState<string | null>(null);
+  const [sendError, setSendError] = useState<string | null>(null);
 
   const sortedConversations = useMemo(
     () => conversations.slice().sort(sortConversationsByTitle),
@@ -203,11 +210,46 @@ export default function ChatsPage() {
       (conversation) => conversation.id === selectedConversationId
     ) ?? null;
 
+  const trimmedMessageText = messageText.trim();
+  const canSendMessage =
+    Boolean(selectedConversationId) &&
+    trimmedMessageText.length > 0 &&
+    !isSendingMessage;
+
   function handleSelectConversation(conversation: ChatConversation) {
     setSelectedConversationId(conversation.id);
     setMessages([]);
+    setMessageText("");
     setIsLoadingMessages(true);
     setMessageError(null);
+    setSendError(null);
+  }
+
+  async function handleSubmitMessage(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!selectedConversationId || trimmedMessageText.length === 0) {
+      return;
+    }
+
+    setIsSendingMessage(true);
+    setSendError(null);
+
+    try {
+      await createChatMessage(selectedConversationId, {
+        content: trimmedMessageText,
+      });
+
+      const loadedMessages = await fetchChatMessages(selectedConversationId);
+      setMessages(loadedMessages);
+      setMessageText("");
+      setMessageError(null);
+    } catch (error) {
+      console.error("Fehler beim Senden der Nachricht:", error);
+      setSendError("Nachricht konnte nicht gesendet werden.");
+    } finally {
+      setIsSendingMessage(false);
+    }
   }
 
   useEffect(() => {
@@ -361,7 +403,7 @@ export default function ChatsPage() {
                 padding: "1.25rem",
                 minHeight: "420px",
                 display: "grid",
-                gridTemplateRows: "auto 1fr",
+                gridTemplateRows: "auto 1fr auto",
                 gap: "1rem",
               }}
             >
@@ -452,6 +494,97 @@ export default function ChatsPage() {
                     ))
                   : null}
               </div>
+
+              <form
+                onSubmit={handleSubmitMessage}
+                style={{
+                  display: "grid",
+                  gap: "0.65rem",
+                  paddingTop: "1rem",
+                  borderTop: `1px solid ${colors.border}`,
+                }}
+              >
+                {sendError ? (
+                  <StatusMessage variant="error">{sendError}</StatusMessage>
+                ) : null}
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr auto",
+                    gap: "0.75rem",
+                    alignItems: "end",
+                  }}
+                >
+                  <label
+                    style={{
+                      display: "grid",
+                      gap: "0.4rem",
+                    }}
+                  >
+                    <span
+                      style={{
+                        color: colors.textMuted,
+                        fontSize: "0.85rem",
+                        fontWeight: 600,
+                      }}
+                    >
+                      Nachricht
+                    </span>
+
+                    <textarea
+                      value={messageText}
+                      onChange={(event) => {
+                        setMessageText(event.target.value);
+                        setSendError(null);
+                      }}
+                      placeholder="Nachricht schreiben..."
+                      maxLength={2000}
+                      rows={2}
+                      disabled={!selectedConversation || isSendingMessage}
+                      style={{
+                        width: "100%",
+                        resize: "vertical",
+                        minHeight: "46px",
+                        maxHeight: "160px",
+                        border: `1px solid ${colors.border}`,
+                        borderRadius: "14px",
+                        padding: "0.75rem 0.85rem",
+                        color: colors.text,
+                        backgroundColor: colors.surface,
+                        font: "inherit",
+                        lineHeight: 1.45,
+                        outline: "none",
+                        boxSizing: "border-box",
+                      }}
+                    />
+                  </label>
+
+                  <button
+                    type="submit"
+                    disabled={!canSendMessage}
+                    style={{
+                      border: "none",
+                      borderRadius: "14px",
+                      padding: "0.8rem 1.1rem",
+                      minHeight: "46px",
+                      backgroundColor: canSendMessage
+                        ? colors.primary
+                        : colors.border,
+                      color: canSendMessage ? "#ffffff" : colors.textMuted,
+                      fontWeight: 700,
+                      cursor: canSendMessage ? "pointer" : "not-allowed",
+                      boxShadow: canSendMessage
+                        ? "0 10px 24px rgba(37, 99, 235, 0.22)"
+                        : "none",
+                      transition:
+                        "background-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease",
+                    }}
+                  >
+                    {isSendingMessage ? "Sendet..." : "Senden"}
+                  </button>
+                </div>
+              </form>
             </section>
           </div>
         </Card>
