@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { FormEvent } from "react";
 import {
   createChatMessage,
   fetchChatConversations,
@@ -10,6 +11,7 @@ import Badge from "../components/ui/Badge";
 import Card from "../components/ui/Card";
 import StatusMessage from "../components/ui/StatusMessage";
 import TeamAvatar from "../components/ui/TeamAvatar";
+import { useAuth } from "../context/useAuth";
 import { cardTitleStyle, colors } from "../styles/ui";
 
 function sortConversationsByTitle(
@@ -133,58 +135,73 @@ function ChatListItem({
   );
 }
 
-function ChatMessageItem({ message }: { message: ChatMessage }) {
+function ChatMessageItem({
+  message,
+  isOwnMessage,
+}: {
+  message: ChatMessage;
+  isOwnMessage: boolean;
+}) {
   return (
     <article
       style={{
-        padding: "0.95rem 1rem",
-        borderRadius: "16px",
-        backgroundColor: colors.surface,
-        border: `1px solid ${colors.border}`,
-        boxShadow: "0 2px 8px rgba(15, 23, 42, 0.04)",
-        display: "grid",
-        gap: "0.45rem",
+        display: "flex",
+        justifyContent: isOwnMessage ? "flex-end" : "flex-start",
       }}
     >
       <div
         style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "baseline",
-          gap: "1rem",
+          maxWidth: "76%",
+          display: "grid",
+          gap: "0.3rem",
+          justifyItems: isOwnMessage ? "end" : "start",
         }}
       >
-        <strong style={{ color: colors.text, fontSize: "0.95rem" }}>
-          {message.senderName}
-        </strong>
-
-        <span
+        <div
           style={{
+            display: "flex",
+            flexDirection: isOwnMessage ? "row-reverse" : "row",
+            alignItems: "center",
+            gap: "0.5rem",
             color: colors.textMuted,
             fontSize: "0.78rem",
-            whiteSpace: "nowrap",
           }}
         >
-          {formatMessageTime(message.createdAt)}
-        </span>
-      </div>
+          <span style={{ fontWeight: 700 }}>
+            {isOwnMessage ? "Du" : message.senderName}
+          </span>
+          <span>{formatMessageTime(message.createdAt)}</span>
+        </div>
 
-      <p
-        style={{
-          margin: 0,
-          color: colors.text,
-          lineHeight: 1.55,
-          whiteSpace: "pre-wrap",
-          overflowWrap: "break-word",
-        }}
-      >
-        {message.content}
-      </p>
+        <div
+          style={{
+            padding: "0.8rem 0.95rem",
+            borderRadius: isOwnMessage
+              ? "18px 18px 6px 18px"
+              : "18px 18px 18px 6px",
+            backgroundColor: isOwnMessage ? colors.primary : colors.surface,
+            color: isOwnMessage ? "#ffffff" : colors.text,
+            border: isOwnMessage
+              ? "1px solid rgba(37, 99, 235, 0.28)"
+              : `1px solid ${colors.border}`,
+            boxShadow: isOwnMessage
+              ? "0 10px 24px rgba(37, 99, 235, 0.16)"
+              : "0 2px 8px rgba(15, 23, 42, 0.04)",
+            lineHeight: 1.55,
+            whiteSpace: "pre-wrap",
+            overflowWrap: "break-word",
+          }}
+        >
+          {message.content}
+        </div>
+      </div>
     </article>
   );
 }
 
 export default function ChatsPage() {
+  const { user } = useAuth();
+
   const [conversations, setConversations] = useState<ChatConversation[]>([]);
   const [selectedConversationId, setSelectedConversationId] = useState<
     number | null
@@ -199,6 +216,8 @@ export default function ChatsPage() {
   );
   const [messageError, setMessageError] = useState<string | null>(null);
   const [sendError, setSendError] = useState<string | null>(null);
+
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const sortedConversations = useMemo(
     () => conversations.slice().sort(sortConversationsByTitle),
@@ -216,6 +235,13 @@ export default function ChatsPage() {
     trimmedMessageText.length > 0 &&
     !isSendingMessage;
 
+  function scrollToLatestMessage() {
+    messagesEndRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "end",
+    });
+  }
+
   function handleSelectConversation(conversation: ChatConversation) {
     setSelectedConversationId(conversation.id);
     setMessages([]);
@@ -225,7 +251,7 @@ export default function ChatsPage() {
     setSendError(null);
   }
 
-  async function handleSubmitMessage(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmitMessage(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!selectedConversationId || trimmedMessageText.length === 0) {
@@ -319,6 +345,10 @@ export default function ChatsPage() {
     };
   }, [selectedConversationId]);
 
+  useEffect(() => {
+    scrollToLatestMessage();
+  }, [messages.length, selectedConversationId]);
+
   return (
     <>
       <PageIntro
@@ -401,9 +431,9 @@ export default function ChatsPage() {
                 borderRadius: "18px",
                 backgroundColor: colors.surfaceSoft,
                 padding: "1.25rem",
-                minHeight: "420px",
+                minHeight: "520px",
                 display: "grid",
-                gridTemplateRows: "auto 1fr auto",
+                gridTemplateRows: "auto minmax(0, 1fr) auto",
                 gap: "1rem",
               }}
             >
@@ -470,6 +500,7 @@ export default function ChatsPage() {
                   alignContent: "start",
                   gap: "0.85rem",
                   paddingRight: "0.25rem",
+                  scrollBehavior: "smooth",
                 }}
               >
                 {messageError ? (
@@ -490,9 +521,15 @@ export default function ChatsPage() {
 
                 {!isLoadingMessages && !messageError
                   ? messages.map((message) => (
-                      <ChatMessageItem key={message.id} message={message} />
+                      <ChatMessageItem
+                        key={message.id}
+                        message={message}
+                        isOwnMessage={message.senderId === user?.id}
+                      />
                     ))
                   : null}
+
+                <div ref={messagesEndRef} />
               </div>
 
               <form
@@ -516,12 +553,7 @@ export default function ChatsPage() {
                     alignItems: "end",
                   }}
                 >
-                  <label
-                    style={{
-                      display: "grid",
-                      gap: "0.4rem",
-                    }}
-                  >
+                  <label style={{ display: "grid", gap: "0.4rem" }}>
                     <span
                       style={{
                         color: colors.textMuted,
